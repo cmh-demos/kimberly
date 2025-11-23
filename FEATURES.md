@@ -45,3 +45,6 @@ This builds a personalized model over time.
 - Blockchain data integrity for secure memory logs.
 - Gamification with rewards/badges for consistent use.
 - Health monitoring integration with wearables.
+- Predictive actions to anticipate user needs.
+- Emergency mode for priority handling of urgent requests.
+- External learning from public knowledge bases.

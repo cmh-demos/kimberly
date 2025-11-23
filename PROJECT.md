@@ -19,6 +19,9 @@ Kimberly is a personal AI assistant inspired by Jarvis from Iron Man, designed t
 - **Accessibility**: WCAG 2.1 compliance for inclusive use.
 - **Sustainability**: Low energy consumption, carbon-neutral hosting.
 - **Legal**: Full open source licensing, contributor agreements.
+- **Interoperability**: RESTful APIs for seamless third-party integrations.
+- **Auditability**: Comprehensive logging and audit trails for debugging.
+- **Future-proofing**: Modular design to accommodate AI model upgrades.
 
 ## Non-goals
 - No multi-user support; this is always a single-user system.
