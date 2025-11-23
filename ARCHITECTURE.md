@@ -7,6 +7,7 @@ This document describes system boundaries, major components, data flows, integra
 
 ## Components
 - API Gateway: ingress, routing, authentication, rate-limiting.
+- AI Service: Handles conversational AI using Llama 3.1 open-source LLM.
 - Services: auth, user, billing, jobs, reporting (each service is a small, well-scoped container).
 - Data stores: PostgreSQL (primary relational), Redis (cache/session), object storage (S3-compatible) for blobs.
 - Background processing: worker fleet consuming from a durable queue (e.g., Kafka/RabbitMQ).
