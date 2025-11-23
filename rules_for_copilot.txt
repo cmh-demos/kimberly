@@ -10,6 +10,7 @@ rules:
 - auto-log timestamps and append to copilot_tracking.json after each request
 - commit change after each request
 - use precise durations during logging activities
+- prioritize questions and only ask one at a time
 
 allow:
 - auto-update-logs: true
@@ -34,6 +35,7 @@ logging:
   - record_start_timestamp
   - handle_request
   - append_log_entry
+  - verify_log_entry
   - estimate tokens
   - record_end_timestamp
   - report_response
