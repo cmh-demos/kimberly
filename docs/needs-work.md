@@ -22,3 +22,12 @@ This file lists the highest-priority documentation and project gaps I found, wit
 - Most gaps are documentation and validation gaps (fixes are straightforward). The openapi dedup + tests are most important to enable SDK and CI.
 
 If you want, I can convert each top-priority item into tickets/PRs and start with README + OpenAPI cleanup.
+
+## Finance / Budget clarifying questions (add to backlog)
+These are the questions the finance manager needs to build a budget — add as follow-up items or checklist before budgeting work begins:
+
+- Timeframe: monthly, quarterly, or annual? Preferred horizon (3 / 12 / 36 months)?
+- Level of detail: high-level P&L vs line-item budget (staffing, infra, marketing, contractors)?
+- Currency & target accuracy: which currency, and accuracy target (ballpark, draft, audited)?
+- Existing data: is there an existing finance file (CSV/Excel) or accounting export to import? If so, where?
+
