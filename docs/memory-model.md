@@ -78,6 +78,7 @@ MemoryItem (canonical JSON schema)
 Notes (free-mode):
 - Keep content small; avoid storing large files and transcripts by default. If attachments are required, store them on user devices or local FS; do not use paid object storage by default.
 - Sensitive content: flag metadata.sensitive=true and use local encryption; avoid paid KMS services.
+  - Note: ensure retention policies are user-configurable and that consent logs are recorded for sensitive items.
 
 5. Scoring / meditation (cost-aware operations)
 -----------------------------------------------
@@ -117,6 +118,8 @@ High-quality retrieval is a hybrid of metadata pre-filter + vector similarity re
 Flow for typical chat context retrieval (cost-aware):
 1. Build a metadata filter (tier, tags, time window, sensitivity) to narrow candidate set.
 2. For candidates, prefer lexical matching first (SQLite FTS, trigram) or other metadata heuristics. If self-hosted embeddings are available they may be used as an optional re-ranker, but embedding-based search is explicitly opt-in and must be locally generated.
+    
+  Example: filter candidates by tag="preference" (or other metadata) and then re-rank the filtered set using cosine similarity over vectors for top-K relevance.
 3. Re-rank by a hybrid score: lambda * semantic_similarity + (1-lambda) * memory_score + freshness_boost.
 4. Return top-K for prompt context.
 
@@ -280,6 +283,7 @@ Phase C (cost-mature):
 - How much user configuration do we expose for scoring weights vs. system defaults?
 - Do we allow cross-user shared memories or purely per-user? (Current approach assumes single-user scope.)
 - How aggressively to archive vs. delete (grace-period length)?
+ - Consider differential privacy options for aggregated analytics and metrics reporting (avoid exposing sensitive data in aggregated views).
 
 Appendix: artifacts & repository notes
 -------------------------------------
