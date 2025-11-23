@@ -186,6 +186,18 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/SignupRequest'
+      requestBody:
+        description: User sign-up payload
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignupRequest'
+            examples:
+              signup-example:
+                value:
+                  email: "alice@example.com"
+                  password: "s3curePass!"
       responses:
         '201':
           description: Created
@@ -208,6 +220,18 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/SignupRequest'
+      requestBody:
+        description: User login
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignupRequest'
+            examples:
+              login-example:
+                value:
+                  email: "alice@example.com"
+                  password: "s3curePass!"
       responses:
         '200':
           description: Authenticated
@@ -247,6 +271,17 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ChatRequest'
+      requestBody:
+        description: Chat message
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+            examples:
+              simple-chat:
+                value:
+                  message: "What's on my schedule today?"
       responses:
         '200':
           description: Chat response
@@ -302,6 +337,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MemoryListResponse'
+              examples:
+                sample-memory-list:
+                  value:
+                    items:
+                      - id: "mem_1"
+                        type: short-term
+                        content: "Met Mike at the cafe"
+                        size_bytes: 120
+                        score: 0.8
+                        created_at: "2025-11-22T10:00:00Z"
+                    page: 1
+                    per_page: 20
+                    total: 1
     post:
       summary: Add a memory item
       security:
@@ -319,8 +367,40 @@ paths:
                 content:
                   type: string
               required: [type, content]
+      requestBody:
+        description: Memory item to store
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                type:
+                  type: string
+                  enum: [short-term, long-term, permanent]
+                content:
+                  type: string
+              required: [type, content]
+            examples:
+              mem-create:
+                value:
+                  type: long-term
+                  content: "Reminder: buy batteries"
       responses:
         '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemoryItem'
+              examples:
+                created-memory:
+                  value:
+                    id: "mem_2"
+                    type: long-term
+                    content: "Reminder: buy batteries"
+                    size_bytes: 23
+                    score: 0.0
+                    created_at: "2025-11-22T19:20:00Z"
           description: Created
           content:
             application/json:
@@ -366,6 +446,17 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Agent'
+              examples:
+                agents-sample:
+                  value:
+                    - id: scheduler
+                      name: Scheduler
+                      description: Manages calendar and reminders
+                      status: idle
+                    - id: researcher
+                      name: Researcher
+                      description: Fetches and summarizes web data
+                      status: idle
     post:
       summary: Create/invoke a new agent task
       security:
@@ -376,6 +467,19 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AgentInvocation'
+      requestBody:
+        description: Invoke an agent task
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentInvocation'
+            examples:
+              run-research:
+                value:
+                  task: "search"
+                  params:
+                    query: "best open-source LLMs"
       responses:
         '202':
           description: Accepted
@@ -409,6 +513,16 @@ paths:
       responses:
         '202':
           description: Agent accepted for processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentTaskResponse'
+              examples:
+                accepted:
+                  value:
+                    task_id: "task_123"
+                    status: "running"
+                    result: {}
           content:
             application/json:
               schema:
