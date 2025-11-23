@@ -1,0 +1,8 @@
+# Ignore generated iteration artifacts for memory model
+docs/iterations/
+
+# Common Python
+__pycache__/
+.venv/
+env/
+venv/

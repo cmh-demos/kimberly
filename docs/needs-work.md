@@ -5,23 +5,37 @@ This file lists the highest-priority documentation and project gaps I found, wit
 ## Top priority (fix now)
 - README placeholders: add dev quickstart + runnable example (why: onboarding friction).  Next: add install, env, run steps and example `curl` and test data.
 - `docs/openapi.yaml` dedupe & clean: remove duplicate schemas, complete error responses (why: client SDK generation breaks).  Next: run OpenAPI linter and add examples.
+- No code implementation: entire codebase missing; only docs and scripts exist (why: can't run/test anything). Next: implement minimal runnable app (e.g., Python API with Llama 3.1 integration).
+- Incomplete OpenAPI spec: schemas cut off mid-definition, duplicates present (why: API clients unreliable). Next: complete all endpoints/schemas and validate.
 
 ## High priority (this sprint)
 - Sprint-plan: attach owners + measurable acceptance criteria (why: QA/ownership).  Next: turn into tickets with owners.
 - Diagrams missing: add component and sequence Mermaid diagrams (why: clarify architecture & flows).  Next: embed sample mermaid diagrams in ARCHITECTURE.md.
-
-
+- No CI/CD pipelines: no .github/workflows or automated builds/tests (why: no validation). Next: add GitHub Actions for linting, testing, OpenAPI validation.
+- Minimal testing: only one test file; no unit/integration/E2E for core features (why: no functionality validation). Next: add test suites (e.g., pytest) for 95% coverage, including AI tests.
+- Wireframes missing: referenced SVGs not present in workspace (why: UI design blocked). Next: create/add wireframes as described in wireframes/README.md.
 
 ## Medium priority
 - CI checks for docs & APIs (openapi lint, doc build, copilot_tracking validation).  Next: add GitHub Actions or CI-agnostic pipeline.
 - AI tests: memory accuracy, hallucination checks, bias detection (why: model QA).  Next: add testing matrix in TESTING.md.
+- ML implementation details: no code for memory scoring, meditation, LLM integration (why: core ML untested). Next: implement scoring logic, local Llama inference, evaluation scripts.
+- Infra artifacts incomplete: Terraform/Helm/K8s skeletons but no executable configs (why: can't deploy). Next: flesh out for free providers, add manifests.
+- Security & threat model: basic SECURITY.md, no detailed model or KMS (why: risks unmitigated). Next: add threat model, encryption flows.
+- Metrics/telemetry implementation: KPIs defined but no tracking code (why: can't measure success). Next: add Prometheus/Grafana, integrate logging.
+- Agent orchestration: no code or sandbox for delegation (why: agents unsafe). Next: implement runner with quotas/isolation.
 
 ## Lower priority / Nice to have
 - Mobile plan: fill TBD in README with platform choices and distribution path.
 - Add more examples & SDK snippets in `docs/API.md`.
+- Documentation completeness: some files placeholders (e.g., CHANGELOG.md); ADRs brief (why: maintenance harder). Next: expand with examples, add ADRs.
+- UI/UX details: no prototypes or accessibility tests (why: UI dev stalled). Next: build HTML/CSS mocks, add WCAG checklist.
+- Data pipelines & ops: no ETL, backups, restore tests (why: data fragile). Next: add export/import scripts, automated backups.
+- Free-mode enforcement: no CI blocks for paid APIs (why: accidental costs). Next: add grep-based rules.
+- Project management: plans exist but no tickets/owners (why: execution unclear). Next: convert to GitHub issues.
 
 ## Notes and assessment
 - Most gaps are documentation and validation gaps (fixes are straightforward). The openapi dedup + tests are most important to enable SDK and CI.
+- New gaps identified include major implementation holes (code, ML, infra) that shift priority toward building a prototype.
 
 If you want, I can convert each top-priority item into tickets/PRs and start with README + OpenAPI cleanup.
 
@@ -75,3 +89,26 @@ These questions guide infrastructure decisions, bootstrapping, and production re
 - Quotas and abuse controls: expected or required default per-user quotas and escalation process when quotas are exceeded.
 
 Next: convert these questions into tracked tickets and assign owners before implementing changes.
+
+## Implementation Questions (add to backlog)
+
+These questions clarify technical details needed for coding the core features, ML components, and integrations.
+
+- Core tech stack: What programming language and framework for the API (e.g., Python FastAPI, Node.js Express) and ML components (e.g., PyTorch, Hugging Face)?
+- LLM specifics: Which Llama 3.1 variant (e.g., 8B, 70B, quantized) and integration method (local inference, API wrapper)? Licensing and redistribution details?
+- Memory scoring implementation: How to compute the weighted scoring formula (libraries like scikit-learn, custom logic)? Data sources for components (relevance, emotion, recency)?
+- Meditation process: How to run nightly scoring/pruning (cron job, background worker)? Handling of archived items and quota enforcement?
+- Agent delegation: How are agents implemented (subprocesses, APIs, containers)? Isolation/sandboxing mechanisms (e.g., Docker, resource limits)? Communication protocols?
+- Database schema: Detailed schema for MemoryItem, users, conversations? Migrations and versioning?
+- Embeddings: How to implement optional self-hosted embeddings (e.g., sentence-transformers, FAISS)? Default disabled, but opt-in flow?
+- Security encryption: Methods for encrypting sensitive memory data (e.g., AES, KMS integration)? Key management for local vs cloud?
+- Voice integration: Libraries for TTS/ASR (e.g., ElevenLabs, open-source like Coqui TTS)? Latency targets and fallback handling?
+- UI tech stack: Frameworks for web (e.g., React, Vue), mobile (native, PWA), and voice interfaces?
+- Data pipelines: ETL for memory ingestion, export/import formats (e.g., JSON, CSV)? Handling large transcripts or attachments?
+- Testing tools: Specific tools for AI validation (e.g., bias detection with AIF360, hallucination checks with custom scripts)?
+- Observability integration: How to instrument code for Prometheus metrics, logging, and tracing?
+- Free-mode constraints: Exact rules for blocking paid APIs in code (e.g., environment flags, runtime checks)?
+- Backup/restore: Automated scripts for DB dumps, object store snapshots, and restore verification?
+- CI/CD specifics: Beyond GitHub Actions, any custom scripts or tools for ML model testing/deployment?
+
+Next: prioritize and assign owners to these questions for implementation planning.
