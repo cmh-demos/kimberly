@@ -820,4 +820,17 @@
     "terminal_commands_count": 4,
     "note": "add schema and CI workflow to validate misc/copilot_tracking.json"
   }
+
+  ,
+  {
+    "request_start_time": "2025-11-22T20:41:00.000000-08:00",
+    "request_end_time": "2025-11-22T20:41:03.000000-08:00",
+    "processing_time_microseconds": 3000000,
+    "tokens_used": null,
+    "tokens_used_estimate": 5,
+    "tool_calls_count": 3,
+    "files_accessed_count": 2,
+    "terminal_commands_count": 2,
+    "note": "remove CI workflow (.github/workflows/validate-copilot-logs.yml) per user request"
+  }
 ]
