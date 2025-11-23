@@ -11,6 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
@@ -22,9 +24,9 @@ jobs:
     - name: Lint with flake8
       run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
     - name: Check formatting with black
-      run: black --check .
+      run: black --check . --exclude ".venv|out|dist|node_modules"
     - name: Check imports with isort
-      run: isort --check-only .
+      run: isort --check-only . --filter-files --skip node_modules
     - name: Lint Markdown
       uses: DavidAnson/markdownlint-cli2-action@v16
       with:
@@ -34,6 +36,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
@@ -49,6 +53,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
     - name: Validate OpenAPI
       uses: stoplightio/spectral-action@v0.8.4
       with:
@@ -59,6 +65,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
@@ -70,6 +78,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
     - name: Check for secrets
       uses: zricethezav/gitleaks-action@v2
     - name: Check for paid API usage (free-mode)
