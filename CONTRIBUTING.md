@@ -20,3 +20,8 @@ Guidelines for contributing: PR flow, reviewer matrix, coding standards.
 - Follow PEP 8 for Python.
 - Use TypeScript ESLint for JS/TS.
 - 95% test coverage.
+
+See `docs/CODING_STANDARDS.md` for detailed guidelines.
+
+## Development Process
+See `docs/SDLC.md` for the full Software Development Lifecycle.

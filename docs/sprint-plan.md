@@ -11,7 +11,8 @@ Sprint 0 (Prep — 1 week)
 Sprint 1 (Weeks 1–2)
 - Objectives: Voice + Web basic chat pipeline, short-term memory implemented (see `docs/memory-model.md` for canonical quotas), local-first option.
 - Deliverables: chat endpoint, voice TTS/ASR integration (basic), memory API, end‑to‑end tests.
-- Acceptance: 1:1 chat with memory persists and recalled in same session.
+- Acceptance: 1:1 chat with memory persists and recalled in same session. 95% test coverage for chat and memory modules.
+- Owners: Backend (Alice), Frontend (Bob), QA (Charlie)
 
 Sprint 2 (Weeks 3–4)
 - Objectives: Long-term memory with prioritization and nightly "meditation" process; memory pruning (see `docs/memory-model.md` for canonical quotas).
