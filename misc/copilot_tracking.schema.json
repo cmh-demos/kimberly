@@ -7,8 +7,18 @@
     "type": "object",
     "additionalProperties": true,
     "properties": {
-      "request_start_time": { "type": "string", "format": "date-time" },
-      "request_end_time": { "type": "string", "format": "date-time" },
+      "request_start_time": {
+        "type": "string",
+        "format": "date-time",
+        "description": "ISO-8601 / RFC3339 timestamp including fractional seconds up to microseconds",
+        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{1,6}([+-]\\d{2}:\\d{2}|Z)$"
+      },
+      "request_end_time": {
+        "type": "string",
+        "format": "date-time",
+        "description": "ISO-8601 / RFC3339 timestamp including fractional seconds up to microseconds",
+        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{1,6}([+-]\\d{2}:\\d{2}|Z)$"
+      },
       "processing_time_microseconds": { "type": "integer", "minimum": 0 },
       "processing_time_seconds": { "type": "number", "minimum": 0 },
       "tokens_used": { "anyOf": [ { "type": "integer", "minimum": 0 }, { "type": "null" } ] },

@@ -1,6 +1,7 @@
 do not:
 - work on the main branch
 - work outside of project directory
+- use GitHub Actions unless expressly directed to
 
 rules:
 - responses should be less than 100 words
@@ -30,13 +31,14 @@ logging:
     - validate_against_schema: true
     - verify_file_hash_before_append: true
   ci_enforce_valid_json: true     # CI will fail if logs become invalid
+  timestamp_format: "ISO-8601 with fractional seconds (microsecond precision). Example: 2025-11-22T19:13:00.123456-08:00"
 - append_only: true
 - immutable_historical_entries: true
 - correction_policy: "No edits to existing log entries.       Corrections must be appended as new entries referencing the original entry ID and reason."
 
 - fields:
-  - request_start_time
-  - request_end_time
+  - request_start_time  # must include fractional seconds (microsecond precision)
+  - request_end_time    # must include fractional seconds (microsecond precision)
   - processing_time_microseconds
   - tokens_used
   - tokens_used_estimate
