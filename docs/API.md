@@ -18,3 +18,9 @@ This document provides a concise overview of the Kimberly REST API and links to 
 - GET /health — service health
 
 For full request/response details and schemas see `docs/openapi.yaml`.
+
+## Publishing container images (CI-agnostic)
+
+- Recommended registry: GitHub Container Registry (`ghcr.io`) — provider-agnostic and well-supported for private and public images.
+- Use explicit, immutable tags (eg. `ghcr.io/<org>/kimberly:<semver>-<sha>`) and a stable `latest` branch tag for development flows.
+- Keep CI pipelines vendor-agnostic; any CI system that can build, test, sign (optional), and push to `ghcr.io` will work. Avoid bake-in to a single provider at this stage.
