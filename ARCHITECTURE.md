@@ -7,7 +7,7 @@ This document describes system boundaries, major components, data flows, integra
 
 ## Components
 - API Gateway: ingress, routing, authentication, rate-limiting.
-- AI Service: Handles conversational AI using Llama 3.1 open-source LLM.
+- AI Service: Handles conversational AI using hybrid LLM approach - primary local inference with Llama 3.1 8B quantized model, API wrapper fallback for high-demand scenarios.
 - Services: auth, user, billing, jobs, reporting (each service is a small, well-scoped container).
 - Data stores: PostgreSQL (primary relational), Redis (cache/session), object storage (S3-compatible) for blobs.
 - Background processing: worker fleet consuming from a durable queue (e.g., Kafka/RabbitMQ).
@@ -102,3 +102,4 @@ sequenceDiagram
 ## Constraints and trade-offs
 - Prefers managed cloud services for operational simplicity.
 - K8s adds operational overhead but gives scaling and isolation.
+- Performance targets: Chat response <1s (warm model), initial model load <30s, memory retrieval <500ms, agent delegation <5s, meditation <10min.
