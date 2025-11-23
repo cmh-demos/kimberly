@@ -65,7 +65,7 @@ graph LR
   APISvc --> Tempo
 
   CI --> GHCR
-  CI -->|deploy| Kubernetes Cluster
+  CI -->|deploy| APISvc
 
   click VectorStore "https://example.com/docs/vector-store-considerations" "Vector store notes"
 ```
