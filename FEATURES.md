@@ -31,6 +31,13 @@ Kimberly is a personal AI assistant inspired by Jarvis from Iron Man, designed f
 - **Agent insights**: Delegates learning to agents (e.g., Researcher learns from web data, Coder from code patterns).
 
 This builds a personalized model over time.
+
+## Future Enhancements
 - Seamless agent integration.
 - Advanced personalization based on memory.
 - Expanded platform support.
+- Offline mode for basic functions without internet.
+- Custom plugins for user-extensible agents/modules.
+- Integrations with GitHub, Slack, and email for seamless workflows.
+- Advanced NLP with sentiment analysis and multi-language support.
+- UI customization including themes, voice tones, and personalized avatars.
