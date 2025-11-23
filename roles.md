@@ -209,6 +209,23 @@ This document outlines the key roles required to complete the Kimberly project, 
 - Participate in design critiques and reviews.
 - Iterate designs based on analytics and user feedback.
 
+### Branding Manager
+**Description**: Develops and manages the brand identity for Kimberly.  
+**Responsibilities**:
+- Define brand colors, typography, logo, and visual elements (e.g., purple-centric palette for AI/tech feel).
+- Create branding guidelines and ensure consistent application across platforms (web, mobile, voice).
+- Develop taglines, messaging, and tone of voice (e.g., conversational, intelligent, and approachable).
+- Collaborate on marketing materials, UI mocks, and user-facing assets.
+- Conduct brand research, competitor analysis, and user feedback on branding.
+- Ensure brand alignment with product goals (e.g., privacy, innovation, personalization).
+- Manage brand assets, including logo variations and icon sets.
+- Integrate branding into wireframes, prototypes, and final designs.
+- Monitor brand perception and iterate based on user input.
+- Document branding standards and educate teams on usage.
+- Participate in design reviews and cross-team alignment.
+- Track branding KPIs (e.g., user recognition, engagement).
+- Ensure branding supports accessibility and inclusivity.
+
 ## Specialized Roles
 
 ### ML Engineer

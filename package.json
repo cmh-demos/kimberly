@@ -1,0 +1,220 @@
+{
+  "name": "kimberly-agents",
+  "displayName": "Kimberly Agents",
+  "description": "Custom Copilot agents reflecting roles in the Kimberly project",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "chatParticipants": [
+      {
+        "id": "backend-developer",
+        "name": "backend-developer",
+        "description": "Backend Developer agent for server-side logic and API development",
+        "isSticky": true,
+        "commands": [
+          {
+            "name": "explain",
+            "description": "Explain backend concepts"
+          }
+        ]
+      },
+      {
+        "id": "frontend-developer",
+        "name": "frontend-developer",
+        "description": "Frontend Developer agent for user interfaces and client-side applications",
+        "isSticky": true,
+        "commands": [
+          {
+            "name": "explain",
+            "description": "Explain frontend concepts"
+          }
+        ]
+      },
+      {
+        "id": "engineering-lead",
+        "name": "engineering-lead",
+        "description": "Engineering Lead agent for technical architecture and oversight",
+        "isSticky": true,
+        "commands": [
+          {
+            "name": "review",
+            "description": "Review technical decisions"
+          }
+        ]
+      },
+      {
+        "id": "sre",
+        "name": "sre",
+        "description": "SRE agent for system reliability and operations",
+        "isSticky": true,
+        "commands": [
+          {
+            "name": "monitor",
+            "description": "Discuss monitoring and reliability"
+          }
+        ]
+      },
+      {
+        "id": "devops-engineer",
+        "name": "devops-engineer",
+        "description": "DevOps Engineer agent for infrastructure and deployment",
+        "isSticky": true,
+        "commands": [
+          {
+            "name": "deploy",
+            "description": "Discuss deployment and infrastructure"
+          }
+        ]
+      },
+      {
+        "id": "qa-engineer",
+        "name": "qa-engineer",
+        "description": "QA Engineer agent for software quality and testing",
+        "isSticky": true,
+        "commands": [
+          {
+            "name": "test",
+            "description": "Discuss testing and quality assurance"
+          }
+        ]
+      },
+      {
+        "id": "security-engineer",
+        "name": "security-engineer",
+        "description": "Security Engineer agent for threat protection and secure implementation",
+        "isSticky": true,
+        "commands": [
+          {
+            "name": "secure",
+            "description": "Discuss security and threat mitigation"
+          }
+        ]
+      },
+      {
+        "id": "privacy-data-engineer",
+        "name": "privacy-data-engineer",
+        "description": "Privacy/Data Engineer agent for data privacy and compliance",
+        "isSticky": true,
+        "commands": [
+          {
+            "name": "privacy",
+            "description": "Discuss data privacy and compliance"
+          }
+        ]
+      },
+      {
+        "id": "legal-advisor",
+        "name": "legal-advisor",
+        "description": "Legal Advisor agent for legal compliance and risk mitigation",
+        "isSticky": true,
+        "commands": [
+          {
+            "name": "legal",
+            "description": "Discuss legal and compliance matters"
+          }
+        ]
+      },
+      {
+        "id": "product-manager",
+        "name": "product-manager",
+        "description": "Product Manager agent for product vision and delivery",
+        "isSticky": true,
+        "commands": [
+          {
+            "name": "plan",
+            "description": "Discuss product planning and strategy"
+          }
+        ]
+      },
+      {
+        "id": "ui-ux-designer",
+        "name": "ui-ux-designer",
+        "description": "UI/UX Designer agent for user interfaces and experiences",
+        "isSticky": true,
+        "commands": [
+          {
+            "name": "design",
+            "description": "Discuss UI/UX design and user experience"
+          }
+        ]
+      },
+      {
+        "id": "branding-manager",
+        "name": "branding-manager",
+        "description": "Branding Manager agent for brand identity and management",
+        "isSticky": true,
+        "commands": [
+          {
+            "name": "brand",
+            "description": "Discuss branding and visual identity"
+          }
+        ]
+      },
+      {
+        "id": "ml-engineer",
+        "name": "ml-engineer",
+        "description": "ML Engineer agent for machine learning models and AI integrations",
+        "isSticky": true,
+        "commands": [
+          {
+            "name": "ml",
+            "description": "Discuss machine learning and AI"
+          }
+        ]
+      },
+      {
+        "id": "api-engineer",
+        "name": "api-engineer",
+        "description": "API Engineer agent for API design and integration",
+        "isSticky": true,
+        "commands": [
+          {
+            "name": "api",
+            "description": "Discuss API design and management"
+          }
+        ]
+      },
+      {
+        "id": "documentation-engineer",
+        "name": "documentation-engineer",
+        "description": "Documentation Engineer agent for project documentation",
+        "isSticky": true,
+        "commands": [
+          {
+            "name": "docs",
+            "description": "Discuss documentation and knowledge sharing"
+          }
+        ]
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.74.0",
+    "@types/glob": "^8.1.0",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "16.x",
+    "eslint": "^8.28.0",
+    "glob": "^8.0.3",
+    "mocha": "^10.1.0",
+    "typescript": "^4.9.4",
+    "@typescript-eslint/eslint-plugin": "^5.42.0",
+    "@typescript-eslint/parser": "^5.42.0"
+  }
+}
