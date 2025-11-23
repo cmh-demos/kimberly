@@ -1152,5 +1152,16 @@
     "files_accessed_count": 1,
     "terminal_commands_count": 3,
     "note": "explain: why docs/memory-model.final.md exists (generated iterative artifact; not canonical)"
+  },
+  {
+    "request_start_time": "2025-11-23T06:48:39.950596-08:00",
+    "request_end_time": "2025-11-23T06:48:39.950662-08:00",
+    "processing_time_microseconds": 66,
+    "tokens_used": null,
+    "tokens_used_estimate": 8,
+    "tool_calls_count": 3,
+    "files_accessed_count": 6,
+    "terminal_commands_count": 4,
+    "note": "rescan: verified canonicalization \u2014 only historical log still references memory-model.final.md; found hard-coded quota numbers in docs/memory-cost-guide.md and wireframes; next: update those to reference canonical docs/memory-model.md or confirm quotas"
   }
 ]
