@@ -161,6 +161,13 @@ This document outlines the coding standards, best practices, and guidelines for 
   - Formatter: [Black](https://black.readthedocs.io/) for auto-formatting.
   - Linter: [Flake8](https://flake8.pycqa.org/) for style and errors.
   - Import Sorter: [isort](https://pycqa.github.io/isort/) for import organization.
+  - Markdown linting: We use `markdownlint-cli2` in CI; local use requires Node >= 20.
+    - To run locally:
+      ```bash
+      npx markdownlint-cli2 "**/*.md"
+      # or use the helper script (prefers local npx)
+      ./scripts/markdownlint.sh
+      ```
 - **Best Practices**:
   - Use type hints (mypy for checking).
   - Avoid global variables; use dependency injection.
