@@ -310,5 +310,13 @@
     "tokens_used": null,
     "tokens_used_estimate": 15,
     "note": "lets do move all KPI questions to a later discussion"
+  },
+  {
+    "request_start_time": "2025-11-22T17:59:00-08:00",
+    "request_end_time": "2025-11-22T17:59:01-08:00",
+    "processing_time_seconds": 1.0,
+    "tokens_used": null,
+    "tokens_used_estimate": 20,
+    "note": "good point. we do want voice synthesis never any multi user support. this is only for me always"
   }
 ]
