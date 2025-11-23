@@ -12,12 +12,11 @@ The script will:
 """
 
 import argparse
-import json
 import hashlib
+import json
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
-import sys
-
 
 ROOT = Path(__file__).resolve().parents[1]
 LOG_PATH = ROOT / "misc" / "copilot_tracking.json"
@@ -52,7 +51,9 @@ def validate_entry(entry):
     try:
         import jsonschema
     except Exception:
-        print("jsonschema not installed; skipping schema validation (install with pip install jsonschema)")
+        print(
+            "jsonschema not installed; skipping schema validation (install with pip install jsonschema)"
+        )
         return True
 
     schema = load_json(SCHEMA_PATH)
@@ -70,8 +71,12 @@ def main():
     parser.add_argument("--tool-calls", type=int, default=0)
     parser.add_argument("--files-accessed", type=int, default=0)
     parser.add_argument("--terminal-commands", type=int, default=0)
-    parser.add_argument("--start", default=None, help="ISO timestamp for start (defaults to now)")
-    parser.add_argument("--end", default=None, help="ISO timestamp for end (defaults to now)")
+    parser.add_argument(
+        "--start", default=None, help="ISO timestamp for start (defaults to now)"
+    )
+    parser.add_argument(
+        "--end", default=None, help="ISO timestamp for end (defaults to now)"
+    )
     parser.add_argument("--dry-run", action="store_true")
 
     args = parser.parse_args()
@@ -138,5 +143,5 @@ def main():
     print("appended new log entry — remember to commit the change")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
