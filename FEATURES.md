@@ -51,3 +51,8 @@ This builds a personalized model over time.
 - Multi-modal input support for images, videos, and audio.
 - Self-improvement with auto-update AI models.
 - Holographic interface for 3D interactions.
+- IoT Integration: Control smart home devices (lights, thermostats) via voice commands.
+- Advanced Security: Biometric authentication (fingerprint/face) for access.
+- Health Monitoring: Sync with wearables for activity tracking and reminders.
+- Custom Workflows: User-defined automation scripts for repetitive tasks.
+- Multi-Modal Outputs: Generate charts, documents, or code snippets in responses.
