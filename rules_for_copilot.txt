@@ -24,7 +24,7 @@ logging:
 - fields:
   - request_start_time
   - request_end_time
-  - processing_time_seconds
+  - processing_time_microseconds
   - tokens_used
   - tokens_used_estimate
   - tool_calls_count
