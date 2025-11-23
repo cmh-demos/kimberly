@@ -1131,83 +1131,6 @@
     "pre_append_file_sha256": "5459f8cce225c1a1e594e5381b5b0eeb9e000ecd541bc4d11c5fa3ef78ccd749"
   },
   {
-    "request_start_time": "2025-11-23T06:30:39.176580-08:00",
-    "request_end_time": "2025-11-23T06:30:39.178340-08:00",
-    "processing_time_microseconds": 1760,
-    "tokens_used": null,
-    "tokens_used_estimate": 20,
-    "tool_calls_count": 6,
-    "files_accessed_count": 4,
-    "terminal_commands_count": 4,
-    "note": "canonicalize memory model: mark canonical, mark final as generated, update references"
-  },
-  {
-    "request_start_time": "2025-11-23T06:33:02.183319-08:00",
-    "request_end_time": "2025-11-23T06:33:02.183366-08:00",
-    "processing_time_microseconds": 47,
-    "tokens_used": null,
-    "tokens_used_estimate": 100,
-    "tool_calls_count": 2,
-    "files_accessed_count": 2,
-    "terminal_commands_count": 0,
-    "note": "Read rules_for_copilot.yml file as requested"
-  },
-  {
-    "request_start_time": "2025-11-23T06:33:41.713180-08:00",
-    "request_end_time": "2025-11-23T06:33:41.713229-08:00",
-    "processing_time_microseconds": 49,
-    "tokens_used": null,
-    "tokens_used_estimate": 50,
-    "tool_calls_count": 0,
-    "files_accessed_count": 0,
-    "terminal_commands_count": 0,
-    "note": "User assigned role as quality engineer"
-  },
-  {
-    "request_start_time": "2025-11-23T06:35:05.252321-08:00",
-    "request_end_time": "2025-11-23T06:35:05.252411-08:00",
-    "processing_time_microseconds": 90,
-    "tokens_used": null,
-    "tokens_used_estimate": 2000,
-    "tool_calls_count": 10,
-    "files_accessed_count": 10,
-    "terminal_commands_count": 0,
-    "note": "Read all documents and propose quality-related work"
-  },
-  {
-    "request_start_time": "2025-11-23T06:35:16.700210-08:00",
-    "request_end_time": "2025-11-23T06:35:16.700296-08:00",
-    "processing_time_microseconds": 86,
-    "tokens_used": null,
-    "tokens_used_estimate": 40,
-    "tool_calls_count": 8,
-    "files_accessed_count": 10,
-    "terminal_commands_count": 5,
-    "note": "consolidated memory docs: canonicalized docs/memory-model.md; updated README/FEATURES/sprint/backlog to point to canonical; regenerated final and ignored iterations"
-  },
-  {
-    "request_start_time": "2025-11-23T06:35:59.110887-08:00",
-    "request_end_time": "2025-11-23T06:35:59.110933-08:00",
-    "processing_time_microseconds": 46,
-    "tokens_used": null,
-    "tokens_used_estimate": 100,
-    "tool_calls_count": 2,
-    "files_accessed_count": 2,
-    "terminal_commands_count": 0,
-    "note": "Added quality-related work proposals to docs/needs-work.md"
-  },
-  {
-    "request_start_time": "2025-11-23T06:39:59.691255-08:00",
-    "request_end_time": "2025-11-23T06:39:59.691423-08:00",
-    "processing_time_microseconds": 168,
-    "tokens_used": null,
-    "tokens_used_estimate": 5,
-    "tool_calls_count": 3,
-    "files_accessed_count": 2,
-    "terminal_commands_count": 2,
-    "note": "verify: compare docs/memory-model.md vs docs/memory-model.final.md; final is derived but may contain additional micro-edits"
-  },
-  {
     "request_start_time": "2025-11-23T12:00:00.000000-08:00",
     "request_end_time": "2025-11-23T12:00:01.000000-08:00",
     "processing_time_seconds": 1.0,
@@ -1218,16 +1141,5 @@
     "terminal_commands_count": 1,
     "note": "hello, you are a project manager",
     "pre_append_file_sha256": "3629cfd5d519c74e5cb03b4285e5258ae41b2b5323185d4584596868dea8d04a"
-  },
-  {
-    "request_start_time": "2025-11-23T06:42:29.162294-08:00",
-    "request_end_time": "2025-11-23T06:42:29.162361-08:00",
-    "processing_time_microseconds": 67,
-    "tokens_used": null,
-    "tokens_used_estimate": 12,
-    "tool_calls_count": 5,
-    "files_accessed_count": 3,
-    "terminal_commands_count": 4,
-    "note": "merged curated micro-edits from generated final into canonical memory-model.md (added retention/consent note, retrieval example, and privacy consideration)"
   }
 ]
