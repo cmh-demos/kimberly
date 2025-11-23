@@ -1206,5 +1206,28 @@
     "files_accessed_count": 2,
     "terminal_commands_count": 2,
     "note": "verify: compare docs/memory-model.md vs docs/memory-model.final.md; final is derived but may contain additional micro-edits"
+  },
+  {
+    "request_start_time": "2025-11-23T12:00:00.000000-08:00",
+    "request_end_time": "2025-11-23T12:00:01.000000-08:00",
+    "processing_time_seconds": 1.0,
+    "tokens_used": null,
+    "tokens_used_estimate": 10,
+    "tool_calls_count": 3,
+    "files_accessed_count": 3,
+    "terminal_commands_count": 1,
+    "note": "hello, you are a project manager",
+    "pre_append_file_sha256": "3629cfd5d519c74e5cb03b4285e5258ae41b2b5323185d4584596868dea8d04a"
+  },
+  {
+    "request_start_time": "2025-11-23T06:42:29.162294-08:00",
+    "request_end_time": "2025-11-23T06:42:29.162361-08:00",
+    "processing_time_microseconds": 67,
+    "tokens_used": null,
+    "tokens_used_estimate": 12,
+    "tool_calls_count": 5,
+    "files_accessed_count": 3,
+    "terminal_commands_count": 4,
+    "note": "merged curated micro-edits from generated final into canonical memory-model.md (added retention/consent note, retrieval example, and privacy consideration)"
   }
-,{"request_start_time":"2025-11-23T12:00:00.000000-08:00","request_end_time":"2025-11-23T12:00:01.000000-08:00","processing_time_seconds":1.0,"tokens_used":null,"tokens_used_estimate":10,"tool_calls_count":3,"files_accessed_count":3,"terminal_commands_count":1,"note":"hello, you are a project manager","pre_append_file_sha256":"3629cfd5d519c74e5cb03b4285e5258ae41b2b5323185d4584596868dea8d04a"}]
+]
