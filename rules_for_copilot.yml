@@ -1,0 +1,97 @@
+do_not:
+  - work on the main branch
+  - work outside of project directory
+  - use GitHub Actions unless expressly directed to
+
+rules:
+  - responses should be less than 100 words
+  - queue Q&A; keep questions until answered
+  - further considerations are added to the Q&A queue
+  - all work pushed to git
+  - auto-log timestamps and append to copilot_tracking.json after each request
+  - commit change after each request
+  - use precise durations during logging activities
+  - prioritize questions and only ask one at a time
+  - must append validated log entry before sending final response
+  - do not send any visible response until append verification completes; if append fails, abort response and retry, then inform user of failure only after successful append
+
+allow:
+  auto-update-logs: true
+  auto-edit-paths:
+    - "misc/*"
+    - "docs/*"
+  exclude-branches:
+    - "main"
+
+logging:
+  path: "./misc/copilot_tracking.json"
+  validate_json: true
+  json_schema_path: "./misc/copilot_tracking.schema.json"
+  pre_append_checks:
+    - validate_syntax: true
+    - validate_against_schema: true
+    - verify_file_hash_before_append: true
+  ci_enforce_valid_json: true
+  timestamp_format: "ISO-8601 with fractional seconds (microsecond precision). Example: 2025-11-22T19:13:00.123456-08:00"
+  auto_commit_and_push: true
+  commit_message_template: "chore/log: auto-append - {note}"
+  commit_push_target: "current-branch"
+  bypass_manual_approval: true
+  append_only: true
+  immutable_historical_entries: true
+  correction_policy: |
+    No edits to existing log entries. Corrections must be appended as new entries referencing
+    the original entry ID and reason.
+  prefer_use_script: "scripts/append_log.py"
+  require_pre_append_file_hash: true
+  require_atomic_write: true
+  required_fields_when_appending: ["request_start_time","request_end_time","processing_time_microseconds or processing_time_seconds","tokens_used_estimate","note","pre_append_file_sha256"]
+
+fields:
+  request_start_time:
+    description: "must include fractional seconds (microsecond precision)"
+  request_end_time:
+    description: "must include fractional seconds (microsecond precision)"
+  processing_time_microseconds: {}
+  tokens_used: {}
+  tokens_used_estimate: {}
+  tool_calls_count: {}
+  files_accessed_count: {}
+  terminal_commands_count: {}
+
+request_handling_order:
+  - record_start_timestamp
+  - perform_request_processing
+  - estimate_tokens
+  - prepare_log_entry 
+  - perform_pre_append_checks (validate syntax & against schema)
+  - append_log_entry
+  - verify_log_entry
+  - record_end_timestamp
+  - report_response
+
+audit_policy:
+  audit_on_repair: true
+  corrections_must_be_appended: true
+
+git_pattern:
+  example: "<type>/<scope-or-ticket>-short-desc (use hyphens)"
+  types:
+    - feat
+    - fix
+    - docs
+    - chore
+    - refactor
+    - ci
+    - test
+    - hotfix
+    - wip
+  examples:
+    - docs/project-definition
+    - feat/PROJ-12-auth
+    - chore/setup-ci
+    - fix/login-null
+    - refactor/api-client
+  additional:
+    - "Use ticket IDs when available"
+    - "Keep branches off main and open PRs from feature branches"
