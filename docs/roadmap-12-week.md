@@ -5,7 +5,7 @@ Goal: Deliver a safe, single-user MVP for conversational AI with robust short-te
 ## Phase A — Weeks 1–4: Foundations (MVP minimal)
 - Objectives:
   - Implement conversational chat API (web + basic voice pipeline)
-  - Implement short-term memory (5MB, session-priority) and local-first option
+  - Implement short-term memory (session-priority, see `docs/memory-model.md` for canonical quotas and behaviors) and local-first option
   - Basic developer UX: quickstart README, runnable example, and tests
 - Deliverables:
   - POST /chat API working end-to-end, basic TTS/ASR integration (mocked acceptable)

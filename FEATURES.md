@@ -10,10 +10,9 @@ Kimberly is a personal AI assistant inspired by Jarvis from Iron Man, designed f
 - Multi-platform availability: Voice (e.g., smart speakers), Web (browser-based), Mobile (iOS/Android apps).
 - Real-time responses with context awareness.
 
-### Memory Management
-- **Short-term Memory**: Max 5MB, wiped daily during "sleep" with prioritization (recency, importance, frequency).
-- **Long-term Memory**: Max 25MB, wiped daily based on 1-week retention.
-- **Permanent Memory**: Max 500MB, with automatic rotation via "meditation" process.
+-### Memory Management
+- See `docs/memory-model.md` for canonical definitions of short-term, long-term, and permanent memory tiers, quotas, meditation, and retention policies.
+- (Avoid duplicating quota numbers in multiple docs; refer to the canonical source.)
 - **Meditation**: Nightly grading of memories using a weighted score (40% relevance to goals, 30% emotional weight, 20% predictive usefulness, 10% recency/frequency). Memories below threshold are forgotten.
 
 ### Agent Delegation

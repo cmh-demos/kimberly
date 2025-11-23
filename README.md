@@ -5,7 +5,7 @@ Kimberly is a personal AI assistant inspired by Jarvis from Iron Man, designed f
 ## Features
 
 - **Conversational Interface**: Natural language chat with voice, web, and mobile support.
-- **Memory Management**: Short-term (5MB, wiped daily), long-term (25MB, weekly retention), permanent (500MB with meditation grading). See `docs/memory-model.md` for canonical details and operational behavior.
+- **Memory Management**: See `docs/memory-model.md` for canonical tier definitions, quotas, and operational behavior (short-term, long-term, permanent).
 - **Agent Delegation**: Offloads tasks to specialized agents (Scheduler, Researcher, Coder, Reminder) with limits.
 - **Learning and Adaptation**: Interaction logging, user feedback, reinforcement learning.
 - **Security**: End-to-end encryption, GDPR compliance, local storage option.
