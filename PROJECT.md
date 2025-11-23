@@ -1,7 +1,7 @@
 # Project: Kimberly
 
 ## Vision
-Provide a concise description of the problem we solve, target users, and value proposition.
+Kimberly is a personal AI assistant inspired by Jarvis from Iron Man, designed to be a versatile helper that can handle a wide range of tasks through conversational interaction, advanced memory management, and agent delegation. It solves the problem of users needing a single, intelligent interface for productivity, personalization, and task automation across platforms, where current assistants lack depth, memory, or seamless integration.
 
 ## Personas
 - Primary user: ...
