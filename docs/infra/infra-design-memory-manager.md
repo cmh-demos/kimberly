@@ -101,7 +101,7 @@ Reference files in this repo
 ---------------------------
 - `docs/deployment-appendix.md` — existing notes recommending Oracle Always Free and Fly.io
 - `docs/decisions/ADR-0004.md` — deployment model decision in this repo
-- `docs/memory-model.final.md` — memory model we must implement and support
+- `docs/memory-model.md` — canonical memory model we must implement and support
 
 Design owner
 ------------
