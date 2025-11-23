@@ -26,6 +26,120 @@ components:
       properties:
         token:
           type: string
+    TokenResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        expires_in:
+          type: integer
+          description: seconds until token expires
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          format: email
+        created_at:
+          type: string
+          format: date-time
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        code:
+          type: integer
+    ChatMessage:
+      type: object
+      properties:
+        id:
+          type: string
+        role:
+          type: string
+          enum: [user, assistant, system]
+        content:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+    ChatResponse:
+      type: object
+      properties:
+        conversation_id:
+          type: string
+        message:
+          $ref: '#/components/schemas/ChatMessage'
+        usage:
+          type: object
+          properties:
+            prompt_tokens:
+              type: integer
+            completion_tokens:
+              type: integer
+            total_tokens:
+              type: integer
+    MemoryItem:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [short-term, long-term, permanent]
+        content:
+          type: string
+        size_bytes:
+          type: integer
+        metadata:
+          type: object
+        score:
+          type: number
+          format: float
+        created_at:
+          type: string
+          format: date-time
+    MemoryListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/MemoryItem'
+        page:
+          type: integer
+        per_page:
+          type: integer
+        total:
+          type: integer
+    Agent:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [idle, running, failed, completed]
+        last_run:
+          type: string
+          format: date-time
+    AgentTaskResponse:
+      type: object
+      properties:
+        task_id:
+          type: string
+        status:
+          type: string
+        result:
+          type: object
     ChatRequest:
       type: object
       properties:
@@ -78,7 +192,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AuthResponse'
+                $ref: '#/components/schemas/TokenResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /login:
     post:
       summary: Authenticate user
@@ -94,13 +214,28 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AuthResponse'
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /health:
     get:
       summary: Health check
       responses:
         '200':
           description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  uptime_seconds:
+                    type: integer
   /chat:
     post:
       summary: Send a chat message to Kimberly
@@ -119,20 +254,54 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ChatResponse'
+              examples:
+                simple:
+                  value:
+                    conversation_id: "conv_123"
+                    message:
+                      id: "msg_456"
+                      role: assistant
+                      content: "Hello — how can I help today?"
+                      created_at: "2025-11-22T19:00:00Z"
+                    usage:
+                      prompt_tokens: 4
+                      completion_tokens: 12
+                      total_tokens: 16
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /memory:
     get:
       summary: List memory items
       security:
         - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 20
       responses:
         '200':
           description: Memory list
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/MemoryItem'
+                $ref: '#/components/schemas/MemoryListResponse'
     post:
       summary: Add a memory item
       security:
@@ -153,6 +322,16 @@ paths:
       responses:
         '201':
           description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemoryItem'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /memory/{id}:
     delete:
       summary: Delete memory by id
@@ -167,6 +346,12 @@ paths:
       responses:
         '204':
           description: Deleted
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /agents:
     get:
       summary: List available agents
@@ -175,6 +360,12 @@ paths:
       responses:
         '200':
           description: agents list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Agent'
     post:
       summary: Create/invoke a new agent task
       security:
@@ -188,6 +379,16 @@ paths:
       responses:
         '202':
           description: Accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentTaskResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /agents/{id}/run:
     post:
       summary: Run a specific agent
@@ -208,3 +409,26 @@ paths:
       responses:
         '202':
           description: Agent accepted for processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentTaskResponse'
+        '404':
+          description: Agent not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /errors:
+    get:
+      summary: List standard errors
+      responses:
+        '200':
+          description: Standard error types
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ErrorResponse'
