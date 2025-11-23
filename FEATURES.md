@@ -48,3 +48,6 @@ This builds a personalized model over time.
 - Predictive actions to anticipate user needs.
 - Emergency mode for priority handling of urgent requests.
 - External learning from public knowledge bases.
+- Multi-modal input support for images, videos, and audio.
+- Self-improvement with auto-update AI models.
+- Holographic interface for 3D interactions.
