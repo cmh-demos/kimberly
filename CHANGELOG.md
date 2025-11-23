@@ -11,12 +11,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial project setup and documentation.
 - Basic architecture with sequence diagrams.
 - Roadmap with risks and mitigations.
+- Comprehensive documentation review report (DOCUMENTATION_REVIEW_REPORT.md).
 
 ### Changed
 - Expanded README with features and installation.
+- Updated mobile strategy from TBD to PWA (Progressive Web App).
+- Consolidated and clarified documentation references across files.
 
 ### Fixed
-- N/A
+- Removed duplicate "Overview" and "Features" sections in README.md.
+- Fixed formatting error in README.md Memory Management section (was `-###`, now `###`).
+- Corrected broken reference from `docs/RISK_ANALYSIS.md` to `SECURITY_AND_RISKS.md` in README.md.
+- Updated docs/INDEX.md with proper relative paths and markdown links.
+- Fixed CONTRIBUTING.md references to non-existent separate files, clarified embedded content.
 
 ## [0.1.0] - 2025-11-22
 

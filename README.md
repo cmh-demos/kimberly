@@ -90,7 +90,7 @@ We track project risks and open investigation items in `SECURITY_AND_RISKS.md` â
 
 - Start chat: Interact via web interface or API.
 - Voice: Use smart speaker integration.
-- Mobile: Download app (TBD).
+- Mobile: Access via Progressive Web App (PWA) - installable on iOS and Android devices.
 
 ## Contributing
 
