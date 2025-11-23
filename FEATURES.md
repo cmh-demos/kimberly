@@ -56,3 +56,17 @@ This builds a personalized model over time.
 - Health Monitoring: Sync with wearables for activity tracking and reminders.
 - Custom Workflows: User-defined automation scripts for repetitive tasks.
 - Multi-Modal Outputs: Generate charts, documents, or code snippets in responses.
+
+## Additional Features from Gaps
+- AI Model Selection: Baseline open-source LLM (e.g., Llama) with versioning and ethical sourcing.
+- Agent Orchestration Framework: API-based invocation with sandboxing and user plugins.
+- Multi-Modal UI Support: Voice synthesis, image processing, AR/VR interfaces.
+- Third-Party Integrations: OAuth APIs for GitHub/Slack with webhooks.
+- Advanced Security: Biometric auth, audit trails, bias mitigation audits.
+- AI-Specific Testing: Adversarial inputs, bias detection, memory accuracy validation.
+- Expanded Roadmap: Post-v1 phases with quarterly milestones and risk assessments.
+- Architectural Diagrams: Mermaid diagrams for AI flows, memory, and agents.
+- Voice emotion analysis for better interaction.
+- Proactive task suggestions based on user patterns.
+- Integration with IoT devices for smart home control.
+- Custom agent creation toolkit for user-defined extensions.

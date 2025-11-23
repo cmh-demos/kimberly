@@ -33,3 +33,15 @@ Kimberly is a personal AI assistant inspired by Jarvis from Iron Man, designed t
 
 ## Non-goals
 - No multi-user support; this is always a single-user system.
+
+## Additional Requirements from Gaps
+- AI Model Baseline: Use Llama 3.1 as open-source LLM for conversational AI.
+- Memory Grading: Define weighted scoring (e.g., 40% relevance, 30% emotion).
+- Agent Limits: Max 3 concurrent with isolation protocols.
+- UI Latency: <500ms for voice responses.
+- API Specs: RESTful with OAuth for integrations.
+- Security Audits: Regular bias and privacy checks.
+- Scalability Caps: Personal scale (e.g., 10k interactions/user).
+- Testing Coverage: 95% + AI validation.
+- Roadmap Details: Q2 2026 agent delegation.
+- Diagrams: Include AI and agent flows.
