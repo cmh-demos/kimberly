@@ -6,3 +6,12 @@ __pycache__/
 .venv/
 env/
 venv/
+
+# Environment variables and secrets
+.env
+.env.local
+secrets.json
+
+# Logs and sensitive files
+*.log
+misc/copilot_tracking.json  # If sensitive, otherwise remove

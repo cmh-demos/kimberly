@@ -21,7 +21,7 @@ This file lists the highest-priority documentation and project gaps I found, wit
 - CI checks for docs & APIs (openapi lint, doc build, copilot_tracking validation). Next: add GitHub Actions or CI-agnostic pipeline. (Consolidated: Implement automated linting for docs; add CI for dependency scanning.)
 - AI tests: memory accuracy, hallucination checks, bias detection (why: model QA). Next: add testing matrix in TESTING.md.
 - ML implementation details: no code for memory scoring, meditation, LLM integration (why: core ML untested). Next: implement scoring logic, local Llama inference, evaluation scripts.
-- Infra artifacts incomplete: Terraform/Helm/K8s skeletons but no executable configs (why: can't deploy). Next: flesh out for free providers, add manifests. (Consolidated: Flesh out Terraform for Oracle Always Free; add Helm charts for services; create `docs/ENVIRONMENT_SETUP.md` for per-env guides.)
+- Infra artifacts incomplete: Terraform/Helm/K8s skeletons but no executable configs (why: can't deploy). Next: flesh out for free providers, add manifests. (Consolidated: Flesh out Terraform for Oracle Always Free; add Helm charts for services; create `docs/ENVIRONMENT_SETUP.md` for per-env guides, including credential setup.)
 - Security & threat model: basic SECURITY.md, no detailed model or KMS (why: risks unmitigated). Next: add threat model, encryption flows. (Consolidated: Implement threat model and KMS design; add encryption-at-rest/in-transit; create `docs/COMPLIANCE.md` for checklists.)
 - Metrics/telemetry implementation: KPIs defined but no tracking code (why: can't measure success). Next: add Prometheus/Grafana, integrate logging. (Consolidated: Establish benchmarks for latency/uptime; create `docs/PERFORMANCE_MONITORING.md` for setup guides.)
 - Agent orchestration: no code or sandbox for delegation (why: agents unsafe). Next: implement runner with quotas/isolation.
@@ -33,7 +33,7 @@ This file lists the highest-priority documentation and project gaps I found, wit
 ## Lower priority / Nice to have
 - Mobile plan: fill TBD in README with platform choices and distribution path.
 - Add more examples & SDK snippets in `docs/API.md`. (Consolidated: Add inline examples like curl snippets.)
-- Documentation completeness: some files placeholders (e.g., CHANGELOG.md); ADRs brief (why: maintenance harder). Next: expand with examples, add ADRs. (Consolidated: Fill TBDs in docs; create process docs like `docs/ONBOARDING.md`, `docs/CODE_REVIEW.md`, `docs/RELEASE_PROCESS.md`, `docs/INCIDENT_RESPONSE.md`, `docs/COMMUNICATION.md`, `docs/BACKUP_RECOVERY.md`, `docs/ACCESSIBILITY.md`, `docs/DEPENDENCY_MANAGEMENT.md`, `docs/CHANGE_MANAGEMENT.md`, `docs/USER_FEEDBACK.md`.)
+- Documentation completeness: some files placeholders (e.g., CHANGELOG.md); ADRs brief (why: maintenance harder). Next: expand with examples, add ADRs. (Consolidated: Fill TBDs in docs; create process docs like `docs/ONBOARDING.md`, `docs/CODE_REVIEW.md` (with security checklists), `docs/RELEASE_PROCESS.md`, `docs/INCIDENT_RESPONSE.md`, `docs/COMMUNICATION.md`, `docs/BACKUP_RECOVERY.md`, `docs/ACCESSIBILITY.md`, `docs/DEPENDENCY_MANAGEMENT.md`, `docs/CHANGE_MANAGEMENT.md`, `docs/USER_FEEDBACK.md`.)
 - UI/UX details: no prototypes or accessibility tests (why: UI dev stalled). Next: build HTML/CSS mocks, add WCAG checklist. (Consolidated: Conduct WCAG 2.1 AA audits; create accessibility guidelines.)
 - Data pipelines & ops: no ETL, backups, restore tests (why: data fragile). Next: add export/import scripts, automated backups. (Consolidated: Implement daily DB backups with restore tests; add data export/import procedures.)
 - Free-mode enforcement: no CI blocks for paid APIs (why: accidental costs). Next: add grep-based rules.
@@ -114,12 +114,16 @@ Based on a security engineering review of project progress, the following recomm
 
 ### Short-Term (Sprints 2-3)
 - Build minimal runnable PoC with security-first (e.g., JWT auth, input sanitization). Add CI for dependency scanning (Snyk) and OpenAPI linting. Enforce free-mode (no paid APIs) with grep checks. Next: Implement auth in API code, add GitHub Actions workflows, and CI rules to block paid providers.
+- Set up GitHub Secrets for CI pipelines (e.g., HUGGINGFACE_TOKEN). Why: Secure credential access in automated builds. Next: Add secrets in repo settings and reference in .github/workflows/ci.yml.
+- Add pre-commit hooks for secret detection (e.g., detect-secrets). Why: Prevent accidental commits of credentials. Next: Install pre-commit, configure hooks in .pre-commit-config.yaml.
 
 ### Medium-Term
 - Develop agent sandbox (resource limits, deny lists) and test harness for hallucinations/bias. Conduct security audit (pen-test) before MVP. Add observability for anomalies (e.g., failed meditations). Next: Design sandbox in agent runner, add AI validation tests, schedule audit.
+- Integrate production secrets management (e.g., AWS Secrets Manager or Oracle Vault). Why: Secure key storage in production. Next: Choose provider, update code to retrieve secrets at runtime.
 
 ### Ongoing
 - Embed security reviews in PRs. Monitor for new risks (e.g., LLM licensing constraints). Ensure telemetry redaction and retention policies. Next: Add security checklist to CONTRIBUTING.md, review telemetry schema for PII.
+- Conduct regular security reviews and audits. Why: Ongoing risk mitigation. Next: Schedule quarterly reviews, update RISK_ANALYSIS.md.
 
 ### Tools/Actions
 - Use tools like `mcp_pylance_mcp_s_pylanceSyntaxErrors` for code validation; add security extensions (e.g., install_extension for Snyk). Create GitHub issues for top unknowns in RISK_ANALYSIS.md. Next: Install Snyk extension, run syntax checks on scripts, and open issues for unknowns.

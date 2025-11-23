@@ -1,12 +1,21 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from transformers import pipeline
+from dotenv import load_dotenv
+import os
+
+# Load environment variables
+load_dotenv()
 
 app = FastAPI(title="Kimberly AI Assistant", version="0.1.0")
 
+# Load credentials from env
+HUGGINGFACE_TOKEN = os.getenv('HUGGINGFACE_TOKEN')
+DEBUG = os.getenv('DEBUG', 'false').lower() == 'true'
+
 # Load a small language model for demonstration
 # Note: For production, use Llama 3.1 with proper hardware
-generator = pipeline('text-generation', model='gpt2')
+generator = pipeline('text-generation', model='gpt2', use_auth_token=HUGGINGFACE_TOKEN if HUGGINGFACE_TOKEN else None)
 
 class ChatRequest(BaseModel):
     message: str

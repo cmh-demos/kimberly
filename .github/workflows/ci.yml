@@ -67,3 +67,16 @@ jobs:
         python-version: '3.10'
     - name: Run doc review
       run: python scripts/doc_review.py
+
+  security-check:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Check for secrets
+      uses: zricethezav/gitleaks-action@v2
+    - name: Check for paid API usage (free-mode)
+      run: |
+        if grep -r "openai\|anthropic\|claude" --include="*.py" .; then
+          echo "Paid API usage detected! Failing CI."
+          exit 1
+        fi
