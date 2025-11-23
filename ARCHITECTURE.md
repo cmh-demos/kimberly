@@ -9,7 +9,7 @@ This document describes system boundaries, major components, data flows, integra
 - API Gateway: ingress, routing, authentication, rate-limiting.
 - AI Service: Handles conversational AI using hybrid LLM approach - primary local inference with Llama 3.1 8B quantized model, API wrapper fallback for high-demand scenarios.
 - Services: auth, user, billing, jobs, reporting (each service is a small, well-scoped container).
-- Data stores: PostgreSQL (primary relational), Redis (cache/session), object storage (S3-compatible) for blobs.
+- Data stores: PostgreSQL with pgvector (primary relational + vector), Redis (cache/session), object storage (S3-compatible) for blobs.
 - Background processing: worker fleet consuming from a durable queue (e.g., Kafka/RabbitMQ).
 - Observability: Prometheus (metrics), Grafana (dashboards), ELK/Tempo for logs/traces.
 
