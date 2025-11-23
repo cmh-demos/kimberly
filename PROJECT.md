@@ -16,6 +16,9 @@ Kimberly is a personal AI assistant inspired by Jarvis from Iron Man, designed t
 - **Performance**: Response latency <1s, handle 1000+ daily interactions.
 - **Reliability**: 99.9% uptime, graceful failure handling.
 - **Privacy**: Local data storage option, user-controlled data deletion.
+- **Accessibility**: WCAG 2.1 compliance for inclusive use.
+- **Sustainability**: Low energy consumption, carbon-neutral hosting.
+- **Legal**: Full open source licensing, contributor agreements.
 
 ## Non-goals
 - No multi-user support; this is always a single-user system.
