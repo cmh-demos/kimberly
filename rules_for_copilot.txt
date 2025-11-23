@@ -22,6 +22,18 @@ allow:
 
 logging:
 - path: "./misc/copilot_tracking.json"
+  # Ensure every write produces valid JSON and is append-only.
+  validate_json: true
+  json_schema_path: "./misc/copilot_tracking.schema.json"
+  pre_append_checks:
+    - validate_syntax: true        # quick lint (json decode)
+    - validate_against_schema: true
+    - verify_file_hash_before_append: true
+  ci_enforce_valid_json: true     # CI will fail if logs become invalid
+- append_only: true
+- immutable_historical_entries: true
+- correction_policy: "No edits to existing log entries.       Corrections must be appended as new entries referencing the original entry ID and reason."
+
 - fields:
   - request_start_time
   - request_end_time
@@ -31,6 +43,7 @@ logging:
   - tool_calls_count
   - files_accessed_count
   - terminal_commands_count
+
 - request_handling_order:
   - record_start_timestamp
   - handle_request
@@ -40,4 +53,28 @@ logging:
   - record_end_timestamp
   - report_response
 
-GIT pattern: <type>/<scope-or-ticket>-short-desc (use hyphens). Types: feat, fix, docs, chore, refactor, ci, test, hotfix, wip. Examples: docs/project-definition, feat/PROJ-12-auth, chore/setup-ci, fix/login-null, refactor/api-client. Use ticket IDs when available. Keep branches off main and open PRs from feature branches.
+  # Audit policy
+  - audit_on_repair: true
+  - corrections_must_be_appended: true
+
+GIT pattern:
+- example: <type>/<scope-or-ticket>-short-desc (use hyphens)
+- Types:
+  - feat
+  - fix
+  - docs
+  - chore
+  - refactor
+  - ci
+  - test
+  - hotfix
+  - wip
+- Examples:
+  - docs/project-definition
+  - feat/PROJ-12-auth
+  - chore/setup-ci
+  - fix/login-null
+  - refactor/api-client
+- Additional:
+  - Use ticket IDs when available
+  - Keep branches off main and open PRs from feature branches
