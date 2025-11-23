@@ -1,7 +1,7 @@
 # Roadmap
 
 Milestones and releases:
-- MVP: feature set A
-- v1: feature set B
+- MVP: Basic conversational chat, memory management, and simple coding problem solving.
+- v1: Feature set B
 
-Timeline: Q1, Q2, ...
+Timeline: Q1 2026 for MVP release.
