@@ -470,5 +470,13 @@
     "tokens_used": null,
     "tokens_used_estimate": 25,
     "note": "no, i want to focus on how to get our logging right so that we can communicate effectively"
+  },
+  {
+    "request_start_time": "2025-11-22T18:35:00-08:00",
+    "request_end_time": "2025-11-22T18:35:01-08:00",
+    "processing_time_seconds": 1.0,
+    "tokens_used": null,
+    "tokens_used_estimate": 30,
+    "note": "read rules_for_copilot.txt my goal is to have you log, in order: 1. time stamp of start 2. estimate of number of tokens used 3. time stamp of end only after completing these steps in order can a response be provided"
   }
 ]
