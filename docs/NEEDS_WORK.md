@@ -3,6 +3,7 @@
 This file lists the highest-priority documentation and project gaps I found, with short assessments and next actions. Updated after backend implementation (JWT auth, memory scoring/meditation, agent delegation, expanded testing, infra fleshing).
 
 ## Top priority (fix now)
+
 - README placeholders: add dev quickstart + runnable example (why: onboarding friction). Next: add install, env, run steps and example `curl` and test data. (Consolidated: Also replace "Download app (TBD)" with platform decision, e.g., PWA for mobile.)
 - `docs/openapi.yaml` dedupe & clean: remove duplicate schemas, complete error responses (why: client SDK generation breaks). Next: run OpenAPI linter and add examples. (Consolidated: Remove remaining duplicate requestBody entries; complete all paths/schemas; validate with openapi-generator.)
 - Incomplete OpenAPI spec: schemas cut off mid-definition, duplicates present (why: API clients unreliable). Next: complete all endpoints/schemas and validate.
@@ -10,6 +11,7 @@ This file lists the highest-priority documentation and project gaps I found, wit
 - FEATURES.md typo: Fix "-### Memory Management" header. Why: Formatting error. Next: Correct to "###".
 
 ## High priority (this sprint)
+
 - Sprint-plan: attach owners + measurable acceptance criteria (why: QA/ownership). Next: turn into tickets with owners. (Consolidated: Assign real owners to RISK_ANALYSIS.md TBDs, e.g., @backend-dev.)
 - Diagrams missing: add component and sequence Mermaid diagrams (why: clarify architecture & flows). Next: embed sample mermaid diagrams in ARCHITECTURE.md. (Consolidated: Create missing diagrams/wireframes; use Mermaid for more flows.)
 - No CI/CD pipelines: no .github/workflows or automated builds/tests (why: no validation). Next: add GitHub Actions for linting, testing, OpenAPI validation. (Consolidated: Add CI doc checks with markdownlint; implement review cycle script for TBDs/placeholders.)
@@ -17,6 +19,7 @@ This file lists the highest-priority documentation and project gaps I found, wit
 - Testing expansion: current tests cover basics; need AI-specific tests, hallucination checks, bias detection (why: model QA incomplete). Next: add testing matrix in TESTING.md, implement AI validation tests.
 
 ## Medium priority
+
 - Branding implementation: Develop and apply visual identity (why: consistent user experience). Next: Create logo variations, apply color palette to wireframes, and gather feedback on branding guidelines. (Consolidated: Finalize brand assets in BRANDING.md; integrate into UI mocks and marketing materials.)
 - CI checks for docs & APIs (openapi lint, doc build, copilot_tracking validation). Next: add GitHub Actions or CI-agnostic pipeline. (Consolidated: Implement automated linting for docs; add CI for dependency scanning.)
 - ML implementation completion: memory scoring/meditation implemented; need LLM integration and evaluation scripts (why: core ML untested). Next: integrate hybrid LLM approach (local Llama 3.1 8B primary, API fallback), add evaluation scripts.
@@ -29,6 +32,7 @@ This file lists the highest-priority documentation and project gaps I found, wit
 - ADR expansion: Flesh out ADRs with pros/cons. Why: Decision rationale weak. Next: Add alternatives and outcomes.
 
 ## Lower priority / Nice to have
+
 - Mobile plan: fill TBD in README with platform choices and distribution path.
 - Add more examples & SDK snippets in `docs/API.md`. (Consolidated: Add inline examples like curl snippets.)
 - Documentation completeness: some files placeholders (e.g., CHANGELOG.md); ADRs brief (why: maintenance harder). Next: expand with examples, add ADRs. (Consolidated: Fill TBDs in docs; create process docs like `docs/ONBOARDING.md`, `docs/CODE_REVIEW.md` (with security checklists), `docs/RELEASE_PROCESS.md`, `docs/INCIDENT_RESPONSE.md`, `docs/COMMUNICATION.md`, `docs/BACKUP_RECOVERY.md`, `docs/ACCESSIBILITY.md`, `docs/DEPENDENCY_MANAGEMENT.md`, `docs/CHANGE_MANAGEMENT.md`, `docs/USER_FEEDBACK.md`.)
@@ -38,6 +42,7 @@ This file lists the highest-priority documentation and project gaps I found, wit
 - Project management: plans exist but no tickets/owners (why: execution unclear). Next: convert to GitHub issues.
 
 ## Completed in recent backend work
+
 - **Code implementation**: Basic runnable app with FastAPI, JWT auth, chat endpoint, memory management, agent delegation. (Previously: no code at all.)
 - **Memory scoring & meditation**: Implemented scoring logic and nightly pruning engine. (Previously: no ML code.)
 - **Agent orchestration**: Basic agent runner with quotas and safety controls. (Previously: no agent code.)
@@ -46,6 +51,7 @@ This file lists the highest-priority documentation and project gaps I found, wit
 - **Security basics**: JWT authentication, password hashing, and rate limiting prep. (Previously: no auth.)
 
 ## Additional Outstanding Items (from rescan)
+
 - **LLM Integration**: Hybrid approach decided (local Llama 3.1 8B primary, API fallback); app uses mock responses. Next: Implement local inference integration, add API wrapper fallback, create evaluation scripts.
 - **Database Integration**: PostgreSQL + pgvector decided with migration path to dedicated vector DB if needed. Next: Implement schema design, connection logic, and vector search integration.
 - **Encryption Implementation**: No encryption-at-rest; sensitive data not encrypted. Next: Implement AES encryption for memory content and KMS for keys.
@@ -76,6 +82,7 @@ This file lists the highest-priority documentation and project gaps I found, wit
 - **Markdown Linting**: Implement automated linting for docs. Why: Consistency and errors. Next: Add markdownlint-cli to CI.
 
 ## Lower priority / Nice to have
+
 - Mobile plan: fill TBD in README with platform choices and distribution path.
 - Add more examples & SDK snippets in `docs/API.md`. (Consolidated: Add inline examples like curl snippets.)
 - Documentation completeness: some files placeholders (e.g., CHANGELOG.md); ADRs brief (why: maintenance harder). Next: expand with examples, add ADRs. (Consolidated: Fill TBDs in docs; create process docs like `docs/ONBOARDING.md`, `docs/CODE_REVIEW.md` (with security checklists), `docs/RELEASE_PROCESS.md`, `docs/INCIDENT_RESPONSE.md`, `docs/COMMUNICATION.md`, `docs/BACKUP_RECOVERY.md`, `docs/ACCESSIBILITY.md`, `docs/DEPENDENCY_MANAGEMENT.md`, `docs/CHANGE_MANAGEMENT.md`, `docs/USER_FEEDBACK.md`.)
@@ -95,12 +102,14 @@ This file lists the highest-priority documentation and project gaps I found, wit
 - **Review Cycle Implementation**: Create a script to scan for gaps (TBDs, placeholders). Why: Proactive maintenance. Next: Add Python script in scripts/ for doc health checks.
 
 ## Notes and assessment
+
 - Most gaps are documentation and validation gaps (fixes are straightforward). The openapi dedup + tests are most important to enable SDK and CI.
 - New gaps identified include major implementation holes (code, ML, infra) that shift priority toward building a prototype.
 
 If you want, I can convert each top-priority item into tickets/PRs and start with README + OpenAPI cleanup.
 
 ## Finance / Budget clarifying questions (add to backlog)
+
 These are the questions the finance manager needs to build a budget — add as follow-up items or checklist before budgeting work begins:
 
 - Timeframe: monthly, quarterly, or annual? Preferred horizon (3 / 12 / 36 months)?
@@ -155,22 +164,27 @@ Next: convert these questions into tracked tickets and assign owners before impl
 Based on a security engineering review of project progress, the following recommendations are prioritized for implementation to address critical risks and ensure secure development.
 
 ### Immediate (Sprint 1)
+
 - Implement threat model and KMS design (addresses R-004 in RISK_ANALYSIS.md). Add encryption-at-rest/in-transit to architecture. Draft data deletion/export API with audit logging. Next: Create docs/threat-model.md and update ARCHITECTURE.md with encryption details.
 
 ### Short-Term (Sprints 2-3)
+
 - Build minimal runnable PoC with security-first (e.g., JWT auth, input sanitization). Add CI for dependency scanning (Snyk) and OpenAPI linting. Enforce free-mode (no paid APIs) with grep checks. Next: Implement auth in API code, add GitHub Actions workflows, and CI rules to block paid providers.
 - Set up GitHub Secrets for CI pipelines (e.g., HUGGINGFACE_TOKEN). Why: Secure credential access in automated builds. Next: Add secrets in repo settings and reference in .github/workflows/ci.yml.
 - Add pre-commit hooks for secret detection (e.g., detect-secrets). Why: Prevent accidental commits of credentials. Next: Install pre-commit, configure hooks in .pre-commit-config.yaml.
 
 ### Medium-Term
+
 - Develop agent sandbox (resource limits, deny lists) and test harness for hallucinations/bias. Conduct security audit (pen-test) before MVP. Add observability for anomalies (e.g., failed meditations). Next: Design sandbox in agent runner, add AI validation tests, schedule audit.
 - Integrate production secrets management (e.g., AWS Secrets Manager or Oracle Vault). Why: Secure key storage in production. Next: Choose provider, update code to retrieve secrets at runtime.
 
 ### Ongoing
+
 - Embed security reviews in PRs. Monitor for new risks (e.g., LLM licensing constraints). Ensure telemetry redaction and retention policies. Next: Add security checklist to CONTRIBUTING.md, review telemetry schema for PII.
 - Conduct regular security reviews and audits. Why: Ongoing risk mitigation. Next: Schedule quarterly reviews, update RISK_ANALYSIS.md.
 
 ### Tools/Actions
+
 - Use tools like `mcp_pylance_mcp_s_pylanceSyntaxErrors` for code validation; add security extensions (e.g., install_extension for Snyk). Create GitHub issues for top unknowns in RISK_ANALYSIS.md. Next: Install Snyk extension, run syntax checks on scripts, and open issues for unknowns.
 
 ## Implementation Questions (add to backlog)
@@ -216,34 +230,41 @@ Next: prioritize and assign owners to these questions for implementation plannin
 Based on a deeper scan of the codebase, documentation, and infrastructure, the following gaps were identified that are not yet recorded in the needs-work file.
 
 ### Dependency and Environment Management
+
 - No `requirements.txt` or `pyproject.toml` in root (README references `requirements.txt` but it doesn't exist). Why: Dependencies not declared, hard to install/reproduce. Next: Create `requirements.txt` with core deps (e.g., fastapi, sqlalchemy, sentence-transformers for optional embeddings).
 - No `.gitignore` file. Why: Sensitive files (secrets, logs) may be committed accidentally. Next: Add standard Python .gitignore excluding .venv, __pycache__, secrets, and misc/copilot_tracking.json if sensitive.
 - No `LICENSE` file (README claims MIT). Why: Legal clarity missing. Next: Add MIT LICENSE file.
 
 ### Containerization and Deployment
+
 - No `Dockerfile` or `docker-compose.yml`. Why: No containerized builds/deployments. Next: Add Dockerfile for API service and docker-compose for local dev stack.
 - IaC skeletons incomplete: Terraform `main.tf` is placeholder; no executable Helm charts. Why: Can't deploy to K8s. Next: Flesh out Terraform for Oracle Always Free, add Helm charts for services.
 
 ### Code Security and Quality
+
 - Scripts lack input validation (e.g., `append_log.py` --note arg not sanitized). Why: Potential command injection or malformed JSON. Next: Add argparse validation and sanitization.
 - No main application code (only scripts/docs). Why: No runnable product. Next: Implement minimal FastAPI app with chat/memory endpoints.
 - Telemetry privacy risk: `misc/copilot_tracking.json` notes may contain PII. Why: GDPR violation. Next: Redact or encrypt notes; add retention policy.
 
 ### API and Testing
+
 - OpenAPI spec incomplete (cuts off at line 600, missing some endpoints). Why: Incomplete API docs. Next: Complete all paths/schemas, validate with openapi-generator.
 - No CI/CD workflows (no `.github/workflows`). Why: No automated tests/builds. Next: Add GitHub Actions for pytest, linting, OpenAPI validation.
 - Minimal testing: Only one test file; no integration/E2E. Why: No validation of features. Next: Add pytest suite for API endpoints, memory logic.
 
 ### Documentation and Compliance
+
 - Many placeholders/TBD in docs (e.g., mobile plan, branding). Why: Incomplete guidance. Next: Fill TBDs with decisions (e.g., PWA for mobile).
 - No `CODE_OF_CONDUCT.md` or issue/PR templates. Why: Community standards missing. Next: Add standard templates for contributions.
 - No backup/restore scripts or data export/import. Why: Data fragility. Next: Add scripts for DB dumps, JSON export/import.
 
 ## Infrastructure and Ops
+
 - No monitoring/alerting setup (Prometheus/Grafana mentioned but not configured). Why: No observability. Next: Add Helm charts for monitoring stack.
 - No disaster recovery plan (backups untested). Why: Data loss risk. Next: Implement daily DB backups with restore tests.
 
 ### Recommendations
+
 - Add glossary.md for terms like "lexical," "normalization."
 - Replace placeholders with real values.
 - Provide examples/diagrams for clarity.
@@ -254,6 +275,7 @@ Based on a deeper scan of the codebase, documentation, and infrastructure, the f
 The following ambiguities were found during a comprehensive scan of all docs. They include undefined terms, placeholders, vague specs, and inconsistencies that could hinder implementation or understanding.
 
 ### Undefined Terms and Concepts
+
 - **Normalization in Scoring (docs/memory-model.md)**: Scoring formula uses "normalize(...)" but doesn't specify method (e.g., min-max, z-score). Why: Inconsistent implementations. Next: Define normalization (e.g., min-max to 0-1).
 - **Lexical Retrieval (docs/memory-model.md)**: "Lexical-first retrieval" unclear (full-text search, keywords?). Why: Retrieval logic ambiguous. Next: Specify as SQLite FTS with examples.
 - **Lambda in Re-Ranking (docs/memory-model.md)**: Hybrid formula has "lambda" but no default value. Why: Re-ranking weights undefined. Next: Set default lambda=0.5 with config guidance.
@@ -265,6 +287,7 @@ The following ambiguities were found during a comprehensive scan of all docs. Th
 - **Provider-Agnostic (docs/deployment-appendix.md)**: Claims portability but gives specifics. Why: Migration unclear. Next: List supported providers and migration steps.
 
 ### Placeholders and Incomplete References
+
 - **TBD Owners (Multiple Files)**: @backend-dev, @ml TBD in docs/RISK_ANALYSIS.md, docs/RISK_ACTIONS.md, docs/sprint-plan.md. Why: Accountability missing. Next: Assign from roles.md.
 - **Fictional Emails/Contacts**: docs-team@kimberly.local in docs/memory-model.md; product-design@kimberly.local in docs/ui-design.md. Why: Unrealistic. Next: Replace with real contacts or remove.
 - **Target User "Me" (PROJECT.md)**: "Target user: ... (me)" first-person. Why: Confusing for readers. Next: Rephrase to "project owner/developer".
@@ -273,6 +296,7 @@ The following ambiguities were found during a comprehensive scan of all docs. Th
 - **Missing Diagrams/Wireframes**: Referenced SVGs not present. Why: Design blocked. Next: Create/add as per wireframes/README.md.
 
 ### Vague Specifications and Defaults
+
 - **Size Calculation (docs/memory-model.md)**: size_bytes undefined (content only?). Why: Quota enforcement unclear. Next: Define as len(content) + metadata overhead.
 - **OSS Models for Embeddings (docs/memory-model.md)**: "Self-hosted OSS models" unspecified. Why: Implementation blocked. Next: Recommend SentenceTransformers MiniLM.
 - **Weights in Scoring (docs/memory-model.md)**: Configurable but no adjustment guidance. Why: Tuning hard. Next: Add UI/config for user adjustments.
@@ -282,6 +306,7 @@ The following ambiguities were found during a comprehensive scan of all docs. Th
 - **SLO Re-Scoring (docs/infra/ops-and-observability.md)**: "Tightens" ambiguous. Why: Performance unclear. Next: Clarify as "improves" for managed DBs.
 
 ### Inconsistent or Overlapping Definitions
+
 - **Quotas (docs/memory-model.md)**: Interactions unclear (short-term vs total). Why: Over-quota handling ambiguous. Next: Specify hierarchy (total > tier sums).
 - **Agent Limits (PROJECT.md)**: "Isolation protocols" vague. Why: Safety unclear. Next: Define as sandboxing + resource caps.
 - **Bias Mitigation (docs/threat-model.md, PROJECT.md)**: Techniques unspecified. Why: Ethics vague. Next: List checks (e.g., fairness audits).
@@ -289,6 +314,7 @@ The following ambiguities were found during a comprehensive scan of all docs. Th
 - **Roles Overlap (roles.md)**: Notes overlap but no specifics. Why: Assignment hard. Next: Specify overlaps (e.g., SRE/DevOps).
 
 ### Missing Context or Examples
+
 - **Hybrid Retrieval Flow (docs/memory-model.md)**: Steps listed, no example. Why: Hard to implement. Next: Add sample query/output.
 - **Meditation Frequency (docs/memory-model.md)**: "On-demand" triggers undefined. Why: Scheduling unclear. Next: Define as user-initiated or quota breach.
 - **Threat Mitigations (docs/threat-model.md)**: High-level (e.g., "encryption"). Why: Incomplete. Next: Specify tools (AES-256, TLS 1.3).
@@ -296,6 +322,7 @@ The following ambiguities were found during a comprehensive scan of all docs. Th
 - **Success Criteria (docs/pm-cadence-and-metrics.md)**: KPIs defined, no baselines. Why: Measurement hard. Next: Add initial baselines.
 
 ### Recommendations
+
 - Add glossary.md for terms like "lexical," "normalization."
 - Replace placeholders with real values.
 - Provide examples/diagrams for clarity.

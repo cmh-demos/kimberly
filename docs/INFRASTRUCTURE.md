@@ -112,7 +112,7 @@ sequenceDiagram
 
 Next steps / additional views
 ----------------------------
-- Add provider-specific topology (Oracle Always Free k3s, Fly.io, AWS/GCP) if you want physical network, subnets, and managed service diagrams.  
+- Add provider-specific topology (Oracle Always Free k3s, Fly.io, AWS/GCP) if you want physical network, subnets, and managed service diagrams.
 - Add deployment views (CI/CD flow, GitHub Actions details) and scaling diagrams (autoscaler groups, read replicas for Postgres, vector DB cluster topology) on request.
 
 Reference: canonical memory model is `docs/memory-model.md` — use that file as the single source for memory quotas, lifecycle, and pruning behaviour.
@@ -208,9 +208,9 @@ Open choices & tradeoffs
 
 Next steps
 ----------
-1. Pick target bootstrap environment (local dev + Oracle Always Free or Fly.io).  
-2. Create a minimal IaC skeleton (Terraform modules + k8s manifests + Helm releases) that targets the free-first bootstrap.  
-3. Add CI (GitHub Actions) to build images and deploy to a staging environment.  
+1. Pick target bootstrap environment (local dev + Oracle Always Free or Fly.io).
+2. Create a minimal IaC skeleton (Terraform modules + k8s manifests + Helm releases) that targets the free-first bootstrap.
+3. Add CI (GitHub Actions) to build images and deploy to a staging environment.
 
 Reference files in this repo
 ---------------------------
@@ -227,6 +227,7 @@ Infra / SRE — infra@kimberly.local (placeholder)
 This document describes pragmatic observability, backup, SLOs, and on-call/runbook guidance suitable for free-first and small-scale deployments.
 
 ### Monitoring & metrics
+
 - Metrics stack (free / OSS friendly): Prometheus + Grafana.
 - Metrics to collect:
   - Memory Manager: per-user storage usage per tier, number of memory items, meditation run durations, items pruned per run
@@ -236,10 +237,12 @@ This document describes pragmatic observability, backup, SLOs, and on-call/runbo
   - API gateway: request latencies, 5xx/4xx rates, rate-limiting events
 
 ### Logging & tracing
+
 - Stack options (OSS-friendly): Grafana Loki (logs) + Tempo (traces) or an ELK stack.
 - Log retention: short defaults for free tier (7–30 days), configurable depending on requirements and cost.
 
 ### Alerting
+
 - Examples (alert if any triggers):
   - Meditation job failure or high latency (> 1 min)
   - Postgres storage > 80% and > 90% (warning + critical)
@@ -248,16 +251,19 @@ This document describes pragmatic observability, backup, SLOs, and on-call/runbo
   - Backup job failures
 
 ### SLOs & Service targets
+
 - Availability (for the API): 99.9% for paid / production; 99% for small free-tier deployments
 - Memory retrieval latency: p95 < 150ms (pgvector small-scale), tightens if using managed vector DB
 - Meditation success rate: daily runs should complete within a configured window (e.g., <= 10 minutes)
 
 ### Backups & disaster recovery
+
 - Postgres: daily dumps and point-in-time recovery when supported.
 - Object store: versioned buckets or snapshot replication to secondary storage.
 - Test restores at least monthly; automate restore verifications when possible.
 
 ### Runbooks & incident playbooks
+
 - Runbook: Memory tier burst overflow
   - Symptoms: memory-tier quota alarms, failed POST /memory requests with quota errors
   - Immediate actions: identify offending user(s), throttle or increase quota temporarily, kick off a manual meditation prune for that user
@@ -269,6 +275,7 @@ This document describes pragmatic observability, backup, SLOs, and on-call/runbo
   - Recovery: re-run meditation job manually, check sample outputs for correctness
 
 ### CI/CD & deployment tips
+
 - Use GitHub Actions as CI (repo prefers it) and GHCR for container registry.
 - Pipeline stages:
   - unit tests + lint
@@ -278,11 +285,13 @@ This document describes pragmatic observability, backup, SLOs, and on-call/runbo
   - promote to production with an approval step
 
 ### Cost controls & lowering ops
+
 - Enforce per-user quotas early to prevent abuse.
 - Use pgvector for early workloads to avoid extra managed services cost.
 - Keep logs/metrics retention short for free-tier deployments but schedule exports if required for compliance.
 
 ### Next steps & checklist
+
 1. Add Prometheus + Grafana helm charts to the `local` dev stack.
 2. Add monitoring exporters (Postgres, Redis, Kubernetes metrics-server) in manifests.
 3. Add a GitHub Actions pipeline skeleton for building images and deploying to dev/staging clusters.
@@ -292,14 +301,17 @@ This document describes pragmatic observability, backup, SLOs, and on-call/runbo
 This appendix summarizes recommended bootstrap options, portability guidance, and local development tips.
 
 ### Bootstrap provider options (short)
+
 - Oracle Cloud Always Free — self-managed VMs (run k3s/k0s): pros — predictable free tier, full control; cons — more ops work (maintenance, upgrades).
 - Fly.io — managed app platform (simpler deployments): pros — fast setup, minimal infra; cons — not full-featured K8s, potential limits when scaling.
 
 ### Portability & migration guardrails
+
 - Keep Terraform, manifests, and Helm charts provider-agnostic where possible.
 - Rely on S3-compatible object storage, PostgreSQL, and Redis that can be swapped between providers.
 - Use `ghcr.io` (GitHub Container Registry) for images to avoid cloud-specific registries.
 
 ### Local development tips
+
 - Use `kind` or `k3d` for local Kubernetes clusters and `docker`/`podman` for builds.
 - Keep secrets in local dev env files or use a local secrets manager (eg. `sops` with a test key).

@@ -3,11 +3,13 @@
 ## Security Policy
 
 ## Supported Versions
+
 We actively monitor and patch security vulnerabilities in the following versions:
 - Latest release
 - Main branch
 
 ## Reporting a Vulnerability
+
 If you discover a security vulnerability, please report it responsibly:
 - **Do not** create public GitHub issues for vulnerabilities.
 - Email: security@kimberly.ai (placeholder; replace with actual contact).
@@ -17,6 +19,7 @@ If you discover a security vulnerability, please report it responsibly:
 We follow the [NIST Cybersecurity Framework](https://www.nist.gov/cyberframework) for incident response.
 
 ## Security Measures
+
 - **Dependency Scanning**: Automated via Dependabot and Safety.
 - **Code Scanning**: Bandit for Python security linting, CodeQL for general vulnerabilities.
 - **Secret Scanning**: Enabled on GitHub to detect exposed secrets.
@@ -25,6 +28,7 @@ We follow the [NIST Cybersecurity Framework](https://www.nist.gov/cyberframework
 - **Access Control**: JWT authentication, RBAC for agents.
 
 ## Known Security Considerations
+
 - Agent sandboxing is in development; avoid running untrusted agents in production.
 - Local storage option available to minimize cloud exposure.
 - Regular audits recommended for production deployments.
@@ -34,13 +38,16 @@ For more details, see the Threat Model and Risk Analysis sections below.
 ## Threat Model
 
 ### Overview
+
 This threat model identifies potential security risks for the Kimberly personal AI assistant project. It follows a structured approach focusing on assets, threats, vulnerabilities, and mitigations. The model assumes a single-user system with local-first storage, agent delegation, and free-mode constraints (no paid APIs).
 
 ### Scope
+
 - In-scope: Conversational AI, memory management (short/long/permanent tiers), agent orchestration, API endpoints, telemetry logging, and infrastructure (K8s, Postgres, Redis).
 - Out-of-scope: Third-party integrations (e.g., GitHub, Slack) unless directly invoked; hardware-level attacks; supply chain for dependencies (covered separately).
 
 ### Assets
+
 - **User Data**: Conversations, memories (short/long/permanent), personal preferences, sensitive metadata (e.g., credentials).
 - **AI Model**: Llama 3.1 LLM weights and inference logic.
 - **API Keys/Secrets**: JWT tokens, database credentials, encryption keys.
@@ -49,6 +56,7 @@ This threat model identifies potential security risks for the Kimberly personal 
 - **Agents**: Delegated tasks (Scheduler, Researcher, Coder) with potential access to memory and external resources.
 
 ### Threat Actors
+
 - **Malicious User**: Attempts to exploit single-user system for data exfiltration or denial-of-service.
 - **Insider Threat**: Developer or admin with access to code/repo.
 - **External Attacker**: Network-based attacks (e.g., via API, voice input).
@@ -58,6 +66,7 @@ This threat model identifies potential security risks for the Kimberly personal 
 ### Threats and Vulnerabilities
 
 #### Data Confidentiality
+
 - **Threat**: Unauthorized access to user memories or telemetry (e.g., PII leakage in logs).
 - **Vulnerabilities**: No encryption-at-rest (R-004); telemetry not redacted; weak JWT secrets.
 - **Impact**: Privacy breach, GDPR violation.
@@ -65,6 +74,7 @@ This threat model identifies potential security risks for the Kimberly personal 
 - **Mitigations**: Implement AES encryption for sensitive data; redact PII in telemetry; use strong, rotated secrets.
 
 #### Data Integrity
+
 - **Threat**: Tampering with memories or AI responses (e.g., agent injecting false data).
 - **Vulnerabilities**: No audit logging for memory writes; agent sandbox insufficient (R-009).
 - **Impact**: Corrupted user data, unreliable AI.
@@ -72,6 +82,7 @@ This threat model identifies potential security risks for the Kimberly personal 
 - **Mitigations**: Add immutable audit trails; enforce agent resource limits and deny lists.
 
 #### Availability
+
 - **Threat**: DoS via API abuse or agent resource exhaustion.
 - **Vulnerabilities**: No rate limiting; meditation jobs unmonitored; single-user quotas unenforced.
 - **Impact**: System unavailability, data loss.
@@ -79,6 +90,7 @@ This threat model identifies potential security risks for the Kimberly personal 
 - **Mitigations**: Implement API rate limiting; monitor meditation failures; enforce per-user quotas.
 
 #### Authentication/Authorization
+
 - **Threat**: Unauthorized API access or privilege escalation.
 - **Vulnerabilities**: JWT auth not implemented; no RBAC for agents/admin interfaces.
 - **Impact**: Full system compromise.
@@ -86,6 +98,7 @@ This threat model identifies potential security risks for the Kimberly personal 
 - **Mitigations**: Secure JWT with expiration/rotation; add RBAC for memory/agent controls.
 
 #### AI Safety
+
 - **Threat**: Hallucinations, bias, or malicious agent actions (e.g., leaking secrets).
 - **Vulnerabilities**: No bias detection; agents can access external resources without limits.
 - **Impact**: Harmful outputs, legal liability.
@@ -93,6 +106,7 @@ This threat model identifies potential security risks for the Kimberly personal 
 - **Mitigations**: Add AI validation tests; sandbox agents with network/file restrictions.
 
 #### Supply Chain
+
 - **Threat**: Compromised dependencies or LLM model.
 - **Vulnerabilities**: No dependency scanning; LLM licensing risks (unknowns in RISK_ANALYSIS.md).
 - **Impact**: Backdoors, unreliable AI.
@@ -100,22 +114,26 @@ This threat model identifies potential security risks for the Kimberly personal 
 - **Mitigations**: Use Snyk for scans; audit LLM licenses; pin dependencies.
 
 ### Risk Assessment
+
 - **Critical Risks**: Encryption gaps (R-004), agent sandboxing (R-009), GDPR deletion (R-005).
 - **Overall Risk Level**: High (early-stage, many active risks).
 - **Acceptance Criteria**: Mitigate critical risks before MVP; conduct pen-test post-implementation.
 
 ### Mitigation Plan
+
 - **Phase 1 (Immediate)**: Draft KMS design, add encryption to architecture, implement basic auth.
 - **Phase 2 (Short-Term)**: Add CI security scans, enforce free-mode, develop agent sandbox.
 - **Phase 3 (Medium-Term)**: Conduct audit, add observability alerts, ensure telemetry privacy.
 - **Monitoring**: Regular updates to RISK_ANALYSIS.md; security reviews in PRs.
 
 ### Assumptions
+
 - Single-user system reduces multi-tenant risks.
 - Free-mode prevents paid API exploits.
 - Local-first storage minimizes cloud attack surface.
 
 ### Next Steps
+
 - Validate model with team; update RISK_ANALYSIS.md with mitigations.
 - Implement mitigations in code as developed.
 - Schedule formal security audit once PoC is runnable.
@@ -152,7 +170,7 @@ This analysis covers the codebase and design artifacts in this repository, the c
 
 | ID | Risk | Category | Impact | Likelihood | Priority | Mitigation(s) | Detection | Owner | Status |
 |----|------|----------|--------|------------|----------|---------------|-----------|-------|--------|
-| R-001 | No runnable implementation / primarily docs | Product / Delivery | Critical | Likely | Critical | Build a minimal end-to-end PoC using a hosted LLM to validate flows and developer on-ramps. Create quickstart in README. | PR/CI checks, demo readiness | @backend-dev | Active — high | 
+| R-001 | No runnable implementation / primarily docs | Product / Delivery | Critical | Likely | Critical | Build a minimal end-to-end PoC using a hosted LLM to validate flows and developer on-ramps. Create quickstart in README. | PR/CI checks, demo readiness | @backend-dev | Active — high |
 | R-002 | Unrealistic non-functional goals (latency <1s, 99.9% uptime at early-stage) | Product / Architecture | High | Likely | High | Re-scope SLOs; run latency benchmarks on a PoC; consider hosted models for low-latency MVP. | Performance tests; benchmark reports | @backend-dev | Active — validation needed |
 | R-003 | LLM deployment cost & infra mismatch (Llama 3.1 inference hardware & licensing) | Cost / Infrastructure | High | Likely | High | Produce cost estimate for self-hosting vs hosted provider; plan GPU sizing; track licensing/redistribution constraints. | Cost run rates, infra invoices | @ops TBD | Active — investigate |
 | R-004 | Security: E2E encryption claims without KMS/key management design | Security / Privacy | Critical | Possible | Critical | Draft KMS design, add key rotation, encryption-at-rest + in-transit diagrams, threat model. Limit telemetry to redacted PII. | Security reviews, pen-test | @sec TBD | Active — fix design |
@@ -186,7 +204,7 @@ These unknowns are important to resolve because they materially change mitigatio
 
 4. Data retention & deletion mechanics for GDPR/compliance
    - Why: Must be demonstrable (logs/tests) before any public-facing release.
-   - Info needed: retention policies, audit trail locations, export format, deletion confirmation tests (end-to-end). 
+   - Info needed: retention policies, audit trail locations, export format, deletion confirmation tests (end-to-end).
    - Next action: Implement and test data deletion endpoint for demo data; owner: @data_privacy; target: 2 weeks.
 
 5. Threat model for voice inputs and third-party integrations (calendars, email, GitHub)
@@ -196,11 +214,11 @@ These unknowns are important to resolve because they materially change mitigatio
 
 6. Telemetry and logging privacy — exact fields collected in `misc/copilot_tracking.json` and data minimization policy
    - Why: Avoid PII leaks in telemetry and audits.
-   - Info needed: Which fields contain PII? Can telemetry be sampled, redacted, or hashed? Retention policy for logs (required for incident research vs privacy law). 
+   - Info needed: Which fields contain PII? Can telemetry be sampled, redacted, or hashed? Retention policy for logs (required for incident research vs privacy law).
    - Next action: Review telemetry schema & propose redaction rules; owner: @sec or @dev; target: 1 week.
 
 7. CI/CD hosting & runners — which environment will run inference tests or integration tests that require GPUs
-   - Why: CI that needs GPUs has different cost/ops implications (self-hosted runners vs cloud). 
+   - Why: CI that needs GPUs has different cost/ops implications (self-hosted runners vs cloud).
    - Next action: Decide CI strategy for ML workloads; owner: @devops; target: 2 weeks.
 
 8. Detailed agent orchestration model (capabilities, concurrency, isolation semantics)
@@ -245,9 +263,11 @@ Document created by: repo:kimberly — automated snapshot analysis
 ## Secure Credential Management Plan
 
 ### Overview
+
 This plan outlines how to securely manage credentials (API keys, database passwords, etc.) needed for the Kimberly project, ensuring that Copilot (GitHub Copilot) and developers can access them without compromising security. The approach follows best practices: no hardcoding, environment-based configuration, and layered security for dev/staging/production.
 
 ### Identified Credentials Needed
+
 Based on project requirements:
 - **LLM API Keys**: For Llama 3.1 or other models (e.g., Hugging Face token for transformers).
 - **Database Credentials**: Username/password for PostgreSQL or SQLite (if remote).
@@ -260,6 +280,7 @@ Enforce "free-mode": Block paid API usage in CI with grep checks.
 ### Implementation Steps
 
 #### 1. Environment Variables as Primary Mechanism
+
 - All credentials accessed via `os.getenv()` in Python code.
 - Example in `app.py`:
   ```python
@@ -271,6 +292,7 @@ Enforce "free-mode": Block paid API usage in CI with grep checks.
 - For optional creds, provide defaults or skip features.
 
 #### 2. Local Development Setup
+
 - Use `.env` file for local env vars.
 - Install `python-dotenv` in `requirements.txt`.
 - Load in code: `from dotenv import load_dotenv; load_dotenv()`.
@@ -282,38 +304,45 @@ Enforce "free-mode": Block paid API usage in CI with grep checks.
   ```
 
 #### 3. CI/CD Security
+
 - Use GitHub Secrets for CI pipelines.
 - In `.github/workflows/ci.yml`, reference as `${{ secrets.HUGGINGFACE_TOKEN }}`.
 - CI jobs: Lint for hardcoded secrets (e.g., use `detect-secrets` tool).
 - Add CI step to grep for paid API calls and fail if found.
 
 #### 4. Production Secrets Management
+
 - Use cloud secrets manager (e.g., AWS Secrets Manager, GCP Secret Manager, or HashiCorp Vault).
 - For free tier: Oracle Vault or local KMS.
 - Code retrieves secrets at runtime via SDKs (e.g., `boto3` for AWS).
 - Rotate keys regularly; audit access logs.
 
 #### 5. Documentation and Training
+
 - Create `docs/ENVIRONMENT_SETUP.md` (from needs-work.md) with setup instructions.
 - Include in `CONTRIBUTING.md`: "Never commit credentials; use env vars."
 - Add security checklist in `docs/CODE_REVIEW.md`.
 
 #### 6. Monitoring and Auditing
+
 - Log credential access (without exposing values) for audit trails.
 - Use tools like `detect-secrets` in pre-commit hooks.
 - Regular security reviews as per SECURITY.md.
 
 #### 7. Free-Mode Enforcement
+
 - CI grep for patterns like `openai.api_key`, `anthropic.`, etc.
 - Environment flag `FREE_MODE=true` to disable paid features.
 
 ### Risks and Mitigations
+
 - **Accidental Commit**: .gitignore + pre-commit hooks.
 - **Runtime Exposure**: No logging of secrets; use redaction.
 - **Copilot Access**: Copilot suggests code based on context; ensure .env not in workspace for suggestions.
 - **PII in Tracking**: Redact `misc/copilot_tracking.json` if sensitive.
 
 ### Next Actions
+
 - Update `.gitignore` with `.env`.
 - Add `python-dotenv` to `requirements.txt`.
 - Create `.env.example`.

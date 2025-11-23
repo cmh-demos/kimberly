@@ -36,6 +36,7 @@ This document outlines the standardized process for managing work items in the K
 Work items (e.g., features, bugs, tasks, epics) are identified and documented as GitHub issues.
 
 #### Steps:
+
 - **Identify the Need**: Work can originate from backlog grooming, sprint planning, user feedback, bugs, or PM/product decisions. Reference docs like `docs/backlog-next-3-sprints.md` or `docs/project-board.md`.
 - **Create the Issue**: Use the work-tracking issue template (`.github/ISSUE_TEMPLATE/work-tracking.md`). Fill in all required fields:
   - Issue Type (e.g., Bug, Feature Request).
@@ -48,6 +49,7 @@ Work items (e.g., features, bugs, tasks, epics) are identified and documented as
 - **Initial Triage**: If not immediately assignable, leave assignee blank for review in the next meeting.
 
 #### Responsible Roles:
+
 - Product Manager (PM) for feature requests and prioritization.
 - Engineering Lead or QA for bugs/tasks.
 - Any team member for documentation or minor tasks.
@@ -57,12 +59,14 @@ Work items (e.g., features, bugs, tasks, epics) are identified and documented as
 Every issue must be assigned to someone from the roles list in `roles.md` to ensure accountability.
 
 #### Steps:
+
 - **Review and Prioritize**: In weekly sync or sprint planning meetings, review open issues. Prioritize based on backlog and sprint goals.
 - **Match to Roles**: Assign based on responsibilities in `roles.md` (e.g., Backend Developer for API tasks, SRE for infra issues).
 - **Update Issue**: Set the assignee in GitHub. If multiple roles are needed, assign to the primary owner and note collaborators in comments.
 - **Communicate**: Notify the assignee via issue comments or meetings. Ensure they acknowledge and understand the work.
 
 #### Responsible Roles:
+
 - Product Manager (PM) for prioritization and high-level assignment.
 - Engineering Lead for technical assignments and coordination.
 
@@ -71,6 +75,7 @@ Every issue must be assigned to someone from the roles list in `roles.md` to ens
 Work progress is monitored through GitHub issues, project boards, and meetings.
 
 #### Steps:
+
 - **Update Status**: Assignees update the issue with progress (e.g., add comments, link PRs, update acceptance criteria checkboxes).
 - **Project Board**: Move issues across columns (e.g., Backlog → In Progress → Done) in `docs/project-board.md` or GitHub Projects.
 - **Meetings**: Discuss progress in weekly syncs, bi-weekly grooming, or sprint retros. Report blockers, risks, and adjustments.
@@ -82,6 +87,7 @@ Work progress is monitored through GitHub issues, project boards, and meetings.
 Work is considered complete when it meets the Definition of Done (DoD) in `docs/DEFINITION_OF_DONE.md`.
 
 #### Steps:
+
 - **Self-Review**: Assignees verify against DoD criteria (code quality, testing, functionality, documentation, security).
 - **Submit for Review**: Create PR and request reviews from required reviewers (see reviewer matrix in CONTRIBUTING.md).
 - **Address Feedback**: Iterate on PR comments until approved.
@@ -90,6 +96,7 @@ Work is considered complete when it meets the Definition of Done (DoD) in `docs/
 - **Retrospective**: In sprint retro, discuss what went well and improvements for future work.
 
 #### Responsible Roles:
+
 - Assignees for implementation and self-review.
 - Reviewers for quality checks.
 - QA for final validation.
@@ -99,12 +106,14 @@ Work is considered complete when it meets the Definition of Done (DoD) in `docs/
 Ongoing activities to keep the process effective.
 
 #### Steps:
+
 - **Monitor Metrics**: Track cycle time, throughput, and quality metrics.
 - **Process Reviews**: Quarterly reviews of the workflow process; update based on feedback.
 - **Tool Updates**: Keep GitHub Projects, issue templates, and automation up-to-date.
 - **Training**: Onboard new team members on the process.
 
 #### Responsible Roles:
+
 - Engineering Lead for process oversight.
 - Team for feedback and participation.
 
@@ -113,11 +122,13 @@ Ongoing activities to keep the process effective.
 This document describes the Software Development Lifecycle (SDLC) for the Kimberly project, ensuring structured, iterative development with quality and collaboration.
 
 ### Overview
+
 Kimberly follows an Agile-inspired SDLC with phases: Planning, Design, Development, Testing, Deployment, and Maintenance. Iterations are 2-week sprints.
 
 ### Phases
 
 #### 1. Planning
+
 - **Activities**:
   - Backlog grooming: Prioritize features/bugs from needs-work.md and issues.
   - Sprint planning: Select items, estimate effort (story points), assign owners.
@@ -127,6 +138,7 @@ Kimberly follows an Agile-inspired SDLC with phases: Planning, Design, Developme
 - **Duration**: 1-2 days per sprint.
 
 #### 2. Design
+
 - **Activities**:
   - Architecture design: Update ARCHITECTURE.md, create diagrams.
   - API design: Update openapi.yaml.
@@ -137,6 +149,7 @@ Kimberly follows an Agile-inspired SDLC with phases: Planning, Design, Developme
 - **Duration**: As needed per feature.
 
 #### 3. Development
+
 - **Activities**:
   - Code implementation: Follow CODING_STANDARDS.md.
   - Pair/mob programming for complex features.
@@ -147,6 +160,7 @@ Kimberly follows an Agile-inspired SDLC with phases: Planning, Design, Developme
 - **Duration**: Bulk of sprint.
 
 #### 4. Testing
+
 - **Activities**:
   - Unit/integration testing: 95% coverage.
   - QA testing: Manual/E2E.
@@ -157,6 +171,7 @@ Kimberly follows an Agile-inspired SDLC with phases: Planning, Design, Developme
 - **Duration**: Ongoing; final validation before release.
 
 #### 5. Deployment
+
 - **Activities**:
   - CI/CD: Automated builds/tests via GitHub Actions.
   - Staging deployment: Test in staging environment.
@@ -167,6 +182,7 @@ Kimberly follows an Agile-inspired SDLC with phases: Planning, Design, Developme
 - **Duration**: 1-2 days.
 
 #### 6. Maintenance
+
 - **Activities**:
   - Bug fixes, patches.
   - Monitoring: Logs, metrics (Prometheus/Grafana).
@@ -177,6 +193,7 @@ Kimberly follows an Agile-inspired SDLC with phases: Planning, Design, Developme
 - **Duration**: Continuous.
 
 ### Tools and Automation
+
 - **Version Control**: Git (GitHub).
 - **CI/CD**: GitHub Actions (linting, tests, deployment).
 - **Project Management**: GitHub Issues/Projects.
@@ -184,17 +201,20 @@ Kimberly follows an Agile-inspired SDLC with phases: Planning, Design, Developme
 - **Documentation**: Markdown files, auto-generated API docs.
 
 ### Quality Gates
+
 - **Code Review**: Required for all PRs; checklist in CONTRIBUTING.md.
 - **CI Checks**: Must pass (lint, test, coverage).
 - **Security Review**: For sensitive features.
 - **Acceptance**: Meets criteria in sprint-plan.md.
 
 ### Metrics and Improvement
+
 - **KPIs**: Cycle time, defect rate, deployment frequency.
 - **Retros**: End-of-sprint; update process.
 - **Continuous Improvement**: Adopt new tools/practices as needed.
 
 ### Compliance and Ethics
+
 - **Legal**: Adhere to open-source licenses, data privacy (GDPR).
 - **Ethics**: Bias-free AI, user consent.
 - **Security**: Regular audits.

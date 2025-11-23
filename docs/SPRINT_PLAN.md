@@ -80,4 +80,4 @@ Acceptance criteria and a measurable target should be attached to each KPI befor
 
 ---
 
-If you want, I’ll convert this into a short Jira-like backlog with prioritized tickets and owners next.  
+If you want, I’ll convert this into a short Jira-like backlog with prioritized tickets and owners next.

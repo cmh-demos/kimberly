@@ -3,6 +3,7 @@
 This is a simple project board representation using Markdown. Use this to track progress on epics and stories from the backlog.
 
 ## Backlog
+
 - [ ] **Epic A — Developer onboarding & CI**
   - [ ] Story A.1: Create a runnable Quickstart + example (README + test harness). — owner: Docs/FE, estimate: 2 days
   - [ ] Story A.2: Add CI checks: openapi linter, docs build, copilot_tracking schema validation. — owner: SRE, estimate: 3 days
@@ -19,12 +20,15 @@ This is a simple project board representation using Markdown. Use this to track 
   - [ ] Story D.2: Sandboxing + failure handling + quotas enforcement. — owner: SRE/Security, estimate: 4 days
 
 ## In Progress
+
 - [ ] (Move items here when started)
 
 ## Done
+
 - [ ] (Move items here when completed)
 
 ## Sprint Mapping
+
 - **Sprint 1**: A.1, B.1, B.2
 - **Sprint 2**: A.2, A.3, B.3, C.1
 - **Sprint 3**: C.2, D.1, D.2

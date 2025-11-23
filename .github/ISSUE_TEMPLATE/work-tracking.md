@@ -7,6 +7,7 @@ assignees: ""
 ---
 
 ## Issue Type
+
 - [ ] Bug
 - [ ] Feature Request
 - [ ] Task
@@ -15,35 +16,43 @@ assignees: ""
 - [ ] Other (specify: __________)
 
 ## Priority
+
 - [ ] Critical
 - [ ] High
 - [ ] Medium
 - [ ] Low
 
 ## Description
+
 Provide a clear and concise description of the issue or work item. Include context, what needs to be done, and why it's important.
 
 ## Acceptance Criteria
+
 List the specific criteria that must be met for this issue to be considered complete:
 - [ ] Criterion 1
 - [ ] Criterion 2
 - [ ] Criterion 3
 
 ## Related Documents/Links
+
 - Link to relevant docs (e.g., `docs/backlog-next-3-sprints.md`)
 - Related issues or PRs
 - Any external references
 
 ## Additional Context
+
 Add any other context, screenshots, or details that might help with this work item.
 
 ## Estimation
+
 Rough estimate (in days or story points): __________
 
 ## Actual Time Spent
+
 Upon completion, record the actual time spent (in days or hours): __________ (Update this field when closing the issue)
 
 ## Assignee
+
 Assign to the appropriate team member from the roles list in `roles.md`. Every issue must have an assignee.
 
 ---

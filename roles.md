@@ -5,7 +5,8 @@ This document outlines the key roles required to complete the Kimberly project, 
 ## Core Development Roles
 
 ### Backend Developer
-**Description**: Focuses on server-side logic, data processing, and API development.  
+
+**Description**: Focuses on server-side logic, data processing, and API development.
 **Responsibilities**:
 - Implement core APIs (e.g., POST /chat, memory management, agent orchestration).
 - Handle memory persistence, ranking, and nightly "meditation" processes.
@@ -24,7 +25,8 @@ This document outlines the key roles required to complete the Kimberly project, 
 - Participate in code reviews, architecture decisions, and sprint planning.
 
 ### Frontend Developer
-**Description**: Builds user-facing interfaces and client-side applications.  
+
+**Description**: Builds user-facing interfaces and client-side applications.
 **Responsibilities**:
 - Develop web and voice UI components (e.g., chat interface, memory manager, agent dashboard).
 - Integrate TTS/ASR for voice interactions.
@@ -43,7 +45,8 @@ This document outlines the key roles required to complete the Kimberly project, 
 - Participate in cross-team reviews and sprint demos.
 
 ### Engineering Lead
-**Description**: Oversees technical architecture and engineering efforts.  
+
+**Description**: Oversees technical architecture and engineering efforts.
 **Responsibilities**:
 - Define system architecture, including memory tiers, agent delegation, and infra design.
 - Coordinate between backend, frontend, and ops teams.
@@ -63,7 +66,8 @@ This document outlines the key roles required to complete the Kimberly project, 
 ## Operations and Infrastructure Roles
 
 ### SRE (Site Reliability Engineer)
-**Description**: Ensures system reliability, monitoring, and operational efficiency.  
+
+**Description**: Ensures system reliability, monitoring, and operational efficiency.
 **Responsibilities**:
 - Set up monitoring (e.g., Prometheus/Grafana), alerting, and SLOs (e.g., 99.9% availability).
 - Manage backups, disaster recovery, and runbooks for incidents.
@@ -81,7 +85,8 @@ This document outlines the key roles required to complete the Kimberly project, 
 - Document runbooks and update them based on incidents.
 
 ### DevOps Engineer
-**Description**: Manages infrastructure provisioning and deployment automation.  
+
+**Description**: Manages infrastructure provisioning and deployment automation.
 **Responsibilities**:
 - Configure Kubernetes, Docker, and cloud-agnostic infra (e.g., Terraform, Helm).
 - Set up CI runners, container registries (e.g., ghcr.io), and local development environments.
@@ -101,7 +106,8 @@ This document outlines the key roles required to complete the Kimberly project, 
 ## Quality and Testing Roles
 
 ### QA Engineer
-**Description**: Ensures software quality through testing and validation.  
+
+**Description**: Ensures software quality through testing and validation.
 **Responsibilities**:
 - Develop and run E2E tests, smoke tests, and memory recall validations.
 - Maintain test coverage (target 95%) and automate CI checks.
@@ -121,7 +127,8 @@ This document outlines the key roles required to complete the Kimberly project, 
 ## Security and Compliance Roles
 
 ### Security Engineer
-**Description**: Protects the system from threats and ensures secure implementation.  
+
+**Description**: Protects the system from threats and ensures secure implementation.
 **Responsibilities**:
 - Conduct threat modeling, implement encryption (e.g., AES for data-at-rest), and JWT authentication.
 - Enforce sandboxing, rate limiting, and agent isolation.
@@ -139,7 +146,8 @@ This document outlines the key roles required to complete the Kimberly project, 
 - Maintain security documentation and policies.
 
 ### Privacy/Data Engineer
-**Description**: Manages data privacy, compliance, and user data handling.  
+
+**Description**: Manages data privacy, compliance, and user data handling.
 **Responsibilities**:
 - Implement GDPR-compliant data deletion/export APIs and consent flows.
 - Redact PII in telemetry and logs, enforce retention policies.
@@ -157,7 +165,8 @@ This document outlines the key roles required to complete the Kimberly project, 
 - Educate teams on data privacy best practices.
 
 ### Legal Advisor
-**Description**: Ensures legal compliance and risk mitigation.  
+
+**Description**: Ensures legal compliance and risk mitigation.
 **Responsibilities**:
 - Audit LLM licensing (e.g., Llama 3.1) for redistribution and commercial use.
 - Review regulatory requirements, contributor agreements, and open-source compliance.
@@ -176,7 +185,8 @@ This document outlines the key roles required to complete the Kimberly project, 
 ## Product and Design Roles
 
 ### Product Manager (PM)
-**Description**: Drives product vision, planning, and delivery.  
+
+**Description**: Drives product vision, planning, and delivery.
 **Responsibilities**:
 - Define roadmap, prioritize backlog, and set KPIs (e.g., latency, retention).
 - Manage sprints, retros, and stakeholder reviews.
@@ -193,7 +203,8 @@ This document outlines the key roles required to complete the Kimberly project, 
 - Plan releases and communicate changes to stakeholders.
 
 ### UI/UX Designer
-**Description**: Designs user interfaces and experiences.  
+
+**Description**: Designs user interfaces and experiences.
 **Responsibilities**:
 - Create wireframes, mockups, and prototypes for chat, memory, and agent screens.
 - Ensure accessibility, usability, and privacy transparency in designs.
@@ -210,7 +221,8 @@ This document outlines the key roles required to complete the Kimberly project, 
 - Iterate designs based on analytics and user feedback.
 
 ### Branding Manager
-**Description**: Develops and manages the brand identity for Kimberly.  
+
+**Description**: Develops and manages the brand identity for Kimberly.
 **Responsibilities**:
 - Define brand colors, typography, logo, and visual elements (e.g., purple-centric palette for AI/tech feel).
 - Create branding guidelines and ensure consistent application across platforms (web, mobile, voice).
@@ -229,7 +241,8 @@ This document outlines the key roles required to complete the Kimberly project, 
 ## Specialized Roles
 
 ### ML Engineer
-**Description**: Handles machine learning models and AI integrations.  
+
+**Description**: Handles machine learning models and AI integrations.
 **Responsibilities**:
 - Benchmark and host LLMs (e.g., Llama 3.1), manage embeddings and vector search.
 - Optimize model performance, latency, and resource usage.
@@ -246,7 +259,8 @@ This document outlines the key roles required to complete the Kimberly project, 
 - Integrate with backend for real-time inference.
 
 ### API Engineer
-**Description**: Manages API design, documentation, and integration.  
+
+**Description**: Manages API design, documentation, and integration.
 **Responsibilities**:
 - Maintain OpenAPI specs, validate schemas, and ensure API consistency.
 - Implement RESTful endpoints, OAuth, and third-party integrations.
@@ -263,7 +277,8 @@ This document outlines the key roles required to complete the Kimberly project, 
 - Troubleshoot API issues and provide support.
 
 ### Documentation Engineer
-**Description**: Creates and maintains project documentation.  
+
+**Description**: Creates and maintains project documentation.
 **Responsibilities**:
 - Write READMEs, runbooks, onboarding guides, and API docs.
 - Maintain changelogs, decision records (ADRs), and project boards.

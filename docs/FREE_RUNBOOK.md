@@ -35,7 +35,9 @@ python -m pip install -r requirements.txt  # add requirements if missing
 ```bash
 python3 scripts/cost_smoke_test.py  # quick resource-check example
 # The web API / app code (if present) should start with embedding disabled.
+
 # Start the demo server or run the integration harness per README.
+
 ```
 
 Optional: local embedding pipeline (self-hosted)
@@ -51,6 +53,7 @@ Example simple pipeline:
 ```bash
 python3 -c "from sentence_transformers import SentenceTransformer; m=SentenceTransformer('all-MiniLM-L6-v2'); print(m.encode(['hello world']))"
 # Use a small batch script to produce embeddings and upload with POST /memory/embed (self-hosted endpoint only)
+
 ```
 
 Enforcing free-mode in development / CI

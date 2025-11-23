@@ -3,9 +3,11 @@
 This document describes system boundaries, major components, data flows, integrations, and constraints.
 
 ## Goals
+
 - Scalability, observability, security, and maintainability.
 
 ## Components
+
 - API Gateway: ingress, routing, authentication, rate-limiting.
 - AI Service: Handles conversational AI using hybrid LLM approach - primary local inference with Llama 3.1 8B quantized model, API wrapper fallback for high-demand scenarios.
 - Services: auth, user, billing, jobs, reporting (each service is a small, well-scoped container).
@@ -14,16 +16,19 @@ This document describes system boundaries, major components, data flows, integra
 - Observability: Prometheus (metrics), Grafana (dashboards), ELK/Tempo for logs/traces.
 
 ## Data flow (high-level)
+
 1. Client -> API Gateway (TLS, auth)
 2. Gateway routes to service; services talk to databases or enqueue background jobs
 3. Background workers process jobs and emit events/metrics
 
 ## Deployment
+
 - Container images (Docker), Kubernetes for orchestration.
 - Infrastructure as code: Terraform for cloud resources.
 - CI/CD: build images, run tests, deploy to staging then production via automated pipelines.
 
 ## Diagrams
+
 Embed Mermaid diagrams for component and sequence views.
 
 Example component diagram (Mermaid):
@@ -42,6 +47,7 @@ graph LR
 ## Sequence Diagrams
 
 ### Sign-up Flow
+
 ```mermaid
 sequenceDiagram
     participant Client
@@ -61,6 +67,7 @@ sequenceDiagram
 ```
 
 ### Login Flow
+
 ```mermaid
 sequenceDiagram
     participant Client
@@ -78,6 +85,7 @@ sequenceDiagram
 ```
 
 ### Billing Flow
+
 ```mermaid
 sequenceDiagram
     participant Client
@@ -100,6 +108,7 @@ sequenceDiagram
 ```
 
 ## Constraints and trade-offs
+
 - Prefers managed cloud services for operational simplicity.
 - K8s adds operational overhead but gives scaling and isolation.
 - Performance targets: Chat response <1s (warm model), initial model load <30s, memory retrieval <500ms, agent delegation <5s, meditation <10min.
@@ -109,10 +118,12 @@ sequenceDiagram
 This document provides a concise overview of the Kimberly REST API and links to the OpenAPI definition in `docs/openapi.yaml`.
 
 ### Authentication
+
 - JWT Bearer tokens (issued on login/signup).
 - All protected endpoints require `Authorization: Bearer <token>`.
 
 ### Core endpoints (summary)
+
 - POST /signup — create an account and receive JWT
 - POST /login — authenticate and receive JWT
 - POST /chat — send a message to the conversational AI
