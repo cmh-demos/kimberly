@@ -38,9 +38,66 @@ graph LR
 	Jobs --> S3[(Object Storage)]
 ```
 
+## Sequence Diagrams
+
+### Sign-up Flow
+```mermaid
+sequenceDiagram
+    participant Client
+    participant API as API Gateway
+    participant Auth as Auth Service
+    participant Users as User Service
+    participant DB as PostgreSQL
+
+    Client->>API: POST /signup (email, password)
+    API->>Auth: Validate input
+    Auth->>Users: Create user
+    Users->>DB: Insert user record
+    DB-->>Users: Success
+    Users-->>Auth: User created
+    Auth-->>API: JWT token
+    API-->>Client: 201 Created + token
+```
+
+### Login Flow
+```mermaid
+sequenceDiagram
+    participant Client
+    participant API as API Gateway
+    participant Auth as Auth Service
+    participant DB as PostgreSQL
+
+    Client->>API: POST /login (email, password)
+    API->>Auth: Authenticate
+    Auth->>DB: Query user
+    DB-->>Auth: User data
+    Auth->>Auth: Verify password
+    Auth-->>API: JWT token
+    API-->>Client: 200 OK + token
+```
+
+### Billing Flow
+```mermaid
+sequenceDiagram
+    participant Client
+    participant API as API Gateway
+    participant Billing as Billing Service
+    participant DB as PostgreSQL
+    participant Queue as Message Queue
+    participant Worker as Background Worker
+
+    Client->>API: POST /billing/subscribe (plan)
+    API->>Billing: Process subscription
+    Billing->>DB: Update user billing
+    DB-->>Billing: Success
+    Billing->>Queue: Enqueue payment job
+    Queue-->>Worker: Process payment
+    Worker->>Worker: Charge payment gateway
+    Worker-->>DB: Record transaction
+    Worker-->>API: Notify success (via webhook or poll)
+    API-->>Client: 200 OK + confirmation
+```
+
 ## Constraints and trade-offs
 - Prefers managed cloud services for operational simplicity.
 - K8s adds operational overhead but gives scaling and isolation.
-
-## Next steps
-- Add sequence diagrams for sign-up, login, and billing flows.
