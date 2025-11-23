@@ -2,11 +2,6 @@
 
 Kimberly is a personal AI assistant inspired by Jarvis from Iron Man, designed for conversational interaction across multiple platforms. It features advanced memory management and agent delegation for seamless task handling.
 
-## Features
-
-## Overview
-Kimberly is a personal AI assistant inspired by Jarvis from Iron Man, designed for conversational interaction across multiple platforms. It features advanced memory management and agent delegation for seamless task handling.
-
 ## Core Features
 
 ### Conversational Interface
@@ -14,7 +9,7 @@ Kimberly is a personal AI assistant inspired by Jarvis from Iron Man, designed f
 - Multi-platform availability: Voice (e.g., smart speakers), Web (browser-based), Mobile (iOS/Android apps).
 - Real-time responses with context awareness.
 
--### Memory Management
+### Memory Management
 - See `docs/memory-model.md` for canonical definitions of short-term, long-term, and permanent memory tiers, quotas, meditation, and retention policies.
 - (Avoid duplicating quota numbers in multiple docs; refer to the canonical source.)
 - **Meditation**: Nightly grading of memories using a weighted score (40% relevance to goals, 30% emotional weight, 20% predictive usefulness, 10% recency/frequency). Memories below threshold are forgotten.
@@ -87,9 +82,9 @@ Expected response:
 
 - None required for minimal setup. For production, configure model paths, API keys, etc.
 
-## Risk analysis
+## Security and Risks
 
-We track project risks and open investigation items in `docs/RISK_ANALYSIS.md` — a living register that contains prioritized risks, mitigations, and the list of unknowns we still need to resolve. Please review it before making architecture or policy decisions.
+We track project risks and open investigation items in `SECURITY_AND_RISKS.md` — a living register that contains prioritized risks, mitigations, and the list of unknowns we still need to resolve. Please review it before making architecture or policy decisions.
 
 ## Usage
 

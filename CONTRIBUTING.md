@@ -21,10 +21,10 @@ Guidelines for contributing: PR flow, reviewer matrix, coding standards.
 - Use TypeScript ESLint for JS/TS.
 - 95% test coverage.
 
-See `docs/CODING_STANDARDS.md` for detailed guidelines.
+Detailed coding standards are provided below in this document.
 
 ## Development Process
-See `docs/SDLC.md` for the full Software Development Lifecycle.
+The full Software Development Lifecycle is documented below in this document.
 
 ## Testing
 
