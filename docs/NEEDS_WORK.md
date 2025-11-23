@@ -1,34 +1,79 @@
 # Needs work — prioritized
 
-This file lists the highest-priority documentation and project gaps I found, with short assessments and next actions.
+This file lists the highest-priority documentation and project gaps I found, with short assessments and next actions. Updated after backend implementation (JWT auth, memory scoring/meditation, agent delegation, expanded testing, infra fleshing).
 
 ## Top priority (fix now)
 - README placeholders: add dev quickstart + runnable example (why: onboarding friction). Next: add install, env, run steps and example `curl` and test data. (Consolidated: Also replace "Download app (TBD)" with platform decision, e.g., PWA for mobile.)
 - `docs/openapi.yaml` dedupe & clean: remove duplicate schemas, complete error responses (why: client SDK generation breaks). Next: run OpenAPI linter and add examples. (Consolidated: Remove remaining duplicate requestBody entries; complete all paths/schemas; validate with openapi-generator.)
-- No code implementation: entire codebase missing; only docs and scripts exist (why: can't run/test anything). Next: implement minimal runnable app (e.g., Python API with Llama 3.1 integration).
 - Incomplete OpenAPI spec: schemas cut off mid-definition, duplicates present (why: API clients unreliable). Next: complete all endpoints/schemas and validate.
-- CHANGELOG.md placeholder: Populate with recent changes (e.g., app.py addition). Why: Version tracking missing. Next: Add entries for unreleased features.
+- CHANGELOG.md placeholder: Populate with recent changes (e.g., backend implementation). Why: Version tracking missing. Next: Add entries for new features (auth, memory, agents).
 - FEATURES.md typo: Fix "-### Memory Management" header. Why: Formatting error. Next: Correct to "###".
 
 ## High priority (this sprint)
 - Sprint-plan: attach owners + measurable acceptance criteria (why: QA/ownership). Next: turn into tickets with owners. (Consolidated: Assign real owners to RISK_ANALYSIS.md TBDs, e.g., @backend-dev.)
 - Diagrams missing: add component and sequence Mermaid diagrams (why: clarify architecture & flows). Next: embed sample mermaid diagrams in ARCHITECTURE.md. (Consolidated: Create missing diagrams/wireframes; use Mermaid for more flows.)
 - No CI/CD pipelines: no .github/workflows or automated builds/tests (why: no validation). Next: add GitHub Actions for linting, testing, OpenAPI validation. (Consolidated: Add CI doc checks with markdownlint; implement review cycle script for TBDs/placeholders.)
-- Minimal testing: only one test file; no unit/integration/E2E for core features (why: no functionality validation). Next: add test suites (e.g., pytest) for 95% coverage, including AI tests. (Consolidated: Create `docs/TESTING_PROCESS.md` for workflows; add pytest suite for API endpoints.)
 - Wireframes missing: referenced SVGs not present in workspace (why: UI design blocked). Next: create/add wireframes as described in wireframes/README.md. (Consolidated: Create text-based placeholders or ASCII art.)
+- Testing expansion: current tests cover basics; need AI-specific tests, hallucination checks, bias detection (why: model QA incomplete). Next: add testing matrix in TESTING.md, implement AI validation tests.
 
 ## Medium priority
+- Branding implementation: Develop and apply visual identity (why: consistent user experience). Next: Create logo variations, apply color palette to wireframes, and gather feedback on branding guidelines. (Consolidated: Finalize brand assets in BRANDING.md; integrate into UI mocks and marketing materials.)
 - CI checks for docs & APIs (openapi lint, doc build, copilot_tracking validation). Next: add GitHub Actions or CI-agnostic pipeline. (Consolidated: Implement automated linting for docs; add CI for dependency scanning.)
-- AI tests: memory accuracy, hallucination checks, bias detection (why: model QA). Next: add testing matrix in TESTING.md.
-- ML implementation details: no code for memory scoring, meditation, LLM integration (why: core ML untested). Next: implement scoring logic, local Llama inference, evaluation scripts.
-- Infra artifacts incomplete: Terraform/Helm/K8s skeletons but no executable configs (why: can't deploy). Next: flesh out for free providers, add manifests. (Consolidated: Flesh out Terraform for Oracle Always Free; add Helm charts for services; create `docs/ENVIRONMENT_SETUP.md` for per-env guides, including credential setup.)
-- Security & threat model: basic SECURITY.md, no detailed model or KMS (why: risks unmitigated). Next: add threat model, encryption flows. (Consolidated: Implement threat model and KMS design; add encryption-at-rest/in-transit; create `docs/COMPLIANCE.md` for checklists.)
-- Metrics/telemetry implementation: KPIs defined but no tracking code (why: can't measure success). Next: add Prometheus/Grafana, integrate logging. (Consolidated: Establish benchmarks for latency/uptime; create `docs/PERFORMANCE_MONITORING.md` for setup guides.)
-- Agent orchestration: no code or sandbox for delegation (why: agents unsafe). Next: implement runner with quotas/isolation.
+- ML implementation completion: memory scoring/meditation implemented; need LLM integration and evaluation scripts (why: core ML untested). Next: integrate hybrid LLM approach (local Llama 3.1 8B primary, API fallback), add evaluation scripts.
+- Infra deployment: Terraform fleshed for local; need Oracle Always Free configs and production manifests (why: can't deploy to free cloud). Next: add Oracle Always Free Terraform, Helm charts for production.
+- Security hardening: JWT auth added; need encryption-at-rest, KMS design, detailed threat model (why: risks partially mitigated). Next: implement AES encryption, add KMS flows, update threat model.
+- Metrics/telemetry setup: Prometheus/Grafana in infra; need integration and benchmarks (why: can't measure success yet). Next: integrate logging, establish latency/uptime benchmarks.
 - Docs consistency: Standardize formatting and add "Last Updated" dates. Why: Inconsistent style. Next: Audit and fix headers/links.
 - Cross-references: Add internal links (e.g., FEATURES.md to memory-model.md). Why: Navigation poor. Next: Update with relative links.
 - Examples/snippets: Add code examples to API.md and TESTING.md. Why: Friction for devs. Next: Include curl/pytest samples.
 - ADR expansion: Flesh out ADRs with pros/cons. Why: Decision rationale weak. Next: Add alternatives and outcomes.
+
+## Lower priority / Nice to have
+- Mobile plan: fill TBD in README with platform choices and distribution path.
+- Add more examples & SDK snippets in `docs/API.md`. (Consolidated: Add inline examples like curl snippets.)
+- Documentation completeness: some files placeholders (e.g., CHANGELOG.md); ADRs brief (why: maintenance harder). Next: expand with examples, add ADRs. (Consolidated: Fill TBDs in docs; create process docs like `docs/ONBOARDING.md`, `docs/CODE_REVIEW.md` (with security checklists), `docs/RELEASE_PROCESS.md`, `docs/INCIDENT_RESPONSE.md`, `docs/COMMUNICATION.md`, `docs/BACKUP_RECOVERY.md`, `docs/ACCESSIBILITY.md`, `docs/DEPENDENCY_MANAGEMENT.md`, `docs/CHANGE_MANAGEMENT.md`, `docs/USER_FEEDBACK.md`.)
+- UI/UX details: no prototypes or accessibility tests (why: UI dev stalled). Next: build HTML/CSS mocks, add WCAG checklist. (Consolidated: Conduct WCAG 2.1 AA audits; create accessibility guidelines.)
+- Data pipelines & ops: no ETL, backups, restore tests (why: data fragile). Next: add export/import scripts, automated backups. (Consolidated: Implement daily DB backups with restore tests; add data export/import procedures.)
+- Free-mode enforcement: no CI blocks for paid APIs (why: accidental costs). Next: add grep-based rules.
+- Project management: plans exist but no tickets/owners (why: execution unclear). Next: convert to GitHub issues.
+
+## Completed in recent backend work
+- **Code implementation**: Basic runnable app with FastAPI, JWT auth, chat endpoint, memory management, agent delegation. (Previously: no code at all.)
+- **Memory scoring & meditation**: Implemented scoring logic and nightly pruning engine. (Previously: no ML code.)
+- **Agent orchestration**: Basic agent runner with quotas and safety controls. (Previously: no agent code.)
+- **Testing expansion**: Test suite expanded from 2 to 11 tests covering auth, memory, agents. (Previously: minimal testing.)
+- **Infra fleshing**: Terraform config for local k3s deployment with Postgres, Redis, MinIO, monitoring. (Previously: skeleton only.)
+- **Security basics**: JWT authentication, password hashing, and rate limiting prep. (Previously: no auth.)
+
+## Additional Outstanding Items (from rescan)
+- **LLM Integration**: Hybrid approach decided (local Llama 3.1 8B primary, API fallback); app uses mock responses. Next: Implement local inference integration, add API wrapper fallback, create evaluation scripts.
+- **Database Integration**: PostgreSQL + pgvector decided with migration path to dedicated vector DB if needed. Next: Implement schema design, connection logic, and vector search integration.
+- **Encryption Implementation**: No encryption-at-rest; sensitive data not encrypted. Next: Implement AES encryption for memory content and KMS for keys.
+- **Logging Integration**: No structured logging; no integration with Loki/Prometheus. Next: Add logging middleware and metrics emission.
+- **CI/CD Completion**: .github/workflows exists but incomplete (only lint job). Next: Add test, build, deploy jobs for staging/production.
+- **Diagrams in ARCHITECTURE.md**: Placeholder Mermaid diagrams present but not embedded. Next: Add actual component and sequence diagrams.
+- **FEATURES.md Typo Fix**: "-### Memory Management" should be "###". Next: Correct header formatting.
+- **OpenAPI Spec Validation**: Spec exists but may have duplicates/incompletes. Next: Run linter and complete all schemas.
+- **README Quickstart Update**: Basic quickstart present but may need auth examples. Next: Add JWT token examples and real usage.
+- **CHANGELOG Population**: Basic structure but missing recent backend features. Next: Add entries for auth, memory, agents, infra.
+- **AI-Specific Tests**: No hallucination, bias, or accuracy tests. Next: Add AI validation tests and evaluation scripts.
+- **Metrics Integration**: Prometheus/Grafana in infra but not integrated in code. Next: Add metrics endpoints and logging.
+- **Environment Configuration**: No .env examples or production configs. Next: Add environment setup docs and variable management.
+- **Production Deployment**: Only local Terraform; no Oracle Always Free or Fly.io configs. Next: Add cloud-specific Terraform modules.
+- **Backup & Recovery**: No automated backups or restore procedures. Next: Implement DB backups and test restores.
+- **Compliance Documentation**: No GDPR/CCPA docs or audit trails. Next: Create compliance checklists and audit logging.
+- **Accessibility Features**: No WCAG compliance or screen reader support. Next: Add accessibility guidelines and tests.
+- **Wireframes Validation**: SVG files exist but may not match requirements. Next: Review and update wireframes per ui-design.md.
+- **Free-Mode Enforcement**: No checks to prevent paid API usage. Next: Add CI grep rules and runtime checks.
+
+## Additional Quality-Related Work Proposals
+
+- **Code Reviews & Standards Enforcement**: Implement mandatory code reviews with checklists for PEP 8 compliance, static analysis, and security scans to ensure code quality. (Consolidated: Create `docs/CODE_REVIEW.md` with approval rules.)
+- **Risk Mitigation Tracking**: Regularly update RISK_ANALYSIS.md and create GitHub issues for high-priority risks with assigned owners and deadlines.
+- **Bug Tracking & Monitoring System**: Set up a centralized bug tracking system (e.g., GitHub Issues with labels) and integrate real-time monitoring dashboards for errors, performance, and usage metrics.
+- **Accessibility Audits**: Conduct WCAG 2.1 AA compliance audits for all UI components and add automated accessibility testing tools. (Consolidated: See UI/UX details.)
+- **Performance Benchmarking**: Establish benchmarks for latency, uptime, and scalability against SUCCESS_CRITERIA.md KPIs, with regular load testing and profiling. (Consolidated: See metrics/telemetry.)
+- **Markdown Linting**: Implement automated linting for docs. Why: Consistency and errors. Next: Add markdownlint-cli to CI.
 
 ## Lower priority / Nice to have
 - Mobile plan: fill TBD in README with platform choices and distribution path.
@@ -153,6 +198,21 @@ Next: prioritize and assign owners to these questions for implementation plannin
 
 ## Additional Gaps from Rescan
 
+- **Containerization Missing**: No Dockerfiles for services (app, memory, AI). Why: Can't containerize for K8s. Next: Add multi-stage Dockerfiles with Python base images.
+- **Incomplete K8s Manifests**: Only meditation CronJob exists; no Deployments, Services, Ingress, ConfigMaps, Secrets. Why: Can't deploy full stack. Next: Add manifests for API, DB, Redis, workers.
+- **No Helm Charts**: No Helm packaging for K8s deployments. Why: Manual deployments error-prone. Next: Create Helm chart with values for environments.
+- **CI/CD Incomplete**: GitHub Actions has lint/test/OpenAPI; missing build (Docker), deploy to staging/prod. Why: No automated deployment. Next: Add build job, deploy to free cloud (Oracle/Fly.io).
+- **Monitoring Not Configured**: Prometheus/Grafana mentioned but no configs/dashboards. Why: No visibility into performance. Next: Add Prometheus rules, Grafana dashboards for latency/uptime.
+- **Logging/Traces Missing**: Loki/Tempo not set up. Why: Hard to debug issues. Next: Configure log aggregation and tracing.
+- **Secrets Management**: No KMS/Vault integration. Why: Insecure key handling. Next: Use cloud KMS or SOPS for secrets.
+- **Backups Absent**: No automated DB/object store backups or restore tests. Why: Data loss risk. Next: Add cron scripts for dumps, monthly restore drills.
+- **Networking Incomplete**: No Ingress controller, load balancing. Why: No external access. Next: Add NGINX Ingress, service meshes.
+- **Security Policies**: No network policies, RBAC, service mesh. Why: Vulnerable to attacks. Next: Implement Istio or Calico for security.
+- **Auto-Scaling Missing**: No HPA for pods. Why: Can't handle load spikes. Next: Add HPA based on CPU/memory.
+- **Environment Configs**: No dev/staging/prod configs. Why: Hard to manage environments. Next: Add .env files, ConfigMaps per env.
+- **Cost Monitoring**: No tracking for free-tier usage. Why: Accidental overages. Next: Integrate cost tools (e.g., AWS Cost Explorer analogs).
+- **Compliance Tools**: No audit logging, GDPR automation. Why: Non-compliant. Next: Add audit trails, data export tools.
+
 Based on a deeper scan of the codebase, documentation, and infrastructure, the following gaps were identified that are not yet recorded in the needs-work file.
 
 ### Dependency and Environment Management
@@ -240,3 +300,23 @@ The following ambiguities were found during a comprehensive scan of all docs. Th
 - Replace placeholders with real values.
 - Provide examples/diagrams for clarity.
 - Cross-link ambiguous sections (e.g., memory-model to API.md).
+
+## SRE-Specific Gaps
+
+As a site reliability engineer, I've identified the following gaps in reliability, scalability, monitoring, incident response, and operational readiness. These address the project's goals for 99.9% availability, <150ms memory retrieval latency, and graceful failure handling.
+
+- **App Startup Failure Debugging**: App exits with code 1 on run (python app.py); no logs or error output captured. Why: Unreliable deployment and testing. Next: Add try/except in app.py for startup errors, log to stderr/file; run with verbose flags to capture stack traces; fix root cause (e.g., Redis connection, missing env vars).
+- **Metrics Integration in Code**: No Prometheus metrics emitted from app.py (e.g., request latency, error rates, memory ops). Why: No quantitative monitoring. Next: Add prometheus-client library; instrument endpoints with counters/histograms; expose /metrics endpoint.
+- **Alerting Setup**: No alerts configured for failures (e.g., app crashes, queue depth > threshold). Why: Reactive incident response. Next: Configure Prometheus Alertmanager rules for SLO breaches; integrate with email/Slack for on-call notifications.
+- **Incident Runbooks Development**: Outlines exist in ops-and-observability.md but no detailed playbooks for common issues (e.g., DB outage, agent failure). Why: Slow MTTR. Next: Expand runbooks with step-by-step actions, escalation paths, and post-mortems; test via tabletop exercises.
+- **Backup & Recovery Implementation**: No automated backups for Postgres/Redis/object store; no restore tests. Why: Data loss risk. Next: Add cron jobs for DB dumps; implement point-in-time recovery; schedule monthly restore drills with verification.
+- **Chaos Engineering & Load Testing**: No resilience testing (e.g., kill pods, simulate failures) or load benchmarks. Why: Unknown failure modes under stress. Next: Use Chaos Mesh for K8s; add k6/JMeter scripts for load testing against SLOs (e.g., 1000 req/s).
+- **Security Hardening**: Encryption-at-rest not implemented; no KMS for keys; JWT auth present but no audit logging. Why: Data breaches possible. Next: Implement AES for memory data; integrate cloud KMS (e.g., AWS KMS); add audit trails for sensitive ops.
+- **Scalability Testing & Auto-Scaling**: No HPA or load balancing; untested under concurrent users. Why: Can't handle growth to 10k interactions. Next: Add K8s HPA based on CPU; test with Locust for concurrency; optimize DB queries for vector searches.
+- **Monitoring Dashboards**: Grafana mentioned but no actual dashboards for latency, errors, usage. Why: Hard to diagnose issues. Next: Create dashboards for API metrics, memory tiers, agent performance; integrate with Loki for logs.
+- **On-Call Procedures**: No defined on-call rotation or escalation. Why: Unclear ownership for incidents. Next: Define on-call schedule (even if solo); add PagerDuty or email alerts; document handoff procedures.
+- **Dependency Vulnerability Scanning**: No automated scans for Python packages (e.g., via Snyk, Safety). Why: Exposed to known CVEs. Next: Add CI job for vuln scans; pin dependencies in requirements.txt; update regularly.
+- **Performance Benchmarking**: No baselines for latency/uptime against SUCCESS_CRITERIA.md. Why: Can't measure improvements. Next: Establish benchmarks (e.g., p95 <150ms); add profiling (e.g., py-spy) for bottlenecks; monitor regressions in CI.
+- **Observability for AI/ML**: No metrics for model inference latency, hallucination rates, or agent safety. Why: Black-box AI risks. Next: Instrument Llama 3.1 calls; add custom metrics for bias/hallucination detection; log agent executions.
+- **Free-Tier Cost Monitoring**: No tracking for cloud usage (e.g., Oracle Always Free limits). Why: Accidental overages. Next: Integrate cost monitoring tools; add alerts for usage thresholds; enforce free-mode in code.
+- **Compliance Automation**: No GDPR export/purge APIs or audit logs. Why: Legal risks. Next: Implement data export/import endpoints; add retention policies; automate compliance checks.

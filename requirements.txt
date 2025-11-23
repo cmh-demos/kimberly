@@ -5,3 +5,10 @@ torch
 accelerate
 pydantic
 python-dotenv
+python-jose[cryptography]
+passlib[bcrypt]
+redis
+slowapi
+pytest
+pytest-asyncio
+httpx
