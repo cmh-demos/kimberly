@@ -1,5 +1,9 @@
 # Kimberly — AI Memory Model (final)
 
+STATUS: Canonical source of truth for the memory model — EDIT THIS FILE.
+Owner: docs-team@kimberly.local (primary), infra@kimberly.local (infra implementer), backend@kimberly.local (code owner)
+How to regenerate derived artifacts: run `scripts/refine_memory_model.py` which will produce generated outputs in `docs/generated/` (do not edit generated files).
+
 TL;DR — COST CEILING: FREE. This model enforces a zero-dollar deployment: no paid managed services, no paid embedding APIs, and defaults that favor local OSS tooling, lexical-first retrieval, and user-device/offline compute only. Embeddings are disabled by default and allowed only via self-hosted, local models (no external paid calls).
 
 1. Executive summary
