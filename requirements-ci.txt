@@ -1,0 +1,9 @@
+fastapi
+pydantic
+python-jose[cryptography]
+passlib
+redis
+slowapi
+pytest
+pytest-asyncio
+httpx
