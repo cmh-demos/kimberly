@@ -11,5 +11,11 @@ Kimberly is a personal AI assistant inspired by Jarvis from Iron Man, designed t
 - Short-term (MVP): Implement basic conversational chat, memory management (short-term with prioritization), and the ability to solve simple coding problems.
 - Long-term: Full agent delegation with advanced learning capabilities.
 
+## Requirements
+- **Security**: End-to-end encryption for data, GDPR compliance, no data sharing.
+- **Performance**: Response latency <1s, handle 1000+ daily interactions.
+- **Reliability**: 99.9% uptime, graceful failure handling.
+- **Privacy**: Local data storage option, user-controlled data deletion.
+
 ## Non-goals
 - No multi-user support; this is always a single-user system.
