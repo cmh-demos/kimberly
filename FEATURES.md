@@ -24,9 +24,13 @@ Kimberly is a personal AI assistant inspired by Jarvis from Iron Man, designed f
   - **Coder**: Assists with code writing, debugging, and automation.
   - **Reminder**: Tracks follow-ups, deadlines, and notifications.
 - Limits: Max 3 concurrent agents, resource-capped to prevent overload.
-- Agents report back to Kimberly for user summaries.
+### Learning and Adaptation
+- **Interaction logging**: Stores conversations in short/long/permanent memory, analyzing patterns (e.g., preferences, habits).
+- **User feedback**: Explicit corrections (e.g., "no, I meant X") or ratings adjust responses.
+- **Reinforcement**: Positive outcomes (e.g., successful task completion) boost similar behaviors; meditation grades and refines based on relevance/emotion.
+- **Agent insights**: Delegates learning to agents (e.g., Researcher learns from web data, Coder from code patterns).
 
-## Future Enhancements
+This builds a personalized model over time.
 - Seamless agent integration.
 - Advanced personalization based on memory.
 - Expanded platform support.
