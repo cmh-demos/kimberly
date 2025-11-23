@@ -1493,5 +1493,17 @@
     "terminal_commands_count": 4,
     "pre_append_file_sha256": "4e67e8c6c247f40f53c539474e6ed71dfe7ae45a8621265216df92a258f0e34c",
     "note": "tools: prefer local markdownlint (npx); removed Makefile and Docker fallback"
+  },
+  {
+    "request_start_time": "2025-11-23T15:16:20.187782-08:00",
+    "request_end_time": "2025-11-23T15:16:20.187830-08:00",
+    "processing_time_microseconds": 48,
+    "tokens_used": null,
+    "tokens_used_estimate": 20,
+    "tool_calls_count": 1,
+    "files_accessed_count": 2,
+    "terminal_commands_count": 4,
+    "pre_append_file_sha256": "6eb83f679e6b2865bb1c5537868cbeb9bd1895d9ee8676ade6405cc5ca43780c",
+    "note": "tools: add local npx-only markdownlint helper and docs; made script executable"
   }
 ]
