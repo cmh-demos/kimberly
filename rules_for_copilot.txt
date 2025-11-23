@@ -1,28 +1,28 @@
-do not:
-- work on the main branch
-- work outside of project directory
-- use GitHub Actions unless expressly directed to
+do_not:
+  - work on the main branch
+  - work outside of project directory
+  - use GitHub Actions unless expressly directed to
 
 rules:
-- responses should be less than 100 words
-- queue Q&A; keep questions until answered
-- further considerations are added to the Q&A queue
-- all work pushed to git
-- auto-log timestamps and append to copilot_tracking.json after each request
-- commit change after each request
-- use precise durations during logging activities
-- prioritize questions and only ask one at a time
+  - responses should be less than 100 words
+  - queue Q&A; keep questions until answered
+  - further considerations are added to the Q&A queue
+  - all work pushed to git
+  - auto-log timestamps and append to copilot_tracking.json after each request
+  - commit change after each request
+  - use precise durations during logging activities
+  - prioritize questions and only ask one at a time
 
 allow:
-- auto-update-logs: true
-- auto-edit-paths:
-  - "misc/*"
-  - "docs/*"
-- exclude-branches:
-  - "main"
+  auto-update-logs: true
+  auto-edit-paths:
+    - "misc/*"
+    - "docs/*"
+  exclude-branches:
+    - "main"
 
 logging:
-- path: "./misc/copilot_tracking.json"
+  path: "./misc/copilot_tracking.json"
   # Ensure every write produces valid JSON and is append-only.
   validate_json: true
   json_schema_path: "./misc/copilot_tracking.schema.json"
@@ -37,51 +37,55 @@ logging:
   commit_message_template: "chore/log: auto-append - {note}" # {note} will be replaced with the log's note text
   commit_push_target: "current-branch" # push to same branch where change originated; DO NOT push to main
   bypass_manual_approval: true   # no human approval required for routine log appends
-- append_only: true
-- immutable_historical_entries: true
-- correction_policy: "No edits to existing log entries.       Corrections must be appended as new entries referencing the original entry ID and reason."
+  append_only: true
+  immutable_historical_entries: true
+  correction_policy: |
+    No edits to existing log entries. Corrections must be appended as new entries referencing
+    the original entry ID and reason.
 
-- fields:
-  - request_start_time  # must include fractional seconds (microsecond precision)
-  - request_end_time    # must include fractional seconds (microsecond precision)
-  - processing_time_microseconds
-  - tokens_used
-  - tokens_used_estimate
-  - tool_calls_count
-  - files_accessed_count
-  - terminal_commands_count
+fields:
+  request_start_time:
+    description: "must include fractional seconds (microsecond precision)"
+  request_end_time:
+    description: "must include fractional seconds (microsecond precision)"
+  processing_time_microseconds: {}
+  tokens_used: {}
+  tokens_used_estimate: {}
+  tool_calls_count: {}
+  files_accessed_count: {}
+  terminal_commands_count: {}
 
-- request_handling_order:
+request_handling_order:
   - record_start_timestamp
   - handle_request
   - append_log_entry
   - verify_log_entry
-  - estimate tokens
+  - estimate_tokens
   - record_end_timestamp
   - report_response
 
-  # Audit policy
-  - audit_on_repair: true
-  - corrections_must_be_appended: true
+audit_policy:
+  audit_on_repair: true
+  corrections_must_be_appended: true
 
-GIT pattern:
-- example: <type>/<scope-or-ticket>-short-desc (use hyphens)
-- Types:
-  - feat
-  - fix
-  - docs
-  - chore
-  - refactor
-  - ci
-  - test
-  - hotfix
-  - wip
-- Examples:
-  - docs/project-definition
-  - feat/PROJ-12-auth
-  - chore/setup-ci
-  - fix/login-null
-  - refactor/api-client
-- Additional:
-  - Use ticket IDs when available
-  - Keep branches off main and open PRs from feature branches
+git_pattern:
+  example: "<type>/<scope-or-ticket>-short-desc (use hyphens)"
+  types:
+    - feat
+    - fix
+    - docs
+    - chore
+    - refactor
+    - ci
+    - test
+    - hotfix
+    - wip
+  examples:
+    - docs/project-definition
+    - feat/PROJ-12-auth
+    - chore/setup-ci
+    - fix/login-null
+    - refactor/api-client
+  additional:
+    - "Use ticket IDs when available"
+    - "Keep branches off main and open PRs from feature branches"
