@@ -12,4 +12,4 @@ Kimberly is a personal AI assistant inspired by Jarvis from Iron Man, designed t
 - Long-term: Full agent delegation with advanced learning capabilities.
 
 ## Non-goals
-- Out-of-scope items to avoid.
+- No multi-user support; this is always a single-user system.
