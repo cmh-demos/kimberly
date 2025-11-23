@@ -1,0 +1,40 @@
+do not:
+- work on the main branch
+- work outside of project directory
+
+rules:
+- responses should be less than 100 words
+- queue Q&A; keep questions until answered
+- further considerations are added to the Q&A queue
+- all work pushed to git
+- auto-log timestamps and append to copilot_tracking.json after each request
+- commit change after each request
+- use precise durations during logging activities
+
+allow:
+- auto-update-logs: true
+- auto-edit-paths:
+  - "misc/*"
+  - "docs/*"
+- exclude-branches:
+  - "main"
+
+logging:
+- path: "./misc/copilot_tracking.json"
+- fields:
+  - request_start_time
+  - request_end_time
+  - processing_time_seconds
+  - tokens_used
+  - tokens_used_estimate
+  - tool_calls_count
+  - files_accessed_count
+  - terminal_commands_count
+- request_handling_order:
+  - record_start_timestamp
+  - handle_request
+  - estimate tokens
+  - record_end_timestamp
+  - report_response
+
+GIT pattern: <type>/<scope-or-ticket>-short-desc (use hyphens). Types: feat, fix, docs, chore, refactor, ci, test, hotfix, wip. Examples: docs/project-definition, feat/PROJ-12-auth, chore/setup-ci, fix/login-null, refactor/api-client. Use ticket IDs when available. Keep branches off main and open PRs from feature branches.
