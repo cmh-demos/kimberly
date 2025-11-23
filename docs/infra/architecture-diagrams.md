@@ -7,38 +7,38 @@ This file contains two primary diagrams (component and sequence) describing the 
 ```mermaid
 graph LR
   subgraph Internet
-    Client[Client (web, mobile, voice)]
+    Client["Client (web, mobile, voice)"]
   end
 
   subgraph Edge
-    Gateway[API Gateway / Ingress (TLS, auth, rate-limit)]
+    Gateway["API Gateway / Ingress (TLS, auth, rate-limit)"]
   end
 
   subgraph Kubernetes Cluster
-    APISvc[API Services (auth, user, billing, api)]
-    AIService[AI Service / Model Runner]
-    MemorySvc[Memory Service (tiered memory API)]
-    Workers[Workers (background jobs & meditation)]
-    Queue[(Message Queue)]
+    APISvc["API Services (auth, user, billing, api)"]
+    AIService["AI Service / Model Runner"]
+    MemorySvc["Memory Service (tiered memory API)"]
+    Workers["Workers (background jobs & meditation)"]
+    Queue["Message Queue"]
   end
 
   subgraph Data Layer
-    Postgres[(Postgres + pgvector)]
-    Redis[(Redis - short-term cache)]
-    ObjectStore[(S3 / MinIO)]
-    VectorStore[(Optional: Vector DB - Pinecone / Milvus / Weaviate)]
+    Postgres["Postgres + pgvector"]
+    Redis["Redis - short-term cache"]
+    ObjectStore["S3 / MinIO"]
+    VectorStore["Optional: Vector DB - Pinecone / Milvus / Weaviate"]
   end
 
   subgraph Observability
-    Prometheus[Prometheus]
-    Grafana[Grafana]
-    Loki[Loki / Logs]
-    Tempo[Tempo / Tracing]
+    Prometheus["Prometheus"]
+    Grafana["Grafana"]
+    Loki["Loki / Logs"]
+    Tempo["Tempo / Tracing"]
   end
 
   subgraph CI/CD
-    GHCR[GHCR (image registry)]
-    CI[GitHub Actions (CI/CD pipelines)]
+    GHCR["GHCR (image registry)"]
+    CI["GitHub Actions (CI/CD pipelines)"]
   end
 
   Client -->|HTTPS| Gateway
