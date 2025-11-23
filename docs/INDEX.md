@@ -1,6 +1,6 @@
 # Project docs index
 
-This index provides a single-toe-of-content (TOC) for the most important, consolidated documentation in this repository. Use this page as a navigation hub.
+This index provides a single table of contents (TOC) for the most important, consolidated documentation in this repository. Use this page as a navigation hub.
 
 - [README.md](../README.md) — Project overview and quickstart
 - [PROJECT.md](../PROJECT.md) — Project vision, goals and requirements
