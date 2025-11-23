@@ -1,3 +1,4 @@
+---
 do_not:
   - work on the main branch
   - work outside of project directory
@@ -8,12 +9,14 @@ rules:
   - queue Q&A; keep questions until answered
   - further considerations are added to the Q&A queue
   - all work pushed to git
-  - auto-log timestamps and append to copilot_tracking.json after each request
+  - auto-log timestamps
+  - append validated entries to the tracking log
   - commit change after each request
   - use precise durations during logging activities
   - prioritize questions and only ask one at a time
   - must append validated log entry before sending final response
-  - do not send any visible response until append verification completes; if append fails, abort response and retry, then inform user of failure only after successful append
+  - verify append succeeds before sending any visible response
+  - if append fails then abort and retry; inform the user only after success
 
 allow:
   auto-update-logs: true
@@ -32,7 +35,7 @@ logging:
     - validate_against_schema: true
     - verify_file_hash_before_append: true
   ci_enforce_valid_json: true
-  timestamp_format: "ISO-8601 with fractional seconds (microsecond precision). Example: 2025-11-22T19:13:00.123456-08:00"
+  timestamp_format: "ISO-8601 with microsecond precision"
   auto_commit_and_push: true
   commit_message_template: "chore/log: auto-append - {note}"
   commit_push_target: "current-branch"
@@ -40,12 +43,19 @@ logging:
   append_only: true
   immutable_historical_entries: true
   correction_policy: |
-    No edits to existing log entries. Corrections must be appended as new entries referencing
-    the original entry ID and reason.
+    No edits to existing log entries.
+    Corrections must be appended as new entries.
+    Each correction must reference the original entry ID and reason.
   prefer_use_script: "scripts/append_log.py"
   require_pre_append_file_hash: true
   require_atomic_write: true
-  required_fields_when_appending: ["request_start_time","request_end_time","processing_time_microseconds or processing_time_seconds","tokens_used_estimate","note","pre_append_file_sha256"]
+  required_fields_when_appending:
+    - "request_start_time"
+    - "request_end_time"
+    - "processing_time_microseconds_or_seconds"
+    - "tokens_used_estimate"
+    - "note"
+    - "pre_append_file_sha256"
 
 fields:
   request_start_time:
@@ -63,8 +73,8 @@ request_handling_order:
   - record_start_timestamp
   - perform_request_processing
   - estimate_tokens
-  - prepare_log_entry 
-  - perform_pre_append_checks (validate syntax & against schema)
+  - prepare_log_entry
+  - perform_pre_append_checks (validate syntax and schema)
   - append_log_entry
   - verify_log_entry
   - record_end_timestamp
