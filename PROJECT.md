@@ -9,7 +9,7 @@ Kimberly is a personal AI assistant inspired by Jarvis from Iron Man, designed t
 
 ## Goals
 - Short-term (MVP): Implement basic conversational chat, memory management (short-term with prioritization), and the ability to solve simple coding problems.
-- Long-term: ...
+- Long-term: Full agent delegation with advanced learning capabilities.
 
 ## Non-goals
 - Out-of-scope items to avoid.
