@@ -91,6 +91,14 @@ def main():
         print("end < start — processing_time_microseconds would be negative")
         sys.exit(2)
 
+    # full-file read & hash (pre-append)
+    if not LOG_PATH.exists():
+        print(f"log path not found: {LOG_PATH}")
+        sys.exit(2)
+
+    before_hash = file_hash(LOG_PATH)
+    data = load_json(LOG_PATH)
+
     entry = {
         "request_start_time": dt_start.isoformat(timespec="microseconds"),
         "request_end_time": dt_end.isoformat(timespec="microseconds"),
@@ -100,16 +108,11 @@ def main():
         "tool_calls_count": args.tool_calls,
         "files_accessed_count": args.files_accessed,
         "terminal_commands_count": args.terminal_commands,
+        "pre_append_file_sha256": before_hash,
         "note": args.note,
     }
 
-    # full-file read & hash
-    if not LOG_PATH.exists():
-        print(f"log path not found: {LOG_PATH}")
-        sys.exit(2)
-
-    before_hash = file_hash(LOG_PATH)
-    data = load_json(LOG_PATH)
+    # At this point we already loaded the file and before_hash
 
     # validate entry
     try:
