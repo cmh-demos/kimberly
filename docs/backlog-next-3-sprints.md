@@ -9,12 +9,12 @@ This backlog converts audit findings into epics and prioritized user stories for
 
 ## Epic B — Core chat pipeline & short-term memory (Highest priority)
 - Story B.1: Implement POST /chat end-to-end with basic TTS/ASR mocked. — owner: Backend/FE, estimate: 5 days
-- Story B.2: Short-term memory API (add/list/delete) with 5MB local-first storage. — owner: Backend, estimate: 4 days
+-- Story B.2: Short-term memory API (add/list/delete) with canonical quotas (see `docs/memory-model.md`) — owner: Backend, estimate: 4 days
 - Story B.3: E2E smoke tests and memory recall tests. — owner: QA, estimate: 3 days
 
 ## Epic C — Long-term memory, meditation, and pruning (High)
 - Story C.1: Memory ranking and nightly "meditation" rotation. — owner: Backend, estimate: 6 days
-- Story C.2: Long-term persistence (25MB) and retention/migration tests. — owner: Backend, estimate: 4 days
+-- Story C.2: Long-term persistence (canonical quotas — see `docs/memory-model.md`) and retention/migration tests. — owner: Backend, estimate: 4 days
 
 ## Epic D — Agent skeleton & safety (Medium)
 - Story D.1: Agent runner prototype with quotas (Scheduler, Researcher) — owner: Backend, estimate: 5 days

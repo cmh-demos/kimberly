@@ -9,12 +9,12 @@ Sprint 0 (Prep — 1 week)
 - Deliverables: PRD signoff, telemetry plan, test harness, append helper script for copilot logs.
 
 Sprint 1 (Weeks 1–2)
-- Objectives: Voice + Web basic chat pipeline, short-term memory (5MB) implemented, local-first option.
+- Objectives: Voice + Web basic chat pipeline, short-term memory implemented (see `docs/memory-model.md` for canonical quotas), local-first option.
 - Deliverables: chat endpoint, voice TTS/ASR integration (basic), memory API, end‑to‑end tests.
 - Acceptance: 1:1 chat with memory persists and recalled in same session.
 
 Sprint 2 (Weeks 3–4)
-- Objectives: Long-term memory (25MB) with prioritization and nightly "meditation" process; memory pruning.
+- Objectives: Long-term memory with prioritization and nightly "meditation" process; memory pruning (see `docs/memory-model.md` for canonical quotas).
 - Deliverables: memory ranking system, persistence, migration scripts, privacy opt-outs.
 - Acceptance: memory rotation tests + manual QA pass.
 
