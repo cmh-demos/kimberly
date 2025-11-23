@@ -462,5 +462,13 @@
     "tokens_used": null,
     "tokens_used_estimate": 20,
     "note": "no you didn't. you capture start time, then end time then you read the document"
+  },
+  {
+    "request_start_time": "2025-11-22T18:34:00-08:00",
+    "request_end_time": "2025-11-22T18:34:01-08:00",
+    "processing_time_seconds": 1.0,
+    "tokens_used": null,
+    "tokens_used_estimate": 25,
+    "note": "no, i want to focus on how to get our logging right so that we can communicate effectively"
   }
 ]
