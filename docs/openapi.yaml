@@ -176,6 +176,51 @@ components:
           type: string
         params:
           type: object
+
+    MemoryQueryRequest:
+      type: object
+      properties:
+        query:
+          type: string
+        type:
+          type: string
+          enum: [short-term, long-term, permanent, any]
+        top_k:
+          type: integer
+          default: 5
+        filters:
+          type: object
+      required: [query]
+
+    MemoryQueryResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/MemoryItem'
+
+    MeditateResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        processed:
+          type: integer
+        pruned:
+          type: integer
+        archived:
+          type: integer
+
+    MemoryMetrics:
+      type: object
+      properties:
+        quota:
+          type: object
+        usage:
+          type: object
+        last_meditation:
+          type: string
 paths:
   /signup:
     post:
@@ -533,6 +578,76 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+
+      /memory/query:
+        post:
+          summary: Semantic+filter query against memory
+          security:
+            - bearerAuth: []
+          requestBody:
+            required: true
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/MemoryQueryRequest'
+                examples:
+                  query-example:
+                    value:
+                      query: "What are my coffee preferences?"
+                      type: any
+                      top_k: 3
+          responses:
+            '200':
+              description: Query results
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/MemoryQueryResponse'
+
+      /memory/meditate:
+        post:
+          summary: Trigger a meditation (scoring + pruning) run
+          security:
+            - bearerAuth: []
+          responses:
+            '202':
+              description: Meditation scheduled
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/MeditateResponse'
+                  examples:
+                    mediate-example:
+                      value:
+                        status: "scheduled"
+                        processed: 0
+                        pruned: 0
+                        archived: 0
+
+      /memory/metrics:
+        get:
+          summary: Memory metrics and quotas
+          security:
+            - bearerAuth: []
+          responses:
+            '200':
+              description: Memory metrics
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/MemoryMetrics'
+                  examples:
+                    metrics-example:
+                      value:
+                        quota:
+                          short_term: 5242880
+                          long_term: 26214400
+                          permanent: 524288000
+                        usage:
+                          short_term: 3200000
+                          long_term: 8000000
+                          permanent: 102400000
+                        last_meditation: "2025-11-22T00:00:00Z"
 
   /errors:
     get:

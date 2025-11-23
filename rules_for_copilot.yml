@@ -17,6 +17,8 @@ rules:
   - must append validated log entry before sending final response
   - verify append succeeds before sending any visible response
   - if append fails then abort and retry; inform the user only after success
+  - must append validated log entry to misc/copilot_tracking.json at EOF before sending any final response
+  - never edit existing log entries; corrections must be appended referencing original entry id
 
 allow:
   auto-update-logs: true
@@ -56,6 +58,7 @@ logging:
     - "tokens_used_estimate"
     - "note"
     - "pre_append_file_sha256"
+  require_append_at_eof: true
 
 fields:
   request_start_time:

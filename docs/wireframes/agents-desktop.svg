@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="800" viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+  <style> .bg{fill:#f6f7fb} .card{fill:#fff;stroke:#e6e9f0;stroke-width:1} .muted{fill:#8d95a6;font-family:Arial, Helvetica, sans-serif;font-size:13px} .title{font-weight:700;font-family:Arial, Helvetica, sans-serif;font-size:18px;fill:#1d2330}</style>
+  <rect class="bg" width="1200" height="800"/>
+  <rect x="24" y="18" width="1152" height="56" rx="8" fill="#fff" stroke="#e1e6f0"/>
+  <text x="48" y="54" class="title">Kimberly</text>
+  <text x="300" y="54" class="muted">Agents</text>
+
+  <rect x="24" y="92" width="1152" height="636" rx="8" fill="#fff" stroke="#e6e9f0"/>
+  <text x="40" y="120" class="title">Agents Dashboard</text>
+
+  <!-- Agent cards -->
+  <rect x="40" y="150" width="360" height="140" rx="8" fill="#fff7f3" stroke="#ffe9df"/>
+  <text x="64" y="180" class="muted">• Scheduler — schedule events, read/write memory</text>
+  <text x="64" y="200" class="muted">Risk: medium • Permissions: memory.read, memory.write</text>
+
+  <rect x="420" y="150" width="360" height="140" rx="8" fill="#fbfdff" stroke="#e7f3ff"/>
+  <text x="444" y="180" class="muted">• Researcher — web search + summarize (no memory writes by default)</text>
+  <text x="444" y="200" class="muted">Risk: low • Permissions: external-access</text>
+
+  <rect x="800" y="150" width="360" height="140" rx="8" fill="#fff" stroke="#f0f2f5"/>
+  <text x="824" y="180" class="muted">• Coder — create snippets, may write to memory with sandbox toggle</text>
+  <text x="824" y="200" class="muted">Risk: high • Permissions: memory.write, network</text>
+
+  <!-- Run modal preview area -->
+  <rect x="40" y="310" width="520" height="338" rx="8" fill="#fff" stroke="#e1e6f0"/>
+  <text x="64" y="340" class="title">Run agent (preview)</text>
+  <text x="64" y="364" class="muted">Input: [text area] • Sandbox toggle • Show memory reads/writes</text>
+
+  <!-- Logs / history -->
+  <rect x="580" y="310" width="612" height="338" rx="8" fill="#fff" stroke="#e1e6f0"/>
+  <text x="600" y="340" class="title">Run history & logs</text>
+  <text x="600" y="364" class="muted">Recent runs with safe-preview & effect summary (memory touched)</text>
+
+</svg>

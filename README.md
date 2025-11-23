@@ -18,6 +18,10 @@ Kimberly is a personal AI assistant inspired by Jarvis from Iron Man, designed f
 3. Configure environment variables (see docs).
 4. Run: `python app.py` (placeholder)
 
+## Risk analysis
+
+We track project risks and open investigation items in `docs/RISK_ANALYSIS.md` — a living register that contains prioritized risks, mitigations, and the list of unknowns we still need to resolve. Please review it before making architecture or policy decisions.
+
 ## Usage
 
 - Start chat: Interact via web interface or API.

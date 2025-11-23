@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="800" viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+  <style> .bg{fill:#f6f7fb} .card{fill:#fff;stroke:#e6e9f0;stroke-width:1} .muted{fill:#8d95a6;font-family:Arial, Helvetica, sans-serif;font-size:13px} .title{font-weight:700;font-family:Arial, Helvetica, sans-serif;font-size:18px;fill:#1d2330}</style>
+  <rect class="bg" width="1200" height="800"/>
+  <rect x="24" y="18" width="1152" height="56" rx="8" fill="#fff" stroke="#e1e6f0"/>
+  <text x="48" y="54" class="title">Kimberly</text>
+  <text x="300" y="54" class="muted">Memory</text>
+
+  <!-- Main columns: left filters + list -->
+  <rect x="24" y="92" width="320" height="636" rx="8" fill="#fff" stroke="#e6e9f0"/>
+  <text x="40" y="120" class="title">Filters</text>
+  <text x="48" y="150" class="muted">• Tier (short/long/permanent)</text>
+  <text x="48" y="170" class="muted">• Tags</text>
+  <text x="48" y="190" class="muted">• Date range</text>
+
+  <rect x="360" y="92" width="816" height="636" rx="8" fill="#fff" stroke="#e6e9f0"/>
+  <text x="380" y="120" class="title">Memory Manager</text>
+
+  <!-- Quota bar -->
+  <rect x="380" y="140" width="760" height="36" rx="6" fill="#f2f6ff" stroke="#eaf3ff"/>
+  <text x="392" y="164" class="muted">Quota: short 512KB (24%) • long 2MB (67%) • perm 10MB (4%)</text>
+
+  <!-- List header -->
+  <rect x="380" y="186" width="760" height="36" rx="6" fill="#fff" stroke="#f0f2f5"/>
+  <text x="392" y="210" class="muted">Title / Preview • Tier • Score • Tags • Last seen</text>
+
+  <!-- Row examples -->
+  <rect x="392" y="232" width="728" height="72" rx="6" fill="#fbfdff" stroke="#e7f2ff"/>
+  <text x="412" y="264" class="muted">• Project review notes — long — score 0.83 — tags: project</text>
+  <rect x="392" y="310" width="728" height="72" rx="6" fill="#fff" stroke="#f0f2f5"/>
+  <text x="412" y="342" class="muted">• Credit card info — permanent (sensitive) — protected</text>
+
+  <!-- Bulk actions -->
+  <rect x="392" y="390" width="200" height="36" rx="6" fill="#fff" stroke="#e1e6f0"/>
+  <text x="408" y="414" class="muted">Bulk actions: Archive / Delete / Export</text>
+
+  <!-- Detail panel on the right -->
+  <rect x="792" y="430" width="348" height="298" rx="8" fill="#fff" stroke="#e6e9f0"/>
+  <text x="812" y="458" class="title">Memory detail</text>
+  <text x="812" y="482" class="muted">Created: 2025-11-22 • created_by: assistant</text>
+  <text x="812" y="500" class="muted">Tags: project-review, meeting</text>
+  <text x="812" y="520" class="muted">Actions: Protect / Archive / Delete / Export</text>
+
+</svg>

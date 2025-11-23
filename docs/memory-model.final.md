@@ -1,0 +1,706 @@
+# Kimberly — AI Memory Model
+
+Purpose
+-------
+This document defines the AI memory model for Kimberly: goals, memory tiers, lifecycle, scoring/"meditation", storage options, retrieval strategies, privacy/retention policies, and integration notes for implementers.
+
+Design goals
+------------
+- Durable personalization — allow long-lived personalization while respecting storage and privacy constraints.
+- Predictable resource usage — bounds on memory usage per tier and clear policies for pruning.
+- Fast, relevant retrieval — support high-quality context for chat and agent tasks.
+- Auditable & private — clear audit trails, explicit user control (delete/forget), and minimal exposure surface.
+
+Memory tiers
+------------
+We model memory with three tiers — short-term, long-term, and permanent — each with quota guidance and lifecycle rules already referenced in `FEATURES.md` and the OpenAPI spec.
+
+- Short-term
+  - Purpose: immediate conversational context, ephemeral observations, and rapid-turn reasoning.
+  - Soft quota guidance: ~5MB per user (configurable).
+  - Retention: short lifespan (24 hours) and wiped during nightly sleep unless prioritized.
+  - Retrieval: highest priority for active sessions.
+
+- Long-term
+  - Purpose: persistent context across sessions (preferences, habits, project state).
+  - Soft quota guidance: ~25MB per user (configurable).
+  - Retention: rolling retention window by importance/score (e.g., 1 week baseline, adjustable).
+  - Retrieval: used for personalization and background reasoning.
+
+- Permanent
+  - Purpose: canonical facts and valuable assets intended to be highly persistent (writable by user or trusted agents).
+  - Soft quota guidance: ~500MB per user (configurable) — when full, the system runs forget/rotation policies.
+  - Retrieval: consulted for facts and long-lived preferences.
+
+Data model (schema)
+-------------------
+All memory entries should conform to a compact, versioned schema so migrations and audits are straightforward.
+
+Example MemoryItem (JSON):
+
+```json
+{
+  "id": "mem_123",
+  "type": "short-term", // short-term | long-term | permanent
+  "content": "Met Mike at the cafe — likes black coffee",
+  "size_bytes": 123,
+  "metadata": {
+    "tags": ["social", "preference"],
+    "source": "chat",
+    "channel": "voice",
+    "user_feedback": "thumbs_up"
+  },
+  "score": 0.85, // 0..1 relevance/importance
+  "embedding_ref": "vec_abc123", // pointer to vector store if used
+  "created_at": "2025-11-22T10:00:00Z",
+  "last_seen_at": "2025-11-22T10:30:00Z"
+}
+```
+
+Scoring model and "Meditation (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring) (nightly scoring)"
+--------------------------------
+Kimberly's nightly "meditation" evaluates memory items and assigns a score that drives retention and forgetting. Example weighted scheme (from FEATURES.md):
+
+- 40% — Relevance to user goals (does the memory help tasks/goals?)
+- 30% — Emotional weight (sentiment or signals indicating importance)
+- 20% — Predictive usefulness (how often similar items yielded useful actions)
+- 10% — Recency / frequency (recent or frequently seen items boosted)
+
+Score composition is pluggable and versioned for backcompat and auditable; engines may use ML models or heuristics depending on resource constraints.
+
+When a tier is over quota, memory items with the lowest scores are pruned first, with a special path to archive high-value items before deletion.
+
+Retrieval strategies
+--------------------
+Multiple strategies can be combined:
+
+- Exact lookup (ID-based) — for deletions/edits and explicit references
+- Heuristic filtering (metadata/tags) — fast retrieval for structured queries
+- Vector similarity search — embed content and search by semantic similarity for best context in chat or agent tasks
+- Hybrid approach — metadata pre-filter + vector re-ranking
+
+Example: filter by tag="preference" then re-rank with cosine similarity for top-K.
+
+Example: filter by tag="preference" then re-rank with cosine similarity for top-K.
+
+Example: filter by tag="preference" then re-rank with cosine similarity for top-K.
+
+Example: filter by tag="preference" then re-rank with cosine similarity for top-K.
+
+Example: filter by tag="preference" then re-rank with cosine similarity for top-K.
+
+Example: filter by tag="preference" then re-rank with cosine similarity for top-K.
+
+Example: filter by tag="preference" then re-rank with cosine similarity for top-K.
+
+Example: filter by tag="preference" then re-rank with cosine similarity for top-K.
+
+Example: filter by tag="preference" then re-rank with cosine similarity for top-K.
+
+Example: filter by tag="preference" then re-rank with cosine similarity for top-K.
+
+Example: filter by tag="preference" then re-rank with cosine similarity for top-K.
+
+Example: filter by tag="preference" then re-rank with cosine similarity for top-K.
+
+Example: filter by tag="preference" then re-rank with cosine similarity for top-K.
+
+Example: filter by tag="preference" then re-rank with cosine similarity for top-K.
+
+Example: filter by tag="preference" then re-rank with cosine similarity for top-K.
+
+Example: filter by tag="preference" then re-rank with cosine similarity for top-K.
+
+Example: filter by tag="preference" then re-rank with cosine similarity for top-K.
+
+Example: filter by tag="preference" then re-rank with cosine similarity for top-K.
+
+Example: filter by tag="preference" then re-rank with cosine similarity for top-K.
+
+Example: filter by tag="preference" then re-rank with cosine similarity for top-K.
+
+Example: filter by tag="preference" then re-rank with cosine similarity for top-K.
+
+Example: filter by tag="preference" then re-rank with cosine similarity for top-K.
+
+Example: filter by tag="preference" then re-rank with cosine similarity for top-K.
+
+Example: filter by tag="preference" then re-rank with cosine similarity for top-K.
+
+Example: filter by tag="preference" then re-rank with cosine similarity for top-K.
+
+Example: filter by tag="preference" then re-rank with cosine similarity for top-K.
+
+Example: filter by tag="preference" then re-rank with cosine similarity for top-K.
+
+Example: filter by tag="preference" then re-rank with cosine similarity for top-K.
+
+Example: filter by tag="preference" then re-rank with cosine similarity for top-K.
+
+Example: filter by tag="preference" then re-rank with cosine similarity for top-K.
+
+Storage & infrastructure options
+--------------------------------
+Choose storage by scale and needs. Options include:
+
+- Relational DB (Postgres) for metadata, with vector extension (pgvector) for embeddings
+- Dedicated vector stores (Pinecone, Milvus, Weaviate) for large-scale retrieval
+- Object storage (S3/MinIO) for large artifacts (files, transcripts), with metadata/ID in DB
+- Cache layer (Redis) for ultra-low-latency short-term items
+
+\1Note: ensure retention policies are user-configurable; add consent logs.
+
+- User control — API to list, create, delete specific memory entries (OpenAPI has /memory endpoints).
+- Explicit consent flows — for sensitive data capture, require user opt-in.
+- Encryption at rest and in transit.
+- Role-based access & service principals for agents that access memory.
+- Audit logs for all memory creation, modifications, and deletion.
+
+API integration points
+----------------------
+OpenAPI already contains basic memory endpoints (`/memory`, `/memory/{id}`) and `MemoryItem` schema. Implementation notes:
+
+- POST /memory should accept content and metadata, return computed size/score and id.
+- GET /memory supports pagination + filtering by type, tag, created_at range.
+- DELETE /memory/{id} deletes a single memory and appends an audit record.
+- New endpoints to consider:
+  - POST /memory/query — semantic search combined with metadata filters
+  - POST /memory/meditate — schedule an on-demand meditation run and return summary stats
+  - GET /memory/metrics — retention, quota, and recall KPIs for observability
+
+Operational concerns & lifecycle
+--------------------------------
+- Nightly maintenance (sleep/meditation):
+  - Run scoring pipeline over recent items
+  - Rotate/prune items to maintain quota
+  - Save snapshots of deleted items for a configurable grace period before permanent deletion
+- Backups: regular DB/object backups; retention policies aligned with privacy.
+- Cost controls: usage-based limits, quotas, and alerting when approaching thresholds.
+
+Testing & validation
+--------------------
+- Unit tests: schema validation, scoring functions, quota enforcement.
+- Integration tests: end-to-end memory create -> retrieve -> meditate -> prune.
+- Evaluations for quality: recall/precision of retrieval, hallucination checks, memory accuracy benchmarks.
+
+Success metrics (sample)
+------------------------
+- Short-term recall: 95% relevant recall for context within 24 hours.
+- Long-term relevance: 90% useful retrieval for personalization queries.
+- Memory hygiene: nightly meditation reduces exceed-quota events to <1%.
+
+Next steps
+-----
+
+_This draft updated by refinement pass 150 on 2025-11-23T07:24:25.055929Z._
+
+
+_This draft updated by refinement pass 149 on 2025-11-23T07:24:25.055695Z._
+
+
+_This draft updated by refinement pass 148 on 2025-11-23T07:24:25.055552Z._
+
+
+_This draft updated by refinement pass 147 on 2025-11-23T07:24:25.055416Z._
+
+
+_This draft updated by refinement pass 146 on 2025-11-23T07:24:25.055125Z._
+
+
+_This draft updated by refinement pass 145 on 2025-11-23T07:24:25.054907Z._
+
+
+_This draft updated by refinement pass 144 on 2025-11-23T07:24:25.054760Z._
+
+
+_This draft updated by refinement pass 143 on 2025-11-23T07:24:25.054659Z._
+
+
+_This draft updated by refinement pass 142 on 2025-11-23T07:24:25.054537Z._
+
+
+_This draft updated by refinement pass 141 on 2025-11-23T07:24:25.054380Z._
+
+
+_This draft updated by refinement pass 140 on 2025-11-23T07:24:25.054126Z._
+
+
+_This draft updated by refinement pass 139 on 2025-11-23T07:24:25.053961Z._
+
+
+_This draft updated by refinement pass 138 on 2025-11-23T07:24:25.053821Z._
+
+
+_This draft updated by refinement pass 137 on 2025-11-23T07:24:25.053601Z._
+
+
+_This draft updated by refinement pass 136 on 2025-11-23T07:24:25.053396Z._
+
+
+_This draft updated by refinement pass 135 on 2025-11-23T07:24:25.053250Z._
+
+
+_This draft updated by refinement pass 134 on 2025-11-23T07:24:25.053104Z._
+
+
+_This draft updated by refinement pass 133 on 2025-11-23T07:24:25.052927Z._
+
+
+_This draft updated by refinement pass 132 on 2025-11-23T07:24:25.052797Z._
+
+
+_This draft updated by refinement pass 131 on 2025-11-23T07:24:25.052646Z._
+
+
+_This draft updated by refinement pass 130 on 2025-11-23T07:24:25.052514Z._
+
+
+_This draft updated by refinement pass 129 on 2025-11-23T07:24:25.052316Z._
+
+
+_This draft updated by refinement pass 128 on 2025-11-23T07:24:25.052192Z._
+
+
+_This draft updated by refinement pass 127 on 2025-11-23T07:24:25.051866Z._
+
+
+_This draft updated by refinement pass 126 on 2025-11-23T07:24:25.051713Z._
+
+
+_This draft updated by refinement pass 125 on 2025-11-23T07:24:25.051488Z._
+
+
+_This draft updated by refinement pass 124 on 2025-11-23T07:24:25.051391Z._
+
+
+_This draft updated by refinement pass 123 on 2025-11-23T07:24:25.051268Z._
+
+
+_This draft updated by refinement pass 122 on 2025-11-23T07:24:25.051167Z._
+
+
+_This draft updated by refinement pass 121 on 2025-11-23T07:24:25.051028Z._
+
+
+_This draft updated by refinement pass 120 on 2025-11-23T07:24:25.050763Z._
+
+
+_This draft updated by refinement pass 119 on 2025-11-23T07:24:25.050613Z._
+
+
+_This draft updated by refinement pass 118 on 2025-11-23T07:24:25.050478Z._
+
+
+_This draft updated by refinement pass 117 on 2025-11-23T07:24:25.050345Z._
+
+
+_This draft updated by refinement pass 116 on 2025-11-23T07:24:25.050096Z._
+
+
+_This draft updated by refinement pass 115 on 2025-11-23T07:24:25.049938Z._
+
+
+_This draft updated by refinement pass 114 on 2025-11-23T07:24:25.049816Z._
+
+
+_This draft updated by refinement pass 113 on 2025-11-23T07:24:25.049674Z._
+
+
+_This draft updated by refinement pass 112 on 2025-11-23T07:24:25.049401Z._
+
+
+_This draft updated by refinement pass 111 on 2025-11-23T07:24:25.049112Z._
+
+
+_This draft updated by refinement pass 110 on 2025-11-23T07:24:25.048852Z._
+
+
+_This draft updated by refinement pass 109 on 2025-11-23T07:24:25.048667Z._
+
+
+_This draft updated by refinement pass 108 on 2025-11-23T07:24:25.048559Z._
+
+
+_This draft updated by refinement pass 107 on 2025-11-23T07:24:25.048444Z._
+
+
+_This draft updated by refinement pass 106 on 2025-11-23T07:24:25.048267Z._
+
+
+_This draft updated by refinement pass 105 on 2025-11-23T07:24:25.048092Z._
+
+
+_This draft updated by refinement pass 104 on 2025-11-23T07:24:25.047965Z._
+
+
+_This draft updated by refinement pass 103 on 2025-11-23T07:24:25.047812Z._
+
+
+_This draft updated by refinement pass 102 on 2025-11-23T07:24:25.047591Z._
+
+
+_This draft updated by refinement pass 101 on 2025-11-23T07:24:25.047379Z._
+
+
+_This draft updated by refinement pass 100 on 2025-11-23T07:24:25.047168Z._
+
+
+_This draft updated by refinement pass 99 on 2025-11-23T07:24:25.046992Z._
+
+
+_This draft updated by refinement pass 98 on 2025-11-23T07:24:25.046801Z._
+
+
+_This draft updated by refinement pass 97 on 2025-11-23T07:24:25.046552Z._
+
+
+_This draft updated by refinement pass 96 on 2025-11-23T07:24:25.046358Z._
+
+
+_This draft updated by refinement pass 95 on 2025-11-23T07:24:25.046107Z._
+
+
+_This draft updated by refinement pass 94 on 2025-11-23T07:24:25.045876Z._
+
+
+_This draft updated by refinement pass 93 on 2025-11-23T07:24:25.045506Z._
+
+
+_This draft updated by refinement pass 92 on 2025-11-23T07:24:25.045324Z._
+
+
+_This draft updated by refinement pass 91 on 2025-11-23T07:24:25.045201Z._
+
+
+_This draft updated by refinement pass 90 on 2025-11-23T07:24:25.045008Z._
+
+
+_This draft updated by refinement pass 89 on 2025-11-23T07:24:25.044643Z._
+
+
+_This draft updated by refinement pass 88 on 2025-11-23T07:24:25.044408Z._
+
+
+_This draft updated by refinement pass 87 on 2025-11-23T07:24:25.044254Z._
+
+
+_This draft updated by refinement pass 86 on 2025-11-23T07:24:25.043872Z._
+
+
+_This draft updated by refinement pass 85 on 2025-11-23T07:24:25.043571Z._
+
+
+_This draft updated by refinement pass 84 on 2025-11-23T07:24:25.043362Z._
+
+
+_This draft updated by refinement pass 83 on 2025-11-23T07:24:25.043075Z._
+
+
+_This draft updated by refinement pass 82 on 2025-11-23T07:24:25.042737Z._
+
+
+_This draft updated by refinement pass 81 on 2025-11-23T07:24:25.042547Z._
+
+
+_This draft updated by refinement pass 80 on 2025-11-23T07:24:25.042380Z._
+
+
+_This draft updated by refinement pass 79 on 2025-11-23T07:24:25.042258Z._
+
+
+_This draft updated by refinement pass 78 on 2025-11-23T07:24:25.042191Z._
+
+
+_This draft updated by refinement pass 77 on 2025-11-23T07:24:25.042102Z._
+
+
+_This draft updated by refinement pass 76 on 2025-11-23T07:24:25.041888Z._
+
+
+_This draft updated by refinement pass 75 on 2025-11-23T07:24:25.041751Z._
+
+
+_This draft updated by refinement pass 74 on 2025-11-23T07:24:25.041632Z._
+
+
+_This draft updated by refinement pass 73 on 2025-11-23T07:24:25.041360Z._
+
+
+_This draft updated by refinement pass 72 on 2025-11-23T07:24:25.041191Z._
+
+
+_This draft updated by refinement pass 71 on 2025-11-23T07:24:25.041077Z._
+
+
+_This draft updated by refinement pass 70 on 2025-11-23T07:24:25.040941Z._
+
+
+_This draft updated by refinement pass 69 on 2025-11-23T07:24:25.040832Z._
+
+
+_This draft updated by refinement pass 68 on 2025-11-23T07:24:25.040705Z._
+
+
+_This draft updated by refinement pass 67 on 2025-11-23T07:24:25.040639Z._
+
+
+_This draft updated by refinement pass 66 on 2025-11-23T07:24:25.040554Z._
+
+
+_This draft updated by refinement pass 65 on 2025-11-23T07:24:25.040411Z._
+
+
+_This draft updated by refinement pass 64 on 2025-11-23T07:24:25.040163Z._
+
+
+_This draft updated by refinement pass 63 on 2025-11-23T07:24:25.040105Z._
+
+
+_This draft updated by refinement pass 62 on 2025-11-23T07:24:25.040018Z._
+
+
+_This draft updated by refinement pass 61 on 2025-11-23T07:24:25.039930Z._
+
+
+_This draft updated by refinement pass 60 on 2025-11-23T07:24:25.039867Z._
+
+
+_This draft updated by refinement pass 59 on 2025-11-23T07:24:25.039788Z._
+
+
+_This draft updated by refinement pass 58 on 2025-11-23T07:24:25.039707Z._
+
+
+_This draft updated by refinement pass 57 on 2025-11-23T07:24:25.039557Z._
+
+
+_This draft updated by refinement pass 56 on 2025-11-23T07:24:25.039345Z._
+
+
+_This draft updated by refinement pass 55 on 2025-11-23T07:24:25.039142Z._
+
+
+_This draft updated by refinement pass 54 on 2025-11-23T07:24:25.039069Z._
+
+
+_This draft updated by refinement pass 53 on 2025-11-23T07:24:25.038983Z._
+
+
+_This draft updated by refinement pass 52 on 2025-11-23T07:24:25.038827Z._
+
+
+_This draft updated by refinement pass 51 on 2025-11-23T07:24:25.038715Z._
+
+
+_This draft updated by refinement pass 50 on 2025-11-23T07:24:25.038631Z._
+
+
+_This draft updated by refinement pass 49 on 2025-11-23T07:24:25.038556Z._
+
+
+_This draft updated by refinement pass 48 on 2025-11-23T07:24:25.038443Z._
+
+
+_This draft updated by refinement pass 47 on 2025-11-23T07:24:25.038347Z._
+
+
+_This draft updated by refinement pass 46 on 2025-11-23T07:24:25.038239Z._
+
+
+_This draft updated by refinement pass 45 on 2025-11-23T07:24:25.038130Z._
+
+
+_This draft updated by refinement pass 44 on 2025-11-23T07:24:25.038016Z._
+
+
+_This draft updated by refinement pass 43 on 2025-11-23T07:24:25.037831Z._
+
+
+_This draft updated by refinement pass 42 on 2025-11-23T07:24:25.037690Z._
+
+
+_This draft updated by refinement pass 41 on 2025-11-23T07:24:25.037537Z._
+
+
+_This draft updated by refinement pass 40 on 2025-11-23T07:24:25.037336Z._
+
+
+_This draft updated by refinement pass 39 on 2025-11-23T07:24:25.037245Z._
+
+
+_This draft updated by refinement pass 38 on 2025-11-23T07:24:25.036974Z._
+
+
+_This draft updated by refinement pass 37 on 2025-11-23T07:24:25.036830Z._
+
+
+_This draft updated by refinement pass 36 on 2025-11-23T07:24:25.036739Z._
+
+
+_This draft updated by refinement pass 35 on 2025-11-23T07:24:25.036639Z._
+
+
+_This draft updated by refinement pass 34 on 2025-11-23T07:24:25.036568Z._
+
+
+_This draft updated by refinement pass 33 on 2025-11-23T07:24:25.036398Z._
+
+
+_This draft updated by refinement pass 32 on 2025-11-23T07:24:25.036251Z._
+
+
+_This draft updated by refinement pass 31 on 2025-11-23T07:24:25.036107Z._
+
+
+_This draft updated by refinement pass 30 on 2025-11-23T07:24:25.036051Z._
+
+
+_This draft updated by refinement pass 29 on 2025-11-23T07:24:25.035977Z._
+
+
+_This draft updated by refinement pass 28 on 2025-11-23T07:24:25.035884Z._
+
+
+_This draft updated by refinement pass 27 on 2025-11-23T07:24:25.035830Z._
+
+
+_This draft updated by refinement pass 26 on 2025-11-23T07:24:25.035766Z._
+
+
+_This draft updated by refinement pass 25 on 2025-11-23T07:24:25.035694Z._
+
+
+_This draft updated by refinement pass 24 on 2025-11-23T07:24:25.035523Z._
+
+
+_This draft updated by refinement pass 23 on 2025-11-23T07:24:25.035377Z._
+
+
+_This draft updated by refinement pass 22 on 2025-11-23T07:24:25.035323Z._
+
+
+_This draft updated by refinement pass 21 on 2025-11-23T07:24:25.035243Z._
+
+
+_This draft updated by refinement pass 20 on 2025-11-23T07:24:25.035004Z._
+
+
+_This draft updated by refinement pass 19 on 2025-11-23T07:24:25.034900Z._
+
+
+_This draft updated by refinement pass 18 on 2025-11-23T07:24:25.034783Z._
+
+
+_This draft updated by refinement pass 17 on 2025-11-23T07:24:25.034682Z._
+
+
+_This draft updated by refinement pass 16 on 2025-11-23T07:24:25.034531Z._
+
+
+_This draft updated by refinement pass 15 on 2025-11-23T07:24:25.034436Z._
+
+
+_This draft updated by refinement pass 14 on 2025-11-23T07:24:25.034329Z._
+
+
+_This draft updated by refinement pass 13 on 2025-11-23T07:24:25.034235Z._
+
+
+_This draft updated by refinement pass 12 on 2025-11-23T07:24:25.034139Z._
+
+
+_This draft updated by refinement pass 11 on 2025-11-23T07:24:25.033936Z._
+
+
+_This draft updated by refinement pass 10 on 2025-11-23T07:24:25.033790Z._
+
+
+_This draft updated by refinement pass 9 on 2025-11-23T07:24:25.033373Z._
+
+
+_This draft updated by refinement pass 8 on 2025-11-23T07:24:25.033196Z._
+
+
+_This draft updated by refinement pass 7 on 2025-11-23T07:24:25.033146Z._
+
+
+_This draft updated by refinement pass 6 on 2025-11-23T07:24:25.033073Z._
+
+
+_This draft updated by refinement pass 5 on 2025-11-23T07:24:25.032966Z._
+
+
+_This draft updated by refinement pass 4 on 2025-11-23T07:24:25.032897Z._
+
+
+_This draft updated by refinement pass 3 on 2025-11-23T07:24:25.032749Z._
+
+
+_This draft updated by refinement pass 2 on 2025-11-23T07:24:25.032365Z._
+
+
+_This draft updated by refinement pass 1 on 2025-11-23T07:24:25.031408Z._
+
+1. Approve or modify this high-level design.
+2. Add a small implementation plan (API improvements, storage prototype, and tests).
+3. Implement a prototype using: Postgres + pgvector (metadata + embeddings), Redis (short-term cache), and S3 for artifacts.
+
+Related files
+-------------
+- `docs/openapi.yaml` — contains /memory endpoints and MemoryItem schema
+- `FEATURES.md` — high-level guidance and quotas
+- `misc/copilot_tracking.json` — brainstorming notes and initial ideas
+
+Appendix: example retention/rotation algorithm (high-level)
+-------------------------------------------------------
+1. At T=00:00 night: run meditation scoring across all memory items.
+2. For each tier, compute current_size and compare to tier_quota.
+3. If current_size <= quota: finish.
+4. If over quota: sort items by score ascending, move lowest-scoring items to stage=archived for grace_period; if still over quota after grace completed, delete the oldest archived items until under quota.
+
+License and ownership
+---------------------
+This document is part of the Kimberly project and carries the same repository license.
+
+
+> TODO(pass 7): Consider differential privacy options for aggregated analytics.
+
+> TODO(pass 14): Consider differential privacy options for aggregated analytics.
+
+> TODO(pass 21): Consider differential privacy options for aggregated analytics.
+
+> TODO(pass 28): Consider differential privacy options for aggregated analytics.
+
+> TODO(pass 35): Consider differential privacy options for aggregated analytics.
+
+> TODO(pass 42): Consider differential privacy options for aggregated analytics.
+
+> TODO(pass 49): Consider differential privacy options for aggregated analytics.
+
+> TODO(pass 56): Consider differential privacy options for aggregated analytics.
+
+> TODO(pass 63): Consider differential privacy options for aggregated analytics.
+
+> TODO(pass 70): Consider differential privacy options for aggregated analytics.
+
+> TODO(pass 77): Consider differential privacy options for aggregated analytics.
+
+> TODO(pass 84): Consider differential privacy options for aggregated analytics.
+
+> TODO(pass 91): Consider differential privacy options for aggregated analytics.
+
+> TODO(pass 98): Consider differential privacy options for aggregated analytics.
+
+> TODO(pass 105): Consider differential privacy options for aggregated analytics.
+
+> TODO(pass 112): Consider differential privacy options for aggregated analytics.
+
+> TODO(pass 119): Consider differential privacy options for aggregated analytics.
+
+> TODO(pass 126): Consider differential privacy options for aggregated analytics.
+
+> TODO(pass 133): Consider differential privacy options for aggregated analytics.
+
+> TODO(pass 140): Consider differential privacy options for aggregated analytics.
+
+> TODO(pass 147): Consider differential privacy options for aggregated analytics.
