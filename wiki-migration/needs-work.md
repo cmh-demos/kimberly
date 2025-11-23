@@ -1,10 +1,6 @@
-# Needs Work
+# Needs work — prioritized
 
-This document has been moved to the [GitHub Wiki](https://github.com/cmh-demos/kimberly/wiki/Needs-Work) for easier collaboration and updates.
-
-**Summary**: Prioritized list of documentation and project gaps, with assessments and next actions for fixes.
-
-For full details, visit the wiki page.
+This file lists the highest-priority documentation and project gaps I found, with short assessments and next actions.
 
 ## Top priority (fix now)
 - README placeholders: add dev quickstart + runnable example (why: onboarding friction). Next: add install, env, run steps and example `curl` and test data. (Consolidated: Also replace "Download app (TBD)" with platform decision, e.g., PWA for mobile.)

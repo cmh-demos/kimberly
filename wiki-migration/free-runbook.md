@@ -1,10 +1,52 @@
-# Free-Mode Runbook
+# Kimberly — Free-Mode Runbook
 
-This document has been moved to the [GitHub Wiki](https://github.com/cmh-demos/kimberly/wiki/Free-Mode-Runbook) for easier collaboration and updates.
+Purpose
+-------
+This runbook explains how to deploy and run the Kimberly memory stack without incurring paid service costs: fully self-hosted, local-first, and embedding-free by default.
 
-**Summary**: Runbook for deploying Kimberly without paid services, focusing on local OSS tools, lexical search, and self-hosted embeddings.
+Key principles
+--------------
+- Avoid any paid API (embedding or vector provider).
+- Default to metadata-first and lexical search (SQLite FTS) for retrieval.
+- Optional embeddings must be self-hosted with open-source models and executed on local hardware.
+- Keep per-user quotas small and enforce strict retention.
 
-For full details, visit the wiki page.
+Quick setup (developer laptop)
+-----------------------------
+Prerequisites: Python 3.10+, Git, local OS package manager.
+
+1. Clone repo & create venv
+
+```bash
+git clone <repo>
+cd kimberly
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install -r requirements.txt  # add requirements if missing
+```
+
+2. Minimal stack for free operation
+- SQLite (included in Python stdlib via sqlite3)
+- Optionally: FAISS (pip install faiss-cpu) for local on-disk vectors
+- Optional local MinIO for attachments, or just use the filesystem
+
+3. Example initial data & run
+
+```bash
+python3 scripts/cost_smoke_test.py  # quick resource-check example
+# The web API / app code (if present) should start with embedding disabled.
+# Start the demo server or run the integration harness per README.
+```
+
+Optional: local embedding pipeline (self-hosted)
+------------------------------------------------
+If you need embeddings and want to remain free-of-paid-APIs, you can run a tiny local model on CPU. Example options:
+- sentence-transformers (MiniLM) - CPU friendly for small batches
+  - pip install -U sentence-transformers
+  - Create a small script to run batches and write embeddings to disk
+- faiss-cpu for on-disk approx search
+
+Example simple pipeline:
 
 ```bash
 python3 -c "from sentence_transformers import SentenceTransformer; m=SentenceTransformer('all-MiniLM-L6-v2'); print(m.encode(['hello world']))"
