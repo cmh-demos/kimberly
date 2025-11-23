@@ -18,7 +18,7 @@ from typing import Optional
 
 try:
     # prefer stdlib so no extra deps
-    from urllib.request import urlopen, Request
+    from urllib.request import Request, urlopen
 except Exception:
     raise
 
@@ -29,7 +29,13 @@ def fetch_runs(owner: str, repo: str, branch: Optional[str], per_page: int = 10)
         url = f"{base}?branch={branch}&per_page={per_page}"
     else:
         url = f"{base}?per_page={per_page}"
-    req = Request(url, headers={"Accept": "application/vnd.github+json", "User-Agent": "monitor-ci-script"})
+    req = Request(
+        url,
+        headers={
+            "Accept": "application/vnd.github+json",
+            "User-Agent": "monitor-ci-script",
+        },
+    )
     with urlopen(req) as resp:
         return json.load(resp)
 
@@ -51,12 +57,16 @@ def main():
     parser.add_argument("--branch", default=None)
     parser.add_argument("--sha", default=None)
     parser.add_argument("--interval", type=int, default=5, help="poll interval seconds")
-    parser.add_argument("--timeout", type=int, default=300, help="overall timeout seconds")
+    parser.add_argument(
+        "--timeout", type=int, default=300, help="overall timeout seconds"
+    )
     args = parser.parse_args()
 
     deadline = time.time() + args.timeout
 
-    print(f"Monitoring GitHub Actions runs for {args.owner}/{args.repo} branch={args.branch} sha={args.sha}")
+    print(
+        f"Monitoring GitHub Actions runs for {args.owner}/{args.repo} branch={args.branch} sha={args.sha}"
+    )
 
     run = None
     while time.time() < deadline:
@@ -74,7 +84,9 @@ def main():
         head_sha = run.get("head_sha")
 
         timestamp = datetime.now(timezone.utc).isoformat(timespec="seconds")
-        print(f"[{timestamp}] run #{run_number} sha={head_sha} status={status} conclusion={conclusion} url={url}")
+        print(
+            f"[{timestamp}] run #{run_number} sha={head_sha} status={status} conclusion={conclusion} url={url}"
+        )
 
         if status == "completed":
             print("Run completed — final conclusion:", conclusion)
