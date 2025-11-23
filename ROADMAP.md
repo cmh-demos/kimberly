@@ -14,6 +14,6 @@ Timeline: Q1 2026 for MVP release.
 - Q4 2026: Full launch.
 
 ## Risks
-- AI model availability.
-- Scalability challenges.
-- User adoption.
+- AI model availability: Mitigate by selecting stable open-source models (e.g., Llama) with fallbacks; monitor community updates and plan for model upgrades.
+- Scalability challenges: Mitigate with Kubernetes auto-scaling, load testing, and performance profiling; cap initial user load.
+- User adoption: Mitigate through beta testing feedback, iterative improvements, and clear documentation; focus on single-user personalization.
