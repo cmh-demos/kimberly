@@ -1,0 +1,96 @@
+name: Validate copilot logs
+
+on:
+  push:
+    paths:
+      - 'misc/copilot_tracking.json'
+      - 'misc/copilot_tracking.schema.json'
+  pull_request:
+    paths:
+      - 'misc/copilot_tracking.json'
+      - 'misc/copilot_tracking.schema.json'
+
+jobs:
+  validate-logs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install jsonschema
+        run: pip install jsonschema
+
+      - name: Validate JSON syntax
+        run: |
+          python - << 'PY'
+import json,sys
+from pathlib import Path
+p=Path('misc/copilot_tracking.json')
+try:
+    json.load(p.open())
+except Exception as e:
+    print('JSON syntax error:', e)
+    sys.exit(1)
+print('syntax OK')
+PY
+
+      - name: Validate against schema
+        run: |
+          python - << 'PY'
+import json,sys
+from pathlib import Path
+from jsonschema import validate, Draft7Validator
+s=Path('misc/copilot_tracking.schema.json').read_text()
+schema=json.loads(s)
+logs=json.loads(Path('misc/copilot_tracking.json').read_text())
+validator = Draft7Validator(schema)
+errors=[e for e in validator.iter_errors(logs)]
+if errors:
+    print('Schema validation errors:')
+    for e in errors:
+        print('-', e.message)
+    sys.exit(1)
+print('schema OK')
+PY
+
+      - name: Enforce append-only on PRs
+        if: github.event_name == 'pull_request'
+        run: |
+          set -e
+          python - << 'PY'
+import json,sys,subprocess
+from pathlib import Path
+from json import loads
+
+# get base ref of PR
+base_ref='${{ github.event.pull_request.base.ref }}'
+# fetch base
+subprocess.run(['git','fetch','origin', base_ref], check=True)
+# read base file
+try:
+  base = subprocess.check_output(['git','show','origin/' + base_ref + ':misc/copilot_tracking.json'])
+  base_json=loads(base.decode('utf-8'))
+except subprocess.CalledProcessError:
+  print('No base copy of misc/copilot_tracking.json available; skipping append-only check')
+  sys.exit(0)
+
+current = loads(Path('misc/copilot_tracking.json').read_text())
+# base must be a prefix of current
+if len(current) < len(base_json):
+    print('ERROR: current log shorter than base — historical deletion detected')
+    sys.exit(1)
+
+# check base entries match prefix
+for i, item in enumerate(base_json):
+    if item != current[i]:
+        print(f'ERROR: modification detected at entry index {i} — historical log entries must not be modified')
+        sys.exit(1)
+print('append-only check passed (base is prefix of current)')
+PY

@@ -808,4 +808,16 @@
     "terminal_commands_count": 0,
     "note": "repair: fixed formatting and sorted"
   }
+,
+  {
+    "request_start_time": "2025-11-22T20:30:00.000000-08:00",
+    "request_end_time": "2025-11-22T20:30:12.000000-08:00",
+    "processing_time_microseconds": 12000000,
+    "tokens_used": null,
+    "tokens_used_estimate": 20,
+    "tool_calls_count": 4,
+    "files_accessed_count": 3,
+    "terminal_commands_count": 4,
+    "note": "add schema and CI workflow to validate misc/copilot_tracking.json"
+  }
 ]
