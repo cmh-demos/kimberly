@@ -33,6 +33,7 @@ logging:
 - request_handling_order:
   - record_start_timestamp
   - handle_request
+  - append_log_entry
   - estimate tokens
   - record_end_timestamp
   - report_response
