@@ -9,8 +9,8 @@
   },
   {
     "request_start_time": "2025-11-22T17:17:25-08:00",
-    "request_end_time": "2025-11-22T17:17:26-08:00",
-    "processing_time_seconds": 1.0,
+    "request_end_time": "2025-11-22T17:17:30-08:00",
+    "processing_time_seconds": 5.0,
     "tokens_used": null,
     "tokens_used_estimate": 10,
     "note": "hi grok"
