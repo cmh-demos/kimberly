@@ -32,6 +32,11 @@ logging:
     - verify_file_hash_before_append: true
   ci_enforce_valid_json: true     # CI will fail if logs become invalid
   timestamp_format: "ISO-8601 with fractional seconds (microsecond precision). Example: 2025-11-22T19:13:00.123456-08:00"
+  # Auto-commit behaviour
+  auto_commit_and_push: true     # automatically git add/commit/push each successful append
+  commit_message_template: "chore/log: auto-append - {note}" # {note} will be replaced with the log's note text
+  commit_push_target: "current-branch" # push to same branch where change originated; DO NOT push to main
+  bypass_manual_approval: true   # no human approval required for routine log appends
 - append_only: true
 - immutable_historical_entries: true
 - correction_policy: "No edits to existing log entries.       Corrections must be appended as new entries referencing the original entry ID and reason."
