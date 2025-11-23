@@ -1,0 +1,210 @@
+openapi: 3.0.3
+info:
+  title: Kimberly API
+  version: 0.1.0
+  description: OpenAPI spec for Kimberly personal AI assistant (MVP surface).
+servers:
+  - url: https://api.kimberly.local/v1
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    SignupRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+      required: [email, password]
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+    ChatRequest:
+      type: object
+      properties:
+        message:
+          type: string
+        context_id:
+          type: string
+      required: [message]
+    ChatResponse:
+      type: object
+      properties:
+        reply:
+          type: string
+        confidence:
+          type: number
+          format: float
+    MemoryItem:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [short-term, long-term, permanent]
+        content:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+    AgentInvocation:
+      type: object
+      properties:
+        task:
+          type: string
+        params:
+          type: object
+paths:
+  /signup:
+    post:
+      summary: Create a user account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignupRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+  /login:
+    post:
+      summary: Authenticate user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignupRequest'
+      responses:
+        '200':
+          description: Authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: OK
+  /chat:
+    post:
+      summary: Send a chat message to Kimberly
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+      responses:
+        '200':
+          description: Chat response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+  /memory:
+    get:
+      summary: List memory items
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Memory list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MemoryItem'
+    post:
+      summary: Add a memory item
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                type:
+                  type: string
+                  enum: [short-term, long-term, permanent]
+                content:
+                  type: string
+              required: [type, content]
+      responses:
+        '201':
+          description: Created
+  /memory/{id}:
+    delete:
+      summary: Delete memory by id
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Deleted
+  /agents:
+    get:
+      summary: List available agents
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: agents list
+    post:
+      summary: Create/invoke a new agent task
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentInvocation'
+      responses:
+        '202':
+          description: Accepted
+  /agents/{id}/run:
+    post:
+      summary: Run a specific agent
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentInvocation'
+      responses:
+        '202':
+          description: Agent accepted for processing
