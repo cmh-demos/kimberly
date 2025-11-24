@@ -2,13 +2,14 @@
 """
 Validate the copilot_triage_rules.yml file against its embedded JSON schema.
 """
-import yaml
+import argparse
 import json
-import jsonschema
-import tempfile
 import os
 import sys
-import argparse
+import tempfile
+
+import jsonschema
+import yaml
 
 
 def main():

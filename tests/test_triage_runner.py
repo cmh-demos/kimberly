@@ -1,6 +1,6 @@
+import json
 import os
 import tempfile
-import json
 import unittest
 
 from scripts import triage_runner as tr

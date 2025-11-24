@@ -14,15 +14,17 @@ when DRY_RUN=false (the workflow sets DRY_RUN=false only for main branch).
 
 from __future__ import annotations
 
+import json
 import os
 import re
 import sys
-import yaml
+
 import requests
-from typing import List, Optional, Dict, Any
+import yaml
+
 from datetime import datetime
-import json
 from difflib import SequenceMatcher
+from typing import Any, Dict, List, Optional
 
 
 def load_rules(path: str) -> dict | None:
