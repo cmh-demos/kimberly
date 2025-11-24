@@ -96,15 +96,6 @@ agents, allowing for cross-functional collaboration and diverse viewpoints.
 
 See LICENSE file in the project root.
 
-# Kimberly Agents
-
-A VS Code extension providing custom Copilot chat agents based on the roles
-defined in the Kimberly project.
-
-## Agents
-
-This extension includes the following chat participants:
-
 ### Core Development Roles
 
 - **@backend-developer**: Backend Developer agent for server-side logic

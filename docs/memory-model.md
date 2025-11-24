@@ -19,7 +19,7 @@ TL;DR — COST CEILING: FREE. This model enforces a zero-dollar deployment: no p
 
 1. Goals and success criteria (free-by-default)
 
------------------------------
+--------------------
 
 - No monetary cost: avoid any paid APIs, managed services, or hosted vector providers.
 - Runable on developer or user hardware (laptop / small VPS) using only open-source components.
@@ -27,7 +27,7 @@ TL;DR — COST CEILING: FREE. This model enforces a zero-dollar deployment: no p
 
 1. Memory tiers and behavior (cost-optimized)
 
----------------------------
+--------------------
 All tiers are configurable per-user but offer sane defaults.
 
 - Default quota: 1 MB per user (cost-first default — adjust for heavy users)
@@ -53,7 +53,7 @@ All tiers are configurable per-user but offer sane defaults.
 
 1. Data model and versioning
 
----------------------------
+--------------------
 Every memory item is a versioned object with lightweight structured metadata to enable evolution of schema and safe migrations.
 
 MemoryItem (canonical JSON schema)
@@ -91,7 +91,7 @@ Notes (free-mode):
 
 1. Scoring / meditation (cost-aware operations)
 
------------------------------------------------
+--------------------
 The meditation pipeline is the nightly scoring and retention pipeline. Key properties:
 
 - Deterministic & versioned: scoring functions are versioned and produce reproducible scores for the same inputs.
@@ -126,7 +126,7 @@ Free-mode specifics:
 
 1. Retrieval strategies (minimal cost best-effort)
 
-------------------------------------------------
+--------------------
 High-quality retrieval is a hybrid of metadata pre-filter + vector similarity re-ranking.
 
 Flow for typical chat context retrieval (cost-aware):
@@ -147,7 +147,7 @@ Performance tips (free-mode):
 
 1. Storage & architecture (cheap-by-default stack)
 
--------------------------------------------
+--------------------
 Free-mode stack (no paid services):
 
 - SQLite + FTS5 for metadata and text search; run everything on a single machine (developer laptop or small VPS) with no managed services.
@@ -165,7 +165,7 @@ Component responsibilities (free-mode):
 
 1. Privacy, security, and compliance (keep cheap & safe)
 
------------------------------------
+--------------------
 Design for user control and regulatory compliance.
 
 - Explicit consent for sensitive memory capture and special handling.
@@ -178,7 +178,7 @@ Cost note: encryption and audit trails add modest storage and CPU overhead. Use 
 
 1. API contract & usage patterns (cost-transparent)
 
---------------------------------
+--------------------
 Existing endpoints (in OpenAPI):
 
 - POST /memory — create memory (content + metadata) -> returns id, size, computed score
@@ -202,7 +202,7 @@ Free-mode API features to implement:
 
 1. Testing, validation & cost KPIs
 
--------------------------------
+--------------------
 Focus on correctness, recall, and hallucination reduction.
 
 - Unit tests: schema, scoring logic, quota enforcement
@@ -218,7 +218,7 @@ Add free-mode tests:
 
 1. Operations, budgets & observability
 
------------------------------
+--------------------
 Track these operational metrics per user and system-wide:
 
 - memory.items.created, memory.items.deleted, memory.items.archived
@@ -243,7 +243,7 @@ Set alerts for:
 
 1. Low-cost implementation patterns & workflows
 
----------------------------------
+--------------------
 Creating memory (simplified):
 
 POST /memory
@@ -269,7 +269,7 @@ Nightly meditation (simplified):
 
 5. Retention & rotation algorithm (detailed pseudocode, cost controlled)
 
-----------------------------------------------------
+--------------------
 function run_meditation(user_id):
   items = fetch_user_memory(user_id)
   for item in items:
@@ -287,8 +287,7 @@ function run_meditation(user_id):
 
     Optimization: apply a daily cap on how much data can be pruned per run to prevent spikes in I/O and compute.
 
-14. Acceptance criteria (cost targets)
------------------------
+## 14. Acceptance criteria (cost targets)
 
 - The system implements /memory, /memory/query, /memory/meditate and /memory/metrics according to the OpenAPI changes.
 - The mediation pipeline runs deterministically and reduces per-user quota exceed events to <1% after steady-state.
@@ -302,7 +301,7 @@ Free targets (strict defaults):
 
 1. Implementation suggestions & low-cost roadmap
 
---------------------------------------
+--------------------
 Phase A (free-only MVP/prototype):
 
 - SQLite + FTS5 for metadata & lexical search. Optional FAISS/Annoy for on-disk vector search if embeddings are enabled locally.
@@ -320,21 +319,19 @@ Phase C (cost-mature):
 
 1. Questions / open decisions
 
-----------------------------
+--------------------
 
 - How much user configuration do we expose for scoring weights vs. system defaults?
 - Do we allow cross-user shared memories or purely per-user? (Current approach assumes single-user scope.)
 - How aggressively to archive vs. delete (grace-period length)?
 - Consider differential privacy options for aggregated analytics and metrics reporting (avoid exposing sensitive data in aggregated views).
 
-Appendix: artifacts & repository notes
--------------------------------------
+## Appendix: artifacts & repository notes
 
 - Iteration artifacts are available at `docs/iterations/` (generated during refinement).
 - The final source is `docs/memory-model.md` (this file) and the quick OpenAPI changes were added to `docs/openapi.yaml`.
 
-Memory Cost Guide (practical)
------------------------------
+## Memory Cost Guide (practical)
 
 ### Purpose
 
@@ -433,7 +430,6 @@ Add metadata + content stored in SQLite/Postgres (2 MB cap) -> total ~2.2 MB per
 
 *This is a short, pragmatic guide. If you want I can: provide a small Python prototype that enacts the cheap-mode flows, or calculate precise dollar estimates for chosen cloud providers (AWS/GCP/Azure).*
 
-License and ownership
----------------------
+## License and ownership
 
 This document is part of the Kimberly project and follows repository license and contribution rules.

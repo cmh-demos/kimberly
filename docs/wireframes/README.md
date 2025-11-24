@@ -11,20 +11,17 @@ Files added:
 - agents-desktop.svg — desktop Agents Dashboard showing agent cards, run preview, and logs.
 - agents-mobile.svg — mobile Agents list and run preview.
 
-How to view
------------
+## How to view
 
 Open the files in a browser or your editor preview pane. The SVGs are intentionally simple to be used as conversation starters for the next design steps.
 
-Notes / next steps
-------------------
+## Notes / next steps
 
 - Annotated flows for each screen (short text annotations) — included below.
 - Create hi-fidelity mockups for approved layouts (Figma or static HTML/CSS).
 - Add accessibility checks and detailed copy for microcopy/confirmations.
 
-Annotations
------------
+## Annotations
 
 Chat screen notes
 

@@ -152,7 +152,7 @@ This threat model identifies potential security risks for the Kimberly personal 
 
 This analysis covers the codebase and design artifacts in this repository, the chosen architecture (Kubernetes + microservices + Llama 3.x), and non-functional goals (latency, uptime, privacy, compliance). It is NOT a substitute for a formal security audit or legal compliance review — those should be scheduled separately.
 
----
+--------------------
 
 ### How to use this file
 
@@ -160,7 +160,7 @@ This analysis covers the codebase and design artifacts in this repository, the c
 - Add owners (GitHub handles or names) and target mitigation dates to make progress measurable.
 - When a risk is discovered in the wild (incident or test failure), append a short post-mortem note (date + description) below the risk entry.
 
----
+--------------------
 
 ### Severity & Likelihood definitions
 
@@ -171,7 +171,7 @@ This analysis covers the codebase and design artifacts in this repository, the c
 ### Risk Register (prioritized)
 
 | ID | Risk | Category | Impact | Likelihood | Priority | Mitigation(s) | Detection | Owner | Status |
-|----|------|----------|--------|------------|----------|---------------|-----------|-------|--------|
+| ---- | ------ | ---------- | -------- | ------------ | ---------- | --------------- | ----------- | ------- | -------- |
 | R-001 | No runnable implementation / primarily docs | Product / Delivery | Critical | Likely | Critical | Build a minimal end-to-end PoC using a hosted LLM to validate flows and developer on-ramps. Create quickstart in README. | PR/CI checks, demo readiness | @backend-dev | Active — high |
 | R-002 | Unrealistic non-functional goals (latency <1s, 99.9% uptime at early-stage) | Product / Architecture | High | Likely | High | Re-scope SLOs; run latency benchmarks on a PoC; consider hosted models for low-latency MVP. | Performance tests; benchmark reports | @backend-dev | Active — validation needed |
 | R-003 | LLM deployment cost & infra mismatch (Llama 3.1 inference hardware & licensing) | Cost / Infrastructure | High | Likely | High | Produce cost estimate for self-hosting vs hosted provider; plan GPU sizing; track licensing/redistribution constraints. | Cost run rates, infra invoices | @ops TBD | Active — investigate |
@@ -183,7 +183,7 @@ This analysis covers the codebase and design artifacts in this repository, the c
 | R-009 | Agent sandboxing insufficient — agents may leak secrets or take destructive actions | Security / Safety | Critical | Possible | Critical | Define agent capability model, deny list for I/O, require policy enforcement and per-agent resource limits (CPU, memory, network). | Unit tests, agent traces, policy violation alerts | @engineering TBD | Active — design required |
 | R-010 | Backup & Disaster Recovery untested (RPO/RTO unknown) | Operations | High | Possible | High | Document RPO/RTO, implement daily backups, periodic restore drills, store backups encrypted and off-site. | Restore drills, backup health metrics | @ops TBD | Planned |
 
----
+--------------------
 
 ### Unknowns (what we don't know yet) — prioritized checklist
 
@@ -227,7 +227,7 @@ These unknowns are important to resolve because they materially change mitigatio
    - Why: Agent behaviors are a safety and reliability risk; we need an explicit orchestration design.
    - Next action: Create an agent orchestration ADR and propose a minimal sandbox for the MVP; owner: @engineering; target: 3 weeks.
 
----
+--------------------
 
 ### Immediate short-term actions (quick wins to reduce highest risk)
 
@@ -241,7 +241,7 @@ These unknowns are important to resolve because they materially change mitigatio
 - Add GitHub issues for the top unknowns and high-priority risks (R-001, R-004, R-005, R-006, R-007). Link those issues back in the `Owner` cell.
 - During each sprint planning meeting, the owner will update the `Status` and estimate mitigation dates.
 
----
+--------------------
 
 ### Template: add/update a risk
 
@@ -253,14 +253,14 @@ When adding or updating a risk, include:
 - current status and evidence (e.g., failing test, open incident)
 - mitigations for short/medium/long term
 
----
+--------------------
 
 If you'd like, I can also:
 
 - create the GitHub issues for the top unknowns and high-priority risks, or
 - add a CI workflow to validate the OpenAPI file and copilot schema immediately.
 
----
+--------------------
 
 Document created by: repo:kimberly — automated snapshot analysis
 
@@ -306,7 +306,7 @@ Enforce "free-mode": Block paid API usage in CI with grep checks.
 - Add `.env` to `.gitignore` (update existing file).
 - Example `.env` (template in repo as `.env.example`):
 
-  ```
+  ```bash
   HUGGINGFACE_TOKEN=your_token_here
   DATABASE_URL=sqlite:///kimberly.db
   ```
