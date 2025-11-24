@@ -1,5 +1,4 @@
-Append log helper
------------------
+# Append log helper
 
 This simple helper `scripts/append_log.py` writes high-precision (microsecond) timestamps to `misc/copilot_tracking.json`, computes `processing_time_microseconds`, validates the entry against `misc/copilot_tracking.schema.json`, and verifies file hash before writing (pre-append check).
 
