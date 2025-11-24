@@ -45,7 +45,8 @@ python3 scripts/cost_smoke_test.py  # quick resource-check example
 
 ```
 
-Optional: local embedding pipeline (self-hosted)
+## Optional: local embedding pipeline (self-hosted)
+
 ------------------------------------------------
 
 If you need embeddings and want to remain free-of-paid-APIs, you can run a tiny

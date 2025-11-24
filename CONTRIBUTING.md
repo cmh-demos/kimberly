@@ -18,14 +18,6 @@ Guidelines for contributing: PR flow, reviewer matrix, coding standards.
 - Security: Security team.
 - Design: UX designer.
 
-## Coding Standards
-
-- Follow PEP 8 for Python.
-- Use TypeScript ESLint for JS/TS.
-- 95% test coverage.
-
-See `docs/CODING_STANDARDS.md` for detailed guidelines.
-
 ## Development Process
 
 See `docs/SDLC.md` for the full Software Development Lifecycle.
@@ -80,7 +72,7 @@ quality are addressed.
 - [ ] Sensitive data handling complies with
   [SECURE_CREDENTIALS_PLAN.md](SECURE_CREDENTIALS_PLAN.md).
 
-#### Testing
+#### Minimum Testing
 
 - [ ] Unit tests written and passing (95% code coverage target).
 - [ ] Integration tests for API endpoints and database interactions.
@@ -218,7 +210,7 @@ codebase.
 - **Branches**: Feature branches from `main`; squash merges.
 - **PRs**: Descriptive titles/descriptions; link issues.
 
-### Testing
+### Testing Sets
 
 - **Unit Tests**: Test individual components.
 - **Integration Tests**: Test interactions.
@@ -226,7 +218,7 @@ codebase.
 - **Tools**: pytest for Python; Jest for JS.
 - **Coverage**: 95% minimum; CI enforces.
 
-### Documentation
+### Documentation Minimums
 
 - **Inline**: Comments for complex logic.
 - **API Docs**: Use OpenAPI/Swagger.
