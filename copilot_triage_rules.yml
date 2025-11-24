@@ -11,16 +11,46 @@ steps:
   # pre-check / enrichment (automatable)
   - check_required_fields: # if missing, add a 'needs-info' label and request details
     required: ["summary", "repro_steps", "expected_behavior", "actual_behavior", "size_estimate"]
-  - detect_duplicates: true
+    validation: # optional validation logic to enforce formats
+      size_estimate: # enforce allowed values for size_estimate
+        allowed_values: ["xsmall", "small", "medium", "large", "epic"]
+        # regex is anchored to avoid partial matches (exact-match only)
+        regex: "^(xsmall|small|medium|large|epic)$"
+        action_on_invalid: "add_label: needs-info; post_comment: invalid_size_estimate"
+  - detect_duplicates:
+      enabled: true
+      # Fuzzy similarity threshold 0.0-1.0, where higher values are stricter
+      similarity_threshold: 0.78
+      # Minimum token overlap to consider for fuzzy matches
+      min_token_overlap: 0.25
+      # Only search for duplicates reported within the last N days by default
+      max_search_window_days: 365
+      # Limit number of candidates to fetch per query to avoid heavy scans
+      max_candidates: 25
+      # Use a light-weight keyword prefilter before running expensive fuzzy
+      # similarity computations (recommended for large repos)
+      prefilter_keywords: ["crash","exception","PII","authentication","login"]
+      # For extremely large repositories consider setting use_cache=true and
+      # running dedupe in a background worker rather than inline.
+      use_cache: true
   # scan for PII/sensitive data and take safe actions (redact or route privately)
+  # Uses heuristic pattern matching to detect common sensitive data formats
   - scan_for_pii:
     patterns:
-      - '(?i)api[_-]?key\s*[:=]\s*\S+'      # api_key or api-key: SECRET
-      - '(?i)secret\s*[:=]\s*\S+'            # secret: SECRET
-      - '(?i)password\s*[:=]\s*\S+'          # password: SECRET
-      - '(?i)ssn[:=]\s*\d{3}-?\d{2}-?\d{4}' # Social Security numbers
-      - '(?i)bearer\s+[A-Za-z0-9\-\._~\+/]+=*' # Bearer tokens
-      - '(?i)-----BEGIN PRIVATE KEY-----'      # long key/pem blobs
+      - '(?i)api[_-]?key\s*[:=]\s*\S+'      # api_key or api-key: SECRET (e.g., api_key: sk-12345)
+      - '(?i)secret\s*[:=]\s*\S+'            # secret: SECRET (e.g., secret: mySecretValue)
+      - '(?i)password\s*[:=]\s*\S+'          # password: SECRET (e.g., password: pass123)
+      - '(?i)ssn[:=]\s*\d{3}-?\d{2}-?\d{4}' # Social Security numbers (e.g., ssn: 123-45-6789)
+      - '(?i)bearer\s+[A-Za-z0-9\-\._~\+/]+=*' # Bearer tokens (e.g., bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9)
+      - '(?i)-----BEGIN PRIVATE KEY-----'      # long key/pem blobs (e.g., -----BEGIN PRIVATE KEY-----...)
+      # Common additional PII patterns to reduce false-negatives.
+      # Note: some of these are broad (emails, phones) and can increase
+      # false-positives; tune as needed for the project.
+      - '(?i)[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}'
+      # Phone numbers — supports country code, separators, parentheses
+      - '(?i)(?:\+?\d{1,3}[-.\s]?)?(?:\(?\d{3}\)?|\d{3})[-.\s]?\d{3}[-.\s]?\d{4}'
+      # Credit / debit card likeness (basic common BIN ranges)
+      - '(?i)\b(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|6(?:011|5[0-9]{2})[0-9]{12})\b'
     action_on_detection:
       - redact_matches: true            # mask or remove sensitive fragments from public body
       - add_label: "security"          # mark as security-sensitive
@@ -28,11 +58,15 @@ steps:
       - notify_channel: "security-oncall" # alert security team
     exempt_when_label_present: ["security", "manual-triage"]
     allow_human_override_label: "manual-triage"
+    # Performance note: regex matching on very large issue or comment
+    # bodies can be CPU intensive. Keep PII patterns focused and/or pre-
+    # filter using simple keyword checks before running heavyweight
+    # regexes for better throughput and fewer false-positives.
   - fetch_related_docs: true # search repo for docs & references to augment the issue
 
   # prioritization and routing
   - compute_severity: # use the severity table (see rules) to generate a proposed severity
-    method: "heuristic"
+    method: "heuristic" # heuristic method for severity based on issue content and impact
   - compute_priority: # priority may take severity + user impact + escalation tags
   - assign_triage_owner: # assign triage owner — Copilot bots own triage (see rules)
 
@@ -50,10 +84,14 @@ steps:
     note: "Automation must check this flag before making state-changing operations (labels, cards, moving)."
   # sanitize titles by removing embedded priority tags (e.g., [High Priority])
   - sanitize_title_priority:
-    description: "After priority is computed and execution policy checked, remove
-      human-entered priority tags embedded in issue titles to avoid duplication
-      and keep titles clean. This is idempotent and logs the original title to
-      the audit log."
+    description: >-
+      After priority is computed and execution policy checked, remove human-
+      entered priority tags embedded in issue titles to avoid duplication and
+      keep titles clean. This is idempotent and logs the original title to the
+      audit log.
+    # Implementation note: this step should be idempotent. Bots must preserve
+    # `original_title` as an audit field and avoid looping edits by checking
+    # for the audit marker before writing changes.
     respect_execution_policy: true
     simulate_on_dry_run: true
     detection_patterns:
@@ -68,12 +106,12 @@ steps:
       - '(?i)\[Other\]'
     action:
       - if_detected:
-          - set_field: original_title
-          - replace_title: true
-          - new_title: "{{original_title|remove_detected_priority_tags}}"
-          - add_audit_fields: ["title_sanitized","original_title"]
-          - on_dry_run:
-              - add_changed_field: "would_replace_title"
+          set_field: original_title
+          replace_title: true
+          new_title: "{{original_title|remove_detected_priority_tags}}"
+          add_audit_fields: ["title_sanitized","original_title"]
+          on_dry_run:
+            add_changed_field: "would_replace_title"
     skip_if_label_present: ["manual-triage","no-triage","security"]
     allow_human_override_label: "manual-triage"
   - annotate_issue: # update issue with triage checklist, discovered docs, and decision
@@ -328,28 +366,51 @@ rules:
   - security: "Close coordination with security team; don’t post sensitive details in public issue comments. Use the security contact or private channel."
   - legal: "Tag `legal-review` and escalate to product/legal owner"
 
-  # quality controls and observability
-  - audit_and_metrics: # record the triage event in `triage_log.json`
-    fields:
-      [
-        "issue_number",
-        "triage_owner",
-        "timestamp",
-        "severity",
-        "priority",
-        "size_estimate",
-        "pii_detected",
-        "redacted_fields",
-        "redaction_actions",
-        "dry_run",
-        "execution_branch",
-        "title_sanitized",
-        "original_title",
-        "backlog_gate_passed",
-        "backlog_gate_reasons",
-        "notes",
-        "changed_fields",
-      ]
+  # error handling for step failures
+  - error_handling:
+    description: "Handle failures in triage steps to ensure robustness."
+    # General retry defaults (used when step-specific settings are not
+    # provided)
+    retry_logic:
+      max_retries: 3
+      backoff_seconds: 60 # exponential backoff
+      on_failure: "log_error; notify_triage_channel"
+    # Per-step retry semantics: treat API/network failures more leniently
+    # (retries + jitter) and treat parsing/validation problems as fast
+    # failures to avoid retry loops.
+    per_step_retry:
+      api_failure:
+        max_retries: 5
+        backoff_seconds: 30
+        jitter: true
+        retry_on: ["timeout","http5xx","rate_limit"]
+      parsing_error:
+        max_retries: 1
+        backoff_seconds: 10
+        retry_on: ["transient_parser_error"]
+      auth_or_permission_error:
+        max_retries: 0
+        backoff_seconds: 0
+        retry_on: []
+    fallback_notifications:
+      channels: ["triage-oncall"]
+      template: "error_occurred"
+
+  # metrics and monitoring for data-driven improvements
+  - metrics_and_monitoring:
+    description: "Track triage metrics for dashboards and alerts."
+    metrics:
+      - triage_completion_rate: "Percentage of issues triaged within SLA"
+      - average_triage_time: "Average time from issue creation to triage"
+      - average_time_to_assign_owner: "Average time from triage start to assignment of triage owner"
+      - median_time_to_triage: "Median time from creation to triage (less sensitive to outliers)"
+      - pii_detection_rate: "Rate of PII detections"
+      - error_rate: "Percentage of triage runs with errors"
+    dashboard_integration:
+      tool: "prometheus" # or grafana, etc.
+      alerts:
+        - condition: "triage_completion_rate < 90%"
+          action: "notify_triage_team"
 
   # helpful conventions
   - triage_checklist:
@@ -395,26 +456,27 @@ rules:
   # structured triage event / audit schema (triage_log.json)
   - triage_audit_schema:
     description: "Canonical schema for each triage event appended to triage_log.json. This enables dashboards and auditability."
+    version: "1.1" # schema version for future extensions
     fields:
-      - issue_number: int
-      - triage_owner: string
-      - event_type: string # e.g., 'initial_triage','update','escalation','duplicate'
-      - timestamp: rfc3339
-      - severity: string
-      - priority: string
-      - size_estimate: string
-      - pii_detected: bool
-      - redacted_fields: list
-      - redaction_actions: list
-      - dry_run: bool
-      - execution_branch: string
-      - backlog_gate_passed: bool
-      - backlog_gate_reasons: list
-      - title_sanitized: bool
-      - original_title: string
-      - changed_fields: list
-      - notes: string
-      - references: list
+      - issue_number: {type: int, description: "GitHub issue number"}
+      - triage_owner: {type: string, description: "Bot or user who performed triage"}
+      - event_type: {type: string, description: "e.g., 'initial_triage','update','escalation','duplicate'"}
+      - timestamp: {type: rfc3339, description: "ISO 8601 timestamp of the event"}
+      - severity: {type: string, description: "Severity level (critical, high, medium, low)"}
+      - priority: {type: string, description: "Priority level (p0, p1, p2, p3)"}
+      - size_estimate: {type: string, description: "Quick size estimate (xsmall, small, medium, large, epic)"}
+      - pii_detected: {type: bool, description: "Whether PII was detected in the issue"}
+      - redacted_fields: {type: list, description: "Fields that were redacted"}
+      - redaction_actions: {type: list, description: "Actions taken for redaction"}
+      - dry_run: {type: bool, description: "Whether the triage was a dry run"}
+      - execution_branch: {type: string, description: "Git branch where triage ran"}
+      - backlog_gate_passed: {type: bool, description: "Whether backlog gating passed"}
+      - backlog_gate_reasons: {type: list, description: "Reasons for backlog gate outcome"}
+      - title_sanitized: {type: bool, description: "Whether the title was sanitized"}
+      - original_title: {type: string, description: "Original title before sanitization"}
+      - changed_fields: {type: list, description: "Fields changed during triage"}
+      - notes: {type: string, description: "Additional triage notes"}
+      - references: {type: list, description: "Links to docs or related issues"}
     example: |
       {
         "issue_number": 123,
@@ -451,12 +513,15 @@ rules:
 
     triaged_backlog_notice: |
       This issue has been marked as `Triaged` and placed into the `Backlog`.
-      Note: `Triaged` prevents the triage bot from reworking the issue; `Backlog` is used to trigger downstream work planning.
-      If this is incorrect, please remove or update these labels.
+      Note: `Triaged` prevents the triage bot from reworking the issue;
+      `Backlog` is used to trigger downstream work planning. If this is
+      incorrect, please remove or update these labels.
 
     dry_run_notice: |
-      Note: this triage run is a dry-run because the automation is not running on a protected branch.
-      I did not change issue labels or move project cards — these actions are simulated. To allow real changes, run on the `main` branch or flip the `manual-triage` override.
+      Note: this triage run is a dry-run because the automation is not
+      running on a protected branch. I did not change issue labels or move
+      project cards — these actions are simulated. To allow real changes,
+      run on the `main` branch or add the `manual-triage` override.
 
     backlog_added_notice: |
       This issue passed backlog gating and has been placed into the `Backlog` for planning.
@@ -468,15 +533,21 @@ rules:
       Next steps: add the missing information or contact the product owner to approve (label `product-approved`).
 
     title_cleaned_notice: |
-      I removed priority tags from the issue title (e.g. [High Priority]) after computing priority, to keep titles clean and avoid duplicate priority markers.
-      The priority has been recorded in the issue metadata. If this edit is incorrect, you can revert the change or add the `manual-triage` label to prevent automated edits.
+      I removed priority tags from the issue title (e.g. [High Priority]) to
+      keep titles clean and avoid duplicate priority markers. The priority has
+      been recorded in the issue metadata. If this edit is incorrect, you can
+      revert the change or add the `manual-triage` label to prevent automated
+      edits.
 
     redaction_notice: |
       The content you provided appears to contain sensitive information and has been redacted from public view to protect your data.
       If you need to share additional details, please use our secure intake channel (see `secure_intake_instructions`) or contact the security team privately.
 
     secure_intake_instructions: |
-      This issue contains sensitive data. To help us investigate securely, please use the secure intake form at <SECURE_INTAKE_URL> or contact `security-oncall` directly. Do not paste secrets or personal data in public comments.
+      This issue contains sensitive data. To help us investigate securely,
+      please use the secure intake form at <SECURE_INTAKE_URL> or contact
+      `security-oncall` directly. Do not paste secrets or personal data in
+      public comments.
 
     label_added: |
       I added the `{label}` label to this issue as part of the triage workflow.
@@ -500,6 +571,10 @@ rules:
   # duplicate detection & canonical issue policy
   - duplicates:
     detection: "heuristic + title/body similarity + reported-by/time-range" # bots should use fuzzy matching
+    # Notes for implementers: duplicate detection may be expensive on large
+    # repositories. Use the `detect_duplicates` prefilter keywords and
+    # `max_search_window_days` settings to constrain work. Consider background
+    # workers or cached similarity indexes for scale.
     policy: |
       - If duplicates are detected, link to the canonical issue and leave a short comment
       - Close the duplicate with the reason 'Duplicate - linked to #<canonical_issue>'
@@ -581,6 +656,24 @@ rules:
     dry_run_comment_template: "dry_run_notice"
     # Safety: enforce that any step which would change labels/move cards/remove labels/add labels/move cards
     # must check execution_policy before performing stateful changes.
+
+  # guidance for bots to check the execution policy before state-changing ops
+  - execution_policy_checks:
+    description: "Template guidance for automation: how to query the execution
+      policy and respect dry-run vs real-run before making label or card
+      changes. Bots should consult the checked flag produced by the
+      check_execution_policy step (runtime variable `dry_run`) and avoid
+      performing any state-changing operations when true."
+    example_snippet: |
+      # pseudocode — evaluate the runtime flag set by the pipeline
+      if runtime.get('dry_run', True):
+        # do not change labels/cards — log or post a dry-run comment
+        log('dry-run: simulated change — skipping label modification')
+      else:
+        # safe to perform state-changing operations
+        add_label(issue, 'Triaged')
+    # bots should always check protected branch list & the runtime `dry_run`
+    checks_required: ["protected_branches", "dry_run", "execution_branch"]
 
   # repository templates (existing)
   - templates:
