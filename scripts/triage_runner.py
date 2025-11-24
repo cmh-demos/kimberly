@@ -225,7 +225,6 @@ def main() -> int:
         dry_run = "refs/heads/main" not in ref
     else:
         dry_run = dry_run_env in ("1", "true", "yes")
-    dry_run = dry_run_env in ("1", "true", "yes")
 
     gh_repo = os.environ.get("GITHUB_REPOSITORY")
     gh_token = os.environ.get("GITHUB_TOKEN")
