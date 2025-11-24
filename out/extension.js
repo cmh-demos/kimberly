@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deactivate = exports.activate = void 0;
+exports.activate = activate;
+exports.deactivate = deactivate;
 const vscode = require("vscode");
 // Store all participants for inter-agent communication
 const participants = new Map();
@@ -559,7 +560,5 @@ Help with documentation, knowledge sharing, and developer experience.`;
     });
     context.subscriptions.push(docsParticipant);
 }
-exports.activate = activate;
 function deactivate() { }
-exports.deactivate = deactivate;
 //# sourceMappingURL=extension.js.map
