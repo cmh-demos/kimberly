@@ -223,7 +223,9 @@ def main() -> int:
     # If DRY_RUN unset, pick based on branch (GITHUB_REF)
     if not dry_run_env:
         ref = os.environ.get("GITHUB_REF", "")
-        current_branch = ref.replace("refs/heads/", "") if ref.startswith("refs/heads/") else ""
+        current_branch = (
+            ref.replace("refs/heads/", "") if ref.startswith("refs/heads/") else ""
+        )
         dry_run = current_branch not in protected_branches
     else:
         dry_run = dry_run_env in ("1", "true", "yes")
