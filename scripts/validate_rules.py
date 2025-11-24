@@ -4,9 +4,7 @@ Validate the copilot_triage_rules.yml file against its embedded JSON schema.
 """
 import argparse
 import json
-import os
 import sys
-import tempfile
 
 import jsonschema
 import yaml
@@ -33,15 +31,8 @@ def main():
         print("No 'json_schema' found in rules file")
         sys.exit(1)
 
-    # Write schema to temp file
-    with tempfile.NamedTemporaryFile(
-        mode="w", suffix=".json", delete=False
-    ) as temp_schema:
-        json.dump(schema, temp_schema)
-        temp_schema_path = temp_schema.name
-
+    # Validate using jsonschema
     try:
-        # Validate using jsonschema
         jsonschema.validate(instance=data, schema=schema)
         print("Schema validation passed")
     except jsonschema.ValidationError as e:
@@ -50,8 +41,6 @@ def main():
     except Exception as e:
         print(f"Unexpected error during validation: {e}")
         sys.exit(1)
-    finally:
-        os.unlink(temp_schema_path)
 
 
 if __name__ == "__main__":
