@@ -16,9 +16,11 @@ If you discover a security vulnerability, please report it responsibly:
 - **Do not** create public GitHub issues for vulnerabilities.
 - Email: <security@kimberly.ai> (placeholder; replace with actual contact).
 - Response time: Within 48 hours.
-- Include details: Description, impact, reproduction steps, and any proposed fixes.
+- Include details: Description, impact, reproduction steps, and any
+  proposed fixes.
 
-We follow the [NIST Cybersecurity Framework](https://www.nist.gov/cyberframework) for incident response.
+We follow the [NIST Cybersecurity Framework](https://www.nist.gov/cyberframework)
+for incident response.
 
 ## Security Measures
 
@@ -41,12 +43,19 @@ For more details, see the Threat Model and Risk Analysis sections below.
 
 ### Overview
 
-This threat model identifies potential security risks for the Kimberly personal AI assistant project. It follows a structured approach focusing on assets, threats, vulnerabilities, and mitigations. The model assumes a single-user system with local-first storage, agent delegation, and free-mode constraints (no paid APIs).
+This threat model identifies potential security risks for the Kimberly personal AI
+assistant project. It follows a structured approach focusing on assets, threats,
+vulnerabilities, and mitigations. The model assumes a single-user system with
+local-first storage, agent delegation, and free-mode constraints (no paid APIs).
 
 ### Scope
 
-- In-scope: Conversational AI, memory management (short/long/permanent tiers), agent orchestration, API endpoints, telemetry logging, and infrastructure (K8s, Postgres, Redis).
-- Out-of-scope: Third-party integrations (e.g., GitHub, Slack) unless directly invoked; hardware-level attacks; supply chain for dependencies (covered separately).
+- In-scope: Conversational AI, memory management (short/long/permanent tiers),
+  agent orchestration, API endpoints, telemetry logging, and infrastructure
+  (K8s, Postgres, Redis).
+- Out-of-scope: Third-party integrations (e.g., GitHub, Slack) unless directly
+  invoked; hardware-level attacks; supply chain for dependencies
+  (covered separately).
 
 ### Assets
 
@@ -150,7 +159,10 @@ This threat model identifies potential security risks for the Kimberly personal 
 
 ### Scope
 
-This analysis covers the codebase and design artifacts in this repository, the chosen architecture (Kubernetes + microservices + Llama 3.x), and non-functional goals (latency, uptime, privacy, compliance). It is NOT a substitute for a formal security audit or legal compliance review — those should be scheduled separately.
+This analysis covers the codebase and design artifacts in this repository, the
+chosen architecture (Kubernetes + microservices + Llama 3.x), and non-functional
+goals (latency, uptime, privacy, compliance). It is NOT a substitute for a formal
+security audit or legal compliance review — those should be scheduled separately.
 
 ---
 
