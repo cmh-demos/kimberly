@@ -1,14 +1,14 @@
 # Kimberly — AI Memory Model (final)
 
 STATUS: Canonical source of truth for the memory model — EDIT THIS FILE. Owner:
-<docs- team@kimberly.local> (primary), <infra@kimberly.local> (infra
+<docs- <team@kimberly.local>> (primary), <infra@kimberly.local> (infra
 implementer), <backend@kimberly.local> (code owner) How to regenerate derived
 artifacts: run `scripts/refine_memory_model.py` which will produce generated
 outputs in `docs/generated/` (do not edit generated files).
 
 **Note**: For discussions and updates, see the Memory Model Wiki Page:
 
-https://github.com/cmh-demos/kimberly/wiki/Memory-Model
+<https://github.com/cmh-demos/kimberly/wiki/Memory-Model>
 
 TL;DR — COST CEILING: FREE. This model enforces a zero-dollar deployment: no
 paid managed services, no paid embedding APIs, and defaults that favor local OSS
@@ -34,7 +34,7 @@ auditability.
 
 1. Goals and success criteria (free-by-default)
 
------------------------------
+--------------------
 
 - No monetary cost: avoid any paid APIs, managed services, or hosted vector
   providers.
@@ -46,7 +46,7 @@ components. self-hosted embeddings only when explicitly enabled.
 
 1. Memory tiers and behavior (cost-optimized)
 
----------------------------
+--------------------
 All tiers are configurable per-user but offer sane defaults.
 
 - Default quota: 1 MB per user (cost-first default — adjust for heavy users)
@@ -77,13 +77,13 @@ export/backup) -- Permanent (canonical/trusted data)
 
 1. Data model and versioning
 
----------------------------
+--------------------
 Every memory item is a versioned object with lightweight structured metadata to enable evolution of
 schema and safe migrations.
 
 MemoryItem (canonical JSON schema)
 
-{ "id": "mem_<uuid>", "user_id": "user_<id>",
+{ "id": "mem_(uuid)", "user_id": "user_(id)",
   "type": "short-term|long-term|permanent",
 "content": "... (stored encrypted if sensitive) ...", "size_bytes": 123,
 "metadata": { "tags": ["preference","meeting"],
@@ -91,7 +91,7 @@ MemoryItem (canonical JSON schema)
 "channels": ["mobile","voice"], "sensitive": false,
     "scope": "private|shared|public",
     "user_feedback": "thumbs_up|thumbs_down|rating:4",
-"version": "v1" }, "score": 0.0, "embedding_ref": "vec_<id>", "created_at":
+"version": "v1" }, "score": 0.0, "embedding_ref": "vec_(id)", "created_at":
 "2025-11-22T10:00:00Z", "last_seen_at": "2025-11-22T10:30:00Z", "audit": {
     "created_by": "system|user|agent",
 "consent": true } }
@@ -108,7 +108,7 @@ paid object storage by default. KMS services. recorded for sensitive items.
 
 1. Scoring / meditation (cost-aware operations)
 
------------------------------------------------
+--------------------
 The meditation pipeline is the nightly scoring and retention pipeline. Key properties:
 
 - Deterministic & versioned: scoring functions are versioned and produce
@@ -120,9 +120,8 @@ scores for the same inputs.
 Recommended baseline scoring formula (interpretable hybrid). Cost changes /
 operational notes after this section.
 
-score = normalize( w1 *relevance_to_goals + w2* emotional_weight + w3
-*predictive_value
-+ w4* recency_freq )
+score = normalize( w1 \*relevance_to_goals + w2\* emotional_weight + w3
+\*predictive_value + w4\* recency_freq )
 
 Suggested weights (configurable per user/system): w1=0.40, w2=0.30, w3=0.20,
 w4=0.10
@@ -164,7 +163,7 @@ APIs).
 
 1. Retrieval strategies (minimal cost best-effort)
 
-------------------------------------------------
+--------------------
 High-quality retrieval is a hybrid of metadata pre-filter + vector similarity re-ranking.
 
 Flow for typical chat context retrieval (cost-aware):
@@ -199,7 +198,7 @@ quantized to reduce RAM usage. ranking.
 
 1. Storage & architecture (cheap-by-default stack)
 
--------------------------------------------
+--------------------
 Free-mode stack (no paid services):
 
 - SQLite + FTS5 for metadata and text search; run everything on a single machine
@@ -227,7 +226,7 @@ maintenance. services.
 
 1. Privacy, security, and compliance (keep cheap & safe)
 
------------------------------------
+--------------------
 Design for user control and regulatory compliance.
 
 - Explicit consent for sensitive memory capture and special handling.
@@ -247,7 +246,7 @@ costs.
 
 1. API contract & usage patterns (cost-transparent)
 
---------------------------------
+--------------------
 Existing endpoints (in OpenAPI):
 
 - POST /memory — create memory (content + metadata) -> returns id, size,
@@ -278,7 +277,7 @@ hosted only). embedding-enabled flag; do not include paid-provider metrics.
 
 1. Testing, validation & cost KPIs
 
--------------------------------
+--------------------
 Focus on correctness, recall, and hallucination reduction.
 
 - Unit tests: schema, scoring logic, quota enforcement
@@ -301,7 +300,7 @@ operations.
 
 1. Operations, budgets & observability
 
------------------------------
+--------------------
 Track these operational metrics per user and system-wide:
 
 - memory.items.created, memory.items.deleted, memory.items.archived
@@ -329,7 +328,7 @@ Set alerts for:
 
 1. Low-cost implementation patterns & workflows
 
----------------------------------
+--------------------
 Creating memory (simplified):
 
 POST /memory payload = {"type": "long-term", "content": "Prefers black coffee",
@@ -356,7 +355,7 @@ after grace period — run pruning in small batches to spread cost.
 
 5. Retention & rotation algorithm (detailed pseudocode, cost controlled)
 
-----------------------------------------------------
+--------------------
 function run_meditation(user_id):
   items = fetch_user_memory(user_id)
   for item in items:
@@ -373,8 +372,9 @@ grace window current_size -= candidate.size_bytes
 Optimization: apply a daily cap on how much data can be pruned per run to
 prevent spikes in I/O and compute.
 
-14. Acceptance criteria (cost targets)
------------------------
+1. Acceptance criteria (cost targets)
+
+--------------------
 
 - The system implements /memory, /memory/query, /memory/meditate and
   /memory/metrics
@@ -395,7 +395,7 @@ Free targets (strict defaults):
 
 1. Implementation suggestions & low-cost roadmap
 
---------------------------------------
+--------------------
 Phase A (free-only MVP/prototype):
 
 - SQLite + FTS5 for metadata & lexical search. Optional FAISS/Annoy for on-disk
@@ -422,7 +422,7 @@ and sampled to reduce costs
 
 1. Questions / open decisions
 
-----------------------------
+--------------------
 
 - How much user configuration do we expose for scoring weights vs. system
   defaults?
@@ -434,7 +434,9 @@ single-user scope.)
   reporting
 (avoid exposing sensitive data in aggregated views).
 
-Appendix: artifacts & repository notes -------------------------------------
+## Appendix: artifacts & repository notes
+
+--------------------
 
 - Iteration artifacts are available at `docs/iterations/` (generated during
   refinement).
@@ -442,9 +444,11 @@ Appendix: artifacts & repository notes -------------------------------------
   changes
 were added to `docs/openapi.yaml`.
 
-Memory Cost Guide (practical) -----------------------------
+## Memory Cost Guide (practical)
 
-### Purpose
+--------------------
+
+### Purpose of guide
 
 Short, targeted guide listing concrete, "free-mode" implementation choices and
 practical patterns to run Kimberly without paid services or managed cloud APIs.

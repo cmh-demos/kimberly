@@ -219,7 +219,7 @@ implement agent telemetry basic auth. sandbox. privacy.
 cause reduce risk what to delivery, user harm, or financial impact.
 rapidly. investigate and why it matters.
 
-### Scope
+### Scope of section
 
 This analysis covers the codebase and design artifacts in this
 repository, the chosen architecture (Kubernetes + microservices +
@@ -253,16 +253,16 @@ harm if current Critical/High the risk occurs. state. risks first.
 
 | ID | Risk | Category | Impact | Likelihood | Priority | Mitigation(s) | Detection | Owner | Status |
 |----|------|----------|--------|------------|----------|---------------|-----------|-------|--------|
-| R-001 | No runnable implementation / primarily docs | Product / Delivery | Critical | Likely | Critical |Build a minimal end-to-end PoC using a hosted LLM to<br>validate<br>flows<br>and<br>developer on-ramps. Create<br>quickstart in README.| PR/CI checks, demo readiness | @backend-dev | Active — high |
-| R-002 |Unrealistic non-functional goals (latency <1s, 99.9% uptime<br>at early-<br>stage)| Product / Architecture | High | Likely | High |Re-scope SLOs; run latency benchmarks on a PoC; consider<br>hosted<br>models<br>for<br>low-latency MVP.| Performance tests; benchmark reports | @backend-dev | Active — validation needed |
-| R-003 |LLM deployment cost & infra mismatch (Llama 3.1<br>inference<br>hardware<br>&<br>licensing)| Cost / Infrastructure | High | Likely | High |Produce cost estimate for self-hosting vs hosted provider;<br>plan<br>GPU<br>sizing;<br>track licensing/redistribution<br>constraints.| Cost run rates, infra invoices | @ops TBD | Active — investigate |
-| R-004 |Security: E2E encryption claims without KMS/key management<br>design| Security / Privacy | Critical | Possible | Critical |Draft KMS design, add key rotation, encryption-at-rest +<br>in-<br>transit<br>diagrams,<br>threat model. Limit telemetry<br>to redacted PII.| Security reviews, pen-test | @sec TBD | Active — fix design |
-| R-005 | GDPR & data deletion gaps — no verified deletion/export flow | Legal / Compliance | Critical | Possible | Critical |Implement a data export & deletion endpoint; add audit<br>logging<br>and<br>automated<br>tests to prove deletion.| Manual/automated deletion checks, compliance review | @data_privacy TBD | Active — needs implementation |
-| R-006 | OpenAPI duplication & schema issues breaking SDK/clients | Developer Experience | High | Likely | High |Lint & fix openapi.yaml; add CI lint step, add a<br>sample<br>client<br>generation<br>check in CI.| CI validation failure | @api TBD | Active — fix in progress |
-| R-007 | No CI pipelines for tests/quality/validation | Developer Experience / Risk | High | Likely | High |Add GitHub Actions for linting, unit<br>tests,<br>openapi<br>validation,<br>copilot_tracking schema<br>checks.| PR checks status | @dev TBD | Active — onboarding CI |
-| R-008 | No AI-quality tests (hallucinations, bias, memory accuracy) | Quality | High | Likely | High |Create an AI test harness and regression suite (acceptance<br>tests<br>for<br>memory<br>correctness, hallucination<br>detection, fairness<br>checks).| Test failures & regression alerts | @ml TBD | Planned |
-| R-009 |Agent sandboxing insufficient — agents may leak secrets<br>or<br>take<br>destructive<br>actions| Security / Safety | Critical | Possible | Critical |Define agent capability model, deny list for I/O,<br>require<br>policy<br>enforcement<br>and per-agent resource<br>limits (CPU, memory,<br>network).| Unit tests, agent traces, policy violation alerts | @engineering TBD | Active — design required |
-| R-010 | Backup & Disaster Recovery untested (RPO/RTO unknown) | Operations | High | Possible | High |Document RPO/RTO, implement daily backups, periodic<br>restore<br>drills,<br>store<br>backups encrypted and off-<br>site.| Restore drills, backup health metrics | @ops TBD | Planned |
+| R-001 | No runnable implementation / primarily docs | Product / Delivery | Critical | Likely | Critical |Build a minimal end-to-end PoC using a hosted LLM to validate flows and developer on-ramps. Create quickstart in README.| PR/CI checks, demo readiness | @backend-dev | Active — high |
+| R-002 |Unrealistic non-functional goals (latency <1s, 99.9% uptime at early- stage)| Product / Architecture | High | Likely | High |Re-scope SLOs; run latency benchmarks on a PoC; consider hosted models for low-latency MVP.| Performance tests; benchmark reports | @backend-dev | Active — validation needed |
+| R-003 |LLM deployment cost & infra mismatch (Llama 3.1 inference hardware & licensing)| Cost / Infrastructure | High | Likely | High |Produce cost estimate for self-hosting vs hosted provider; plan GPU sizing; track licensing/redistribution constraints.| Cost run rates, infra invoices | @ops TBD | Active — investigate |
+| R-004 |Security: E2E encryption claims without KMS/key management design| Security / Privacy | Critical | Possible | Critical |Draft KMS design, add key rotation, encryption-at-rest + in- transit diagrams, threat model. Limit telemetry to redacted PII.| Security reviews, pen-test | @sec TBD | Active — fix design |
+| R-005 | GDPR & data deletion gaps — no verified deletion/export flow | Legal / Compliance | Critical | Possible | Critical |Implement a data export & deletion endpoint; add audit logging and automated tests to prove deletion.| Manual/automated deletion checks, compliance review | @data_privacy TBD | Active — needs implementation |
+| R-006 | OpenAPI duplication & schema issues breaking SDK/clients | Developer Experience | High | Likely | High |Lint & fix openapi.yaml; add CI lint step, add a sample client generation check in CI.| CI validation failure | @api TBD | Active — fix in progress |
+| R-007 | No CI pipelines for tests/quality/validation | Developer Experience / Risk | High | Likely | High |Add GitHub Actions for linting, unit tests, openapi validation, copilot_tracking schema checks.| PR checks status | @dev TBD | Active — onboarding CI |
+| R-008 | No AI-quality tests (hallucinations, bias, memory accuracy) | Quality | High | Likely | High |Create an AI test harness and regression suite (acceptance tests for memory correctness, hallucination detection, fairness checks).| Test failures & regression alerts | @ml TBD | Planned |
+| R-009 |Agent sandboxing insufficient — agents may leak secrets or take destructive actions| Security / Safety | Critical | Possible | Critical |Define agent capability model, deny list for I/O, require policy enforcement and per-agent resource limits (CPU, memory, network).| Unit tests, agent traces, policy violation alerts | @engineering TBD | Active — design required |
+| R-010 | Backup & Disaster Recovery untested (RPO/RTO unknown) | Operations | High | Possible | High |Document RPO/RTO, implement daily backups, periodic restore drills, store backups encrypted and off- site.| Restore drills, backup health metrics | @ops TBD | Planned |
 
 ---
 
@@ -373,7 +373,7 @@ Document created by: repo:kimberly — automated snapshot analysis
 
 ## Secure Credential Management Plan
 
-### Overview
+### Overview of plan
 
 This plan outlines how to securely manage credentials (API keys, database passwords, etc.) needed
 for the Kimberly project, ensuring that Copilot (GitHub Copilot) and developers can access them
@@ -416,7 +416,7 @@ Enforce "free-mode": Block paid API usage in CI with grep checks.
 - Add `.env` to `.gitignore` (update existing file).
 - Example `.env` (template in repo as `.env.example`):
 
-  ```
+  ```env
   HUGGINGFACE_TOKEN=your_token_here
   DATABASE_URL=sqlite:///kimberly.db
   ```

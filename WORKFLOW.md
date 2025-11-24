@@ -68,7 +68,7 @@ the next meeting.
 Every issue must be assigned to someone from the roles list in `roles.md` to ensure
 accountability.
 
-#### Steps
+#### Steps to assign work
 
 - **Review and Prioritize**: In weekly sync or sprint planning meetings, review open
 issues. Prioritize based on backlog and sprint goals.
@@ -79,7 +79,7 @@ the primary owner and note collaborators in comments.
 - **Communicate**: Notify the assignee via issue comments or meetings. Ensure they
 acknowledge and understand the work.
 
-#### Responsible Roles
+#### Responsible Roles for assigning work
 
 - Product Manager (PM) for prioritization and high-level assignment.
 - Engineering Lead for technical assignments and coordination.
@@ -88,7 +88,7 @@ acknowledge and understand the work.
 
 Work progress is monitored through GitHub issues, project boards, and meetings.
 
-#### Steps
+#### Steps to track work
 
 - **Update Status**: Assignees update the issue with progress (e.g., add comments, link
 PRs, update acceptance criteria checkboxes).
@@ -105,7 +105,7 @@ needed.
 Work is considered complete when it meets the Definition of Done (DoD) in
 `docs/DEFINITION_OF_DONE.md`.
 
-#### Steps
+#### Steps to complete work
 
 - **Self-Review**: Assignees verify against DoD criteria (code quality, testing,
 functionality, documentation, security).
@@ -117,7 +117,7 @@ reviewer matrix in CONTRIBUTING.md).
 - **Retrospective**: In sprint retro, discuss what went well and improvements for future
 work.
 
-#### Responsible Roles
+#### Responsible Roles to complete work
 
 - Assignees for implementation and self-review.
 - Reviewers for quality checks.
@@ -127,7 +127,7 @@ work.
 
 Ongoing activities to keep the process effective.
 
-#### Steps
+#### Steps to support maint and ci
 
 - **Monitor Metrics**: Track cycle time, throughput, and quality metrics.
 - **Process Reviews**: Quarterly reviews of the workflow process; update based on
@@ -135,7 +135,7 @@ feedback.
 - **Tool Updates**: Keep GitHub Projects, issue templates, and automation up-to-date.
 - **Training**: Onboard new team members on the process.
 
-#### Responsible Roles
+#### Responsible Roles for maint and ci
 
 - Engineering Lead for process oversight.
 - Team for feedback and participation.
