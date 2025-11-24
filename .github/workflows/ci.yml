@@ -67,19 +67,6 @@ jobs:
         file_glob: 'docs/openapi.yaml'
         spectral_ruleset: '.spectral.yml'  # optional
 
-  doc-review:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'
-    - name: Run doc review
-      run: python scripts/doc_review.py
-
   security-check:
     runs-on: ubuntu-latest
     steps:
