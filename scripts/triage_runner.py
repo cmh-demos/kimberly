@@ -18,13 +18,12 @@ import json
 import os
 import re
 import sys
-
-import requests
-import yaml
-
 from datetime import datetime
 from difflib import SequenceMatcher
 from typing import Any, Dict, List, Optional
+
+import requests
+import yaml
 
 
 def load_rules(path: str) -> dict | None:
