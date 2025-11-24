@@ -1,11 +1,17 @@
 # Project Management — Board, Cadence & Metrics
 
-This file consolidates project management materials: meeting cadence, reporting artifacts, KPIs, sprint plan mapping, and a simple project board. It replaces the previous `docs/PM_CADENCE_AND_METRICS.md`, `docs/PROJECT_BOARD.md`, `docs/NEEDS_WORK.md` and `docs/WIKI_HOME.md` to make the project management surface easier to find and maintain.
+This file consolidates project management materials: meeting cadence, reporting
+artifacts, KPIs, sprint plan mapping, and a simple project board. It replaces the
+previous `docs/PM_CADENCE_AND_METRICS.md`, `docs/PROJECT_BOARD.md`, `docs/NEEDS_WORK.md`
+and `docs/WIKI_HOME.md` to make the project management surface easier to find and
+maintain.
 
 ## Meetings & Cadences
 
-- Weekly sync (30–45m) — core contributors: PM, Eng Lead, Backend, Frontend, SRE, Security. Purpose: sprint progress, blockers, decisions.
-- Bi-weekly roadmap / backlog grooming (60m) — PM + leads: refine priorities and acceptance criteria.
+- Weekly sync (30–45m) — core contributors: PM, Eng Lead, Backend, Frontend, SRE,
+  Security. Purpose: sprint progress, blockers, decisions.
+- Bi-weekly roadmap / backlog grooming (60m) — PM + leads: refine priorities and
+  acceptance criteria.
 - Sprint planning (start of each 2-week sprint) — plan sprint scope, owners, estimates.
 - Sprint retro (end of sprint) — review what went well and improvements.
 - Monthly stakeholder review (30–60m) — demo progress and review KPIs.
@@ -13,7 +19,8 @@ This file consolidates project management materials: meeting cadence, reporting 
 ## Reporting artifacts
 
 - Weekly status report (PRs merged, top blockers, next week plan) — short markdown note.
-- Burndown chart per sprint (automated via project board) — track story completion vs estimated.
+- Burndown chart per sprint (automated via project board) — track story completion vs
+  estimated.
 - Incident & risk log (high priority issues) — maintain a live doc for incidents.
 - Release notes & changelog for each release.
 
@@ -33,7 +40,8 @@ This file consolidates project management materials: meeting cadence, reporting 
 
 - **Epic A — Developer onboarding & CI**
   - Story A.1: Create a runnable Quickstart + example (README + test harness).
-  - Story A.2: Add CI checks: openapi linter, docs build, copilot_tracking schema validation.
+  - Story A.2: Add CI checks: openapi linter, docs build, copilot_tracking schema
+    validation.
   - Story A.3: Clean `docs/openapi.yaml` duplicates and add examples.
 - **Epic B — Core chat pipeline & short-term memory**
   - Story B.1: Implement POST /chat end-to-end with basic TTS/ASR mocked.
@@ -54,7 +62,9 @@ This file consolidates project management materials: meeting cadence, reporting 
 
 ## Needs work / backlog highlights
 
-Lots of existing items live here; this consolidated file duplicates and centralizes the highest priority docs so the board and cadence live together with action items and top open gaps.
+Lots of existing items live here; this consolidated file duplicates and centralizes the
+highest priority docs so the board and cadence live together with action items and top
+open gaps.
 
 ## Next Steps
 

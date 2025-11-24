@@ -1,2 +1,1 @@
-Welcome to the kimberly wiki!
-test
+Welcome to the kimberly wiki! test

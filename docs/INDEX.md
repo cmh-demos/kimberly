@@ -1,6 +1,7 @@
 # Project docs index
 
-This index provides a single-toe-of-content (TOC) for the most important, consolidated documentation in this repository. Use this page as a navigation hub.
+This index provides a single-toe-of-content (TOC) for the most important, consolidated
+documentation in this repository. Use this page as a navigation hub.
 
 - README.md — Project overview and quickstart
 - PROJECT.md — Project vision, goals and requirements
@@ -19,4 +20,6 @@ This index provides a single-toe-of-content (TOC) for the most important, consol
 - FREE_HOSTING.md — Free hosting options & bootstrap choices
 - WIREFRAMES/ — Wireframes and visual assets (docs/wireframes)
 
-If you'd like a different set of top-level links (for example: reduced subset for a lightweight README experience), tell me which files you want exposed here and I'll update the index.
+If you'd like a different set of top-level links (for example: reduced subset for a
+lightweight README experience), tell me which files you want exposed here and I'll
+update the index.

@@ -58,21 +58,27 @@ Testing strategy, CI requirements, unit/integration/e2e matrices.
 
 ## Definition of Done (DoD)
 
-This document defines the criteria that must be met for an issue (feature, bug fix, or task) to be considered "done" in the Kimberly project. The DoD ensures quality, completeness, and alignment with project standards before marking issues as completed.
+This document defines the criteria that must be met for an issue (feature, bug fix, or
+task) to be considered "done" in the Kimberly project. The DoD ensures quality,
+completeness, and alignment with project standards before marking issues as completed.
 
 ### Purpose
 
-The Definition of Done provides a clear checklist to prevent incomplete work from being accepted. It promotes consistency, reduces rework, and ensures that all aspects of quality are addressed.
+The Definition of Done provides a clear checklist to prevent incomplete work from being
+accepted. It promotes consistency, reduces rework, and ensures that all aspects of
+quality are addressed.
 
 ### Criteria
 
 #### Code Quality
 
-- [ ] Code follows [CODING_STANDARDS.md](CODING_STANDARDS.md) (e.g., PEP 8, type hints, documentation).
+- [ ] Code follows [CODING_STANDARDS.md](CODING_STANDARDS.md) (e.g., PEP 8, type hints,
+  documentation).
 - [ ] Code is peer-reviewed via pull request with at least one approval.
 - [ ] No linting errors or warnings (e.g., flake8, mypy).
 - [ ] Code is modular, maintainable, and follows DRY principles.
-- [ ] Sensitive data handling complies with [SECURE_CREDENTIALS_PLAN.md](SECURE_CREDENTIALS_PLAN.md).
+- [ ] Sensitive data handling complies with
+  [SECURE_CREDENTIALS_PLAN.md](SECURE_CREDENTIALS_PLAN.md).
 
 #### Testing
 
@@ -122,7 +128,8 @@ The Definition of Done provides a clear checklist to prevent incomplete work fro
 
 ### Exceptions
 
-- For trivial tasks (e.g., typo fixes), some criteria may be waived with engineering lead approval.
+- For trivial tasks (e.g., typo fixes), some criteria may be waived with engineering
+  lead approval.
 - Prototypes or experimental features may have relaxed DoD until stabilized.
 
 ### Process
@@ -134,15 +141,19 @@ The Definition of Done provides a clear checklist to prevent incomplete work fro
 
 ### Review and Updates
 
-This DoD will be reviewed quarterly or when project needs change. Updates require agreement from the engineering lead and PM.
+This DoD will be reviewed quarterly or when project needs change. Updates require
+agreement from the engineering lead and PM.
 
 ## Coding Standards
 
-This document outlines the coding standards, best practices, and guidelines for the Kimberly project. Adherence ensures consistency, maintainability, and quality across the codebase.
+This document outlines the coding standards, best practices, and guidelines for the
+Kimberly project. Adherence ensures consistency, maintainability, and quality across the
+codebase.
 
 ### General Principles
 
-- **Readability First**: Code should be self-documenting. Prioritize clarity over cleverness.
+- **Readability First**: Code should be self-documenting. Prioritize clarity over
+  cleverness.
 - **Consistency**: Follow established patterns in the codebase.
 - **Security**: Validate inputs, avoid vulnerabilities (e.g., SQL injection, XSS).
 - **Performance**: Write efficient code; profile when necessary.
@@ -156,7 +167,8 @@ This document outlines the coding standards, best practices, and guidelines for 
 - **Style Guide**: Follow [PEP 8](https://pep8.org/) strictly.
   - Use 4 spaces for indentation (no tabs).
   - Line length: 88 characters (Black default).
-  - Naming: `snake_case` for variables/functions, `PascalCase` for classes, `UPPER_CASE` for constants.
+  - Naming: `snake_case` for variables/functions, `PascalCase` for classes, `UPPER_CASE`
+    for constants.
 - **Tools**:
   - Formatter: [Black](https://black.readthedocs.io/) for auto-formatting.
   - Linter: [Flake8](https://flake8.pycqa.org/) for style and errors.
@@ -184,7 +196,8 @@ This document outlines the coding standards, best practices, and guidelines for 
 
 #### JavaScript/TypeScript (if applicable)
 
-- **Style Guide**: [Airbnb JavaScript Style Guide](https://github.com/airbnb/javascript).
+- **Style Guide**: [Airbnb JavaScript Style
+  Guide](https://github.com/airbnb/javascript).
 - **Tools**: ESLint + Prettier.
 - **Best Practices**: Use async/await, avoid callbacks; type everything in TS.
 

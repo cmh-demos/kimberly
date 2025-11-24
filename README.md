@@ -8,9 +8,9 @@ management and agent delegation for seamless task handling.
 
 ## Overview
 
-Kimberly focuses on delivering a natural conversational experience across web,
-voice, and mobile. The design prioritizes memory accuracy, privacy, and small
-resource footprints so it can run in constrained environments when required.
+Kimberly focuses on delivering a natural conversational experience across web, voice,
+and mobile. The design prioritizes memory accuracy, privacy, and small resource
+footprints so it can run in constrained environments when required.
 
 ## Core Features
 
@@ -45,7 +45,7 @@ Memories below the configured threshold are forgotten.
 - Offloads tasks to specialized agents for efficiency.
 - Core Agents:
   - **Scheduler**: Manages calendar, reminders, and task planning.
-    Integrates with external calendars.
+Integrates with external calendars.
   - **Researcher**: Handles web searches, data gathering, and summarization.
   - **Coder**: Assists with code writing, debugging, and automation.
   - **Reminder**: Tracks follow-ups, deadlines, and notifications.
@@ -54,14 +54,14 @@ Memories below the configured threshold are forgotten.
 ### Learning and Adaptation
 
 - **Interaction logging**: Stores conversations in short, long, and permanent
-  memory and analyzes patterns such as preferences and habits.
+memory and analyzes patterns such as preferences and habits.
 - **User feedback**: Explicit corrections (for example, "no, I meant X") or ratings
-  adjust responses.
+adjust responses.
 - **Reinforcement**: Positive outcomes (for example, successful task completion)
-  reinforce similar behaviors. Meditation grades are used to refine and improve
-  memory prioritization based on relevance and emotional signals.
+reinforce similar behaviors. Meditation grades are used to refine and improve memory
+prioritization based on relevance and emotional signals.
 - **Agent insights**: Delegates learning to agents (for example, Researcher learns
-  from web data; Coder learns from code patterns).
+from web data; Coder learns from code patterns).
 
 This builds a personalized model over time.
 
@@ -88,13 +88,14 @@ This builds a personalized model over time.
 
 - **Technical Docs**: Core docs like memory model and API specs are in `docs/`.
 - **Project Wiki**: For planning, roadmaps, and collaborative docs, visit the
-  [GitHub Wiki](https://github.com/cmh-demos/kimberly/wiki).
+[GitHub Wiki](https://github.com/cmh-demos/kimberly/wiki).
 
 ## Installation
 
 1. Clone the repository: `git clone https://github.com/cmh-demos/kimberly.git`
 2. Navigate to the directory: `cd kimberly`
-3. Create and activate virtual environment: `python -m venv .venv && source .venv/bin/activate`
+3. Create and activate virtual environment: `python -m venv .venv && source
+   .venv/bin/activate`
 4. Install dependencies: `pip install -r requirements.txt`
 
 ## Quickstart
@@ -123,14 +124,13 @@ Expected response:
 ### Environment Variables
 
 - None required for minimal setup. For production, configure model paths,
-  API keys, and other environment variables as needed.
+API keys, and other environment variables as needed.
 
 ## Risk analysis
 
-We track project risks and open investigation items in
-`docs/RISK_ANALYSIS.md` — a living register with prioritized risks, mitigations,
-and the list of unknowns we still need to resolve. Please review it before making
-architecture or policy decisions.
+We track project risks and open investigation items in `docs/RISK_ANALYSIS.md` — a
+living register with prioritized risks, mitigations, and the list of unknowns we still
+need to resolve. Please review it before making architecture or policy decisions.
 
 ## Usage
 
@@ -147,5 +147,5 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 This project is proprietary. All rights reserved.
 
 See the [LICENSE](LICENSE) file for details. No permission is granted for use,
-modification, or distribution without
-explicit written consent from the copyright holder.
+modification, or distribution without explicit written consent from the copyright
+holder.

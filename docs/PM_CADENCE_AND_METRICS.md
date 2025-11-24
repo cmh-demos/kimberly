@@ -1,19 +1,24 @@
 # Project Management — Cadences & Metrics
 
-This document defines recommended meeting cadences, reporting artifacts, and KPIs to track for Kimberly during MVP and the next phases.
+This document defines recommended meeting cadences, reporting artifacts, and KPIs to
+track for Kimberly during MVP and the next phases.
 
 ## Meetings & Cadences
 
-- Weekly sync (30–45m) — core contributors: PM, Eng Lead, Backend, Frontend, SRE, Security. Purpose: sprint progress, blockers, decisions.
-- Bi-weekly roadmap / backlog grooming (60m) — PM + leads: refine priorities and acceptance criteria.
+- Weekly sync (30–45m) — core contributors: PM, Eng Lead, Backend, Frontend, SRE,
+  Security. Purpose: sprint progress, blockers, decisions.
+- Bi-weekly roadmap / backlog grooming (60m) — PM + leads: refine priorities and
+  acceptance criteria.
 - Sprint planning (start of each 2-week sprint) — plan sprint scope, owners, estimates.
 - Sprint retro (end of sprint) — review what went well and improvements.
 - Monthly stakeholder review (30–60m) — demo progress and review KPIs.
 
 ## Reporting artifacts
 
-- Weekly status report (PRs merged, top blockers, next week plan) — distributed as a short markdown note.
-- Burndown chart per sprint (automated via project board) — track story completion vs estimated.
+- Weekly status report (PRs merged, top blockers, next week plan) — distributed as a
+  short markdown note.
+- Burndown chart per sprint (automated via project board) — track story completion vs
+  estimated.
 - Incident & risk log (high priority issues) — maintain a live doc for incidents.
 - Release notes & changelog for each release.
 
@@ -30,9 +35,11 @@ This document defines recommended meeting cadences, reporting artifacts, and KPI
 
 ## Tooling & dashboards
 
-- Use an observability stack (Prometheus + Grafana or vendor alternatives) for latency, error rate, and cost metrics.
+- Use an observability stack (Prometheus + Grafana or vendor alternatives) for latency,
+  error rate, and cost metrics.
 - Telemetry pipeline for user flows and memory recall sampling.
-- Use automated tests and gating in CI for coverage and contract testing (OpenAPI checks).
+- Use automated tests and gating in CI for coverage and contract testing (OpenAPI
+  checks).
 
 ## Next actions
 

@@ -1,40 +1,56 @@
 # Design & Branding
 
-This file consolidates UI/UX design and branding guidelines for Kimberly (previously `docs/UI_DESIGN.md` and `docs/BRANDING.md`). It covers goals, primary users, screens, accessibility, color palette, typography, logo usage, and visual assets.
+This file consolidates UI/UX design and branding guidelines for Kimberly
+(previously `docs/UI_DESIGN.md` and `docs/BRANDING.md`). It covers goals,
+primary users, screens, accessibility, color palette, typography, logo usage,
+and visual assets.
 
 ## Overview
 
-A web-first, privacy-forward UI for Kimberly, the local-friendly personal AI assistant. The design emphasizes low-friction chat, visible memory controls, clear sandboxing for agents, and accessible, inclusive interfaces.
+A web-first, privacy-forward UI for Kimberly, the local-friendly personal AI
+assistant. The design emphasizes low-friction chat, visible memory controls,
+clear sandboxing for agents, and accessible, inclusive interfaces.
 
 ## Design goals
 
 - Keep chat low-friction and explainable.
-- Make memory controls visible and understandable (tiered quotas, protect/archive/delete).
-- Provide dev tooling for agents, mediation runs, and metrics without exposing internals to normal users.
+- Make memory controls visible and understandable (tiered quotas,
+- Provide dev tooling for agents, mediation runs, and metrics without exposing
+  internals
+protect/archive/delete). to normal users.
 
 ## Primary users
 
-- Non-technical end users: chat, control privacy, manage a small set of memories.
+- Non-technical end users: chat, control privacy, manage a small set of
+  memories.
 - Power users: memory manager, run agents, export/purge data.
 - Hosts/administrators: configure local embedding options and quotas.
 
 ## Top-level screens
 
-1. Chat — main conversational surface with context toggle and context preview panel.
-2. Memory Manager — filterable list, quota visualization, memory detail and bulk actions.
-3. Agents Dashboard — discover, configure, and run agents; show agent logs and effects.
+1. Chat — main conversational surface with context toggle and context preview
+   panel.
+2. Memory Manager — filterable list, quota visualization, memory detail and bulk
+3. Agents Dashboard — discover, configure, and run agents; show agent logs and
+   effects.
+actions.
 4. Metrics & Health — per-user storage, meditation history, usage trends.
-5. Settings & Privacy — quotas, export/purge, consent, embedding opt-in (self-hosted only).
+5. Settings & Privacy — quotas, export/purge, consent, embedding opt-in (self-
+   hosted
+only).
 
 ## Accessibility
 
-- Target: WCAG 2.1 AA. Semantic HTML, keyboard-first, screen reader announcements when memory changes, captions for voice controls.
+- Target: WCAG 2.1 AA. Semantic HTML, keyboard-first, screen reader
+  announcements when
+memory changes, captions for voice controls.
 
 ---
 
 ## Branding Guidelines
 
-Kimberly's brand embodies intelligence, trust, and personalization. The guidelines below define palette, typography, iconography and voice.
+Kimberly's brand embodies intelligence, trust, and personalization. The guidelines below define
+palette, typography, iconography and voice.
 
 ### Color Palette
 

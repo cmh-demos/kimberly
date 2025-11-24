@@ -2,39 +2,51 @@
 
 ## Overview
 
-Kimberly's brand embodies intelligence, reliability, and personalization, inspired by Jarvis from Iron Man. As a personal AI assistant, the branding focuses on trust, innovation, and user-centric design.
+Kimberly's brand embodies intelligence, reliability, and personalization, inspired by
+Jarvis from Iron Man. As a personal AI assistant, the branding focuses on trust,
+innovation, and user-centric design.
 
 ## Color Palette
 
-Based on your preference for purple, we've developed a cohesive palette that conveys creativity, sophistication, and approachability:
+Based on your preference for purple, we've developed a cohesive palette that conveys
+creativity, sophistication, and approachability:
 
-- **Primary Color: Deep Purple** (#6A0DAD) - For headers, buttons, and key UI elements. Represents intelligence and mystery.
-- **Secondary Color: Lavender** (#E6E6FA) - For backgrounds and subtle accents. Adds a soft, calming feel.
-- **Accent Color: Electric Indigo** (#4B0082) - For highlights, links, and active states. Provides energy and focus.
+- **Primary Color: Deep Purple** (#6A0DAD) - For headers, buttons, and key UI elements.
+  Represents intelligence and mystery.
+- **Secondary Color: Lavender** (#E6E6FA) - For backgrounds and subtle accents. Adds a
+  soft, calming feel.
+- **Accent Color: Electric Indigo** (#4B0082) - For highlights, links, and active
+  states. Provides energy and focus.
 - **Neutral Colors**:
   - Light Grey (#F5F5F5) - For backgrounds and text.
   - Dark Grey (#333333) - For body text and borders.
 - **Success/Error Colors**: Standard green (#28A745) and red (#DC3545) for feedback.
 
-This palette ensures accessibility (WCAG 2.1 compliant) and works across platforms (web, mobile, voice interfaces).
+This palette ensures accessibility (WCAG 2.1 compliant) and works across platforms (web,
+mobile, voice interfaces).
 
 ## Logo Concept
 
-- **Primary Logo**: A stylized "K" with integrated neural network patterns in deep purple, symbolizing AI and memory.
-- **Icon**: A minimalist brain/memory icon in electric indigo, adaptable for favicons and app icons.
+- **Primary Logo**: A stylized "K" with integrated neural network patterns in deep
+  purple, symbolizing AI and memory.
+- **Icon**: A minimalist brain/memory icon in electric indigo, adaptable for favicons
+  and app icons.
 - **Tagline**: "Your Intelligent Companion" – positioned below the logo in lavender.
 
 ## Typography
 
 - **Primary Font**: Roboto (sans-serif) for clean, modern readability.
 - **Secondary Font**: Open Sans for headings and emphasis.
-- **Voice Tone**: Conversational, helpful, and adaptive – like a trusted friend with expertise.
+- **Voice Tone**: Conversational, helpful, and adaptive – like a trusted friend with
+  expertise.
 
 ## Visual Elements
 
-- **Imagery**: Abstract AI-themed illustrations (e.g., flowing data streams in purple gradients) for marketing materials.
+- **Imagery**: Abstract AI-themed illustrations (e.g., flowing data streams in purple
+  gradients) for marketing materials.
 - **Icons**: Consistent set using the color palette, with purple for primary actions.
-- **UI Application**: Apply to wireframes – e.g., chat composer in deep purple, memory quota bars with lavender gradients.
+- **UI Application**: Apply to wireframes – e.g., chat composer in deep purple, memory
+  quota bars with lavender gradients.
 
 ## Icon Library
 
@@ -64,7 +76,8 @@ This palette ensures accessibility (WCAG 2.1 compliant) and works across platfor
 
 ## Brand Voice and Messaging
 
-- **Tone**: Friendly yet professional, empathetic, and empowering. Avoid overly technical jargon; use simple, relatable language.
+- **Tone**: Friendly yet professional, empathetic, and empowering. Avoid overly
+  technical jargon; use simple, relatable language.
 - **Key Messages**:
   - "Kimberly remembers what matters to you."
   - "Seamless AI, tailored to your life."
@@ -83,7 +96,8 @@ This palette ensures accessibility (WCAG 2.1 compliant) and works across platfor
 
 ### Brand Voice and Messaging
 
-- **Tone**: Friendly yet professional, empathetic, and empowering. Avoid overly technical jargon; use simple, relatable language.
+- **Tone**: Friendly yet professional, empathetic, and empowering. Avoid overly
+  technical jargon; use simple, relatable language.
 - **Key Messages**:
   - "Kimberly remembers what matters to you."
   - "Seamless AI, tailored to your life."
@@ -105,8 +119,10 @@ This palette ensures accessibility (WCAG 2.1 compliant) and works across platfor
 - **Primary Usage**: Headlines, CTAs, and primary buttons.
 - **Secondary Usage**: Subtle backgrounds, borders, and secondary elements.
 - **Accent Usage**: Hover states, links, and notifications.
-- **Do Not Use**: Purple on purple (e.g., deep purple text on lavender background) to avoid low contrast.
-- **Gradients**: Use subtle gradients (e.g., deep purple to electric indigo) for depth in illustrations.
+- **Do Not Use**: Purple on purple (e.g., deep purple text on lavender background) to
+  avoid low contrast.
+- **Gradients**: Use subtle gradients (e.g., deep purple to electric indigo) for depth
+  in illustrations.
 
 ### Typography Hierarchy
 
@@ -120,12 +136,14 @@ This palette ensures accessibility (WCAG 2.1 compliant) and works across platfor
 
 - **Web**: Apply palette to chat interface, with deep purple for input fields.
 - **Mobile**: Use lavender for app backgrounds, electric indigo for tabs.
-- **Voice**: Brand voice in TTS responses, with subtle audio cues (e.g., a soft chime in purple-themed tones).
+- **Voice**: Brand voice in TTS responses, with subtle audio cues (e.g., a soft chime in
+  purple-themed tones).
 - **Marketing**: Purple gradients in banners, with tagline in Open Sans.
 
 ### Imagery and Photography
 
-- **Style**: Clean, futuristic, with AI elements (e.g., glowing circuits, abstract brains).
+- **Style**: Clean, futuristic, with AI elements (e.g., glowing circuits, abstract
+  brains).
 - **Filters**: Apply purple tints to photos for consistency.
 - **Avoid**: Cluttered or human-focused imagery; keep it abstract and tech-oriented.
 
@@ -133,7 +151,8 @@ This palette ensures accessibility (WCAG 2.1 compliant) and works across platfor
 
 - **Contrast**: All text combinations meet WCAG AA (4.5:1 ratio).
 - **Alt Text**: For images, describe AI/memory themes.
-- **Color Blindness**: Ensure designs work in grayscale and for common color deficiencies.
+- **Color Blindness**: Ensure designs work in grayscale and for common color
+  deficiencies.
 
 ### Brand Assets Checklist
 
