@@ -9,6 +9,9 @@ venv/
 .venv-node/
 .venv*
 
+# Node modules
+node_modules/
+
 # Editor / IDE
 .vscode/
 
