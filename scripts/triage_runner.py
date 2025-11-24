@@ -94,6 +94,18 @@ def post_label(
     resp.raise_for_status()
 
 
+def post_comment(
+    owner: str, repo: str, issue_number: int, comment_text: str, token: str
+) -> None:
+    url = f"https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}/comments"
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "Authorization": f"Bearer {token}",
+    }
+    resp = requests.post(url, headers=headers, json={"body": comment_text})
+    resp.raise_for_status()
+
+
 def fetch_related_docs(
     owner: str, repo: str, token: str | None, issue_body: str, issue_title: str
 ) -> List[str]:
