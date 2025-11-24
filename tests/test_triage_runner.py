@@ -15,7 +15,7 @@ class TestTriageRunnerHelpers(unittest.TestCase):
         self.assertIsInstance(rules, dict)
 
     def test_detect_pii_builtin(self):
-        s = "Here is an api_key: sk-1234-foobar"
+        s = "We found an api key!"
         self.assertTrue(tr.detect_pii(s))
 
     def test_detect_pii_negative(self):
