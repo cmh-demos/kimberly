@@ -12,3 +12,4 @@ slowapi
 pytest
 pytest-asyncio
 httpx
+PyYAML
