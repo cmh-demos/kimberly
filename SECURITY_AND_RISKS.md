@@ -171,7 +171,7 @@ This analysis covers the codebase and design artifacts in this repository, the c
 ### Risk Register (prioritized)
 
 | ID | Risk | Category | Impact | Likelihood | Priority | Mitigation(s) | Detection | Owner | Status |
-|----|------|----------|--------|------------|----------|---------------|-----------|-------|--------|
+| ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
 | R-001 | No runnable implementation / primarily docs | Product / Delivery | Critical | Likely | Critical | Build a minimal end-to-end PoC using a hosted LLM to validate flows and developer on-ramps. Create quickstart in README. | PR/CI checks, demo readiness | @backend-dev | Active — high |
 | R-002 | Unrealistic non-functional goals (latency <1s, 99.9% uptime at early-stage) | Product / Architecture | High | Likely | High | Re-scope SLOs; run latency benchmarks on a PoC; consider hosted models for low-latency MVP. | Performance tests; benchmark reports | @backend-dev | Active — validation needed |
 | R-003 | LLM deployment cost & infra mismatch (Llama 3.1 inference hardware & licensing) | Cost / Infrastructure | High | Likely | High | Produce cost estimate for self-hosting vs hosted provider; plan GPU sizing; track licensing/redistribution constraints. | Cost run rates, infra invoices | @ops TBD | Active — investigate |
@@ -306,7 +306,7 @@ Enforce "free-mode": Block paid API usage in CI with grep checks.
 - Add `.env` to `.gitignore` (update existing file).
 - Example `.env` (template in repo as `.env.example`):
 
-  ```
+  ```env
   HUGGINGFACE_TOKEN=your_token_here
   DATABASE_URL=sqlite:///kimberly.db
   ```
