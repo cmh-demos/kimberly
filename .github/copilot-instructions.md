@@ -19,6 +19,7 @@ prefer a maximum line length of 80 characters.
 
 ## General Preferences
 
+- Do not request 
 - Prefer to have all questions answered before proceeding with code generation.
 - When generating code, include comments to explain complex logic or decisions.
 

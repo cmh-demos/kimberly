@@ -1,7 +1,32 @@
 # triage rules for copilot / triage teams
-# version: 1.1
+# version: 1.2
 # maintained_by: team-triage
 # last_updated: 2025-11-24
+
+# JSON Schema for validation
+json_schema:
+  $schema: "https://json-schema.org/draft-07/schema#"
+  type: object
+  properties:
+    steps:
+      type: array
+      items:
+        type: object
+        # Add more detailed schema here if needed
+    rules:
+      type: array
+      items:
+        type: object
+    # Add other top-level properties
+  required: ["steps", "rules"]
+
+# CI Validation
+ci_validation:
+  yamllint_config: ".yamllint.yml"  # Path to yamllint config
+  schema_validation: true  # Enable JSON schema validation in CI
+  pre_commit_hooks:
+    - yamllint
+    - jsonschema  # Assuming a tool for JSON schema validation
 
 steps:
   # discovery
@@ -33,6 +58,7 @@ steps:
       # For extremely large repositories consider setting use_cache=true and
       # running dedupe in a background worker rather than inline.
       use_cache: true
+      performance_notes: "For large repos, use background workers for fuzzy matching to avoid blocking triage. Cache similarity indexes and update incrementally."
   # scan for PII/sensitive data and take safe actions (redact or route privately)
   # Uses heuristic pattern matching to detect common sensitive data formats
   - scan_for_pii:
@@ -51,6 +77,10 @@ steps:
       - '(?i)(?:\+?\d{1,3}[-.\s]?)?(?:\(?\d{3}\)?|\d{3})[-.\s]?\d{3}[-.\s]?\d{4}'
       # Credit / debit card likeness (basic common BIN ranges)
       - '(?i)\b(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|6(?:011|5[0-9]{2})[0-9]{12})\b'
+    prefilter_keywords: ["api_key", "api-key", "secret", "password", "ssn", "bearer", "private key", "email", "phone", "credit card", "card number"]
+    allowlists:
+      email_domains: ["example.com", "test.com", "localhost", "github.com", "noreply.github.com"]
+      phone_prefixes: ["555", "123"]  # Allow fake/test phone numbers
     action_on_detection:
       - redact_matches: true            # mask or remove sensitive fragments from public body
       - add_label: "security"          # mark as security-sensitive
@@ -142,7 +172,10 @@ steps:
           - post_comment_template: "backlog_added_notice"
           - add_audit_fields: ["backlog_gate_passed","backlog_gate_reasons"]
       - on_fail:
+          # When the backlog gate fails we add an actionable flag so
+          # maintainers can find and work items that need more info.
           - add_label: "needs-product-review"
+          - add_label: "needs_work"
           - post_comment_template: "backlog_gate_blocked_notice"
           - add_audit_fields: ["backlog_gate_passed","backlog_gate_reasons"]
 
@@ -271,6 +304,10 @@ rules:
     skip_for_automated_issues: true
     # if a human explicitly marks manual-triage, do not auto-reconcile labels
     manual_override_label: "manual-triage"
+    manual_override_semantics:
+      who_can_override: ["team-triage", "maintainers", "admins"]  # GitHub teams or users with override permission
+      audit_overrides: true  # Log manual overrides in triage_log.json with override_by, override_reason, override_timestamp
+      override_actions: ["skip_automation", "force_label_add", "force_label_remove"]  # Allowed override actions
     preservation_rules: # guidance to avoid accidental removal
       - "Do not remove Triaged or Backlog without explicit triage update."
     pair_enforcement:
@@ -406,6 +443,11 @@ rules:
       - median_time_to_triage: "Median time from creation to triage (less sensitive to outliers)"
       - pii_detection_rate: "Rate of PII detections"
       - error_rate: "Percentage of triage runs with errors"
+      - pii_events: "Count of PII detection events"
+      - dry_runs: "Count of dry-run triage executions"
+      - triaged_count: "Total issues triaged"
+      - backlog_gate_failures: "Count of backlog gate failures"
+    retention_guidance: "Retain metrics data for 1 year, triage logs for 2 years. Archive older data to cold storage."
     dashboard_integration:
       tool: "prometheus" # or grafana, etc.
       alerts:
@@ -456,7 +498,7 @@ rules:
   # structured triage event / audit schema (triage_log.json)
   - triage_audit_schema:
     description: "Canonical schema for each triage event appended to triage_log.json. This enables dashboards and auditability."
-    version: "1.1" # schema version for future extensions
+    version: "1.2" # schema version for future extensions
     fields:
       - issue_number: {type: int, description: "GitHub issue number"}
       - triage_owner: {type: string, description: "Bot or user who performed triage"}
@@ -477,6 +519,9 @@ rules:
       - changed_fields: {type: list, description: "Fields changed during triage"}
       - notes: {type: string, description: "Additional triage notes"}
       - references: {type: list, description: "Links to docs or related issues"}
+      - override_by: {type: string, description: "User or group who applied manual override"}
+      - override_reason: {type: string, description: "Reason for manual override"}
+      - override_timestamp: {type: rfc3339, description: "Timestamp of manual override"}
     example: |
       {
         "issue_number": 123,
@@ -498,8 +543,15 @@ rules:
         "references": ["docs/memory-model.md","PR#456"]
       }
 
-  # bot comment templates — standard messages Copilot triage bots will post
-  - bot_comment_templates:
+  # Centralized Secrets and Environment Configuration
+  - secrets_config:
+    secure_intake_url: "${SECURE_INTAKE_URL}"  # Environment variable for secure intake URL
+    bot_comment_templates:  # Templates can reference secrets
+      secure_intake_instructions: |
+        This issue contains sensitive data. To help us investigate securely,
+        please use the secure intake form at ${SECURE_INTAKE_URL} or contact
+        `security-oncall` directly. Do not paste secrets or personal data in
+        public comments.
     request_more_info: |
       Thanks for filing this issue — I'm the triage bot and need a bit more info to proceed.
       Please update the issue with steps to reproduce and any relevant logs (see `.github/ISSUE_TEMPLATE/bug_report.md`).
@@ -507,7 +559,7 @@ rules:
     marked_duplicate: |
       This appears to be a duplicate of #{canonical_issue} — linking and closing this one as duplicate.
       If you believe the issue is different, please explain how it differs and reopen.
-
+      
     triaged_summary: |
       Triage summary: severity = {severity}, priority = {priority}, owner = {triage_owner}. Links/refs: {references}.
 
@@ -528,9 +580,14 @@ rules:
       If the move is incorrect, remove the label or add `manual-triage` to prevent automated changes.
 
     backlog_gate_blocked_notice: |
-      This issue cannot be moved into `Backlog` yet because it did not meet our gating requirements.
-      Requirements: a quick `size_estimate`, and for feature requests the `product-approved` label.
-      Next steps: add the missing information or contact the product owner to approve (label `product-approved`).
+      This issue cannot be moved into `Backlog` yet because it did not meet
+      our gating requirements.
+      Requirements: a quick `size_estimate`, and for feature requests the
+      `product-approved` label.
+      Next steps: add the missing information or contact the product owner to
+      approve (label `product-approved`).
+      The automation has added the `needs_work` label so this item will be
+      included in the grooming queue for follow-up.
 
     title_cleaned_notice: |
       I removed priority tags from the issue title (e.g. [High Priority]) to
@@ -646,6 +703,16 @@ rules:
       skip if `manual-triage` or security/no-triage tags are present, and respect
       recent human edits (grace_period_hours = 24) to avoid undoing user changes.
 
+  # Idempotency Checks and Examples
+  - idempotency_checks:
+    description: "Ensure operations are idempotent to prevent repeated executions from causing issues."
+    examples:
+      - "Check if label already exists before adding (e.g., if 'Triaged' in issue.labels, skip add)"
+      - "Use audit logs to detect previous runs and skip if already processed"
+      - "For title sanitization, check for audit marker before editing"
+      - "Avoid flip-flops: if adding 'Backlog' when 'Triaged' is added, ensure not to remove it later unless conditions change"
+    implementation: "Each step should include a check: if already_applied(event), skip"
+
   # execution / branch policy — enforce dry-run on non-main branches
   - execution_policy:
     description: "Avoid performing real repository modifications unless running on the protected branch(es). All other branches run in dry-run mode where the bot reports actions but does not change state."
@@ -675,6 +742,37 @@ rules:
     # bots should always check protected branch list & the runtime `dry_run`
     checks_required: ["protected_branches", "dry_run", "execution_branch"]
 
+  # Test Vectors for Unit Tests
+  - test_vectors:
+    pii_detection:
+      positive:
+        - input: "My api_key is sk-1234567890abcdef"
+          expected: true
+        - input: "Password: mySecret123"
+          expected: true
+        - input: "Email: user@example.com"
+          expected: false  # allowlisted
+        - input: "Phone: 555-123-4567"
+          expected: false  # allowlisted prefix
+      negative:
+        - input: "This is a normal sentence."
+          expected: false
+    duplicate_detection:
+      positive:
+        - issue1: "App crashes on startup"
+          issue2: "Application crashes when starting"
+          expected: true
+      negative:
+        - issue1: "Feature request for dark mode"
+          issue2: "Bug: login fails"
+          expected: false
+    execution_policy:
+      dry_run_cases:
+        - branch: "main"
+          expected_dry_run: false
+        - branch: "feature-branch"
+          expected_dry_run: true
+
   # repository templates (existing)
   - templates:
       - path: ".github/ISSUE_TEMPLATE/work-tracking.md"
@@ -685,3 +783,26 @@ rules:
         purpose: "feature requests — include goals and acceptance criteria"
       - path: ".github/ISSUE_TEMPLATE/task.md"
         purpose: "small tasks and chores"
+
+  # Changelog
+  - changelog:
+    policy: "Bump schema version on breaking changes or major feature additions. Update last_updated date on any change. Maintain backward compatibility where possible."
+    entries:
+      - version: "1.2"
+        date: "2025-11-24"
+        changes:
+          - "Added machine-readable JSON schema and CI validation (yamllint, jsonschema)"
+          - "Tightened PII regexes with pre-filters and allowlists for low-risk domains"
+          - "Added explicit test vectors for PII detection, duplicate detection, and execution policy"
+          - "Made manual override semantics explicit with who_can_override and audit fields"
+          - "Added runtime telemetry counters (PII events, dry_runs, etc.) and retention guidance"
+          - "Improved performance notes with caching and background worker recommendations"
+          - "Centralized secure intake URL into environment variables"
+          - "Added idempotency check section and examples to avoid label flip-flops"
+          - "Added developer guidance section"
+
+  # Developer Guidance
+  - developer_guidance:
+    testing_locally: "Use venv for Python dependencies. Run unit tests with pytest. Validate YAML with yamllint --config .yamllint.yml copilot_triage_rules.yml"
+    linters: "yamllint for YAML, jsonschema for JSON schema validation"
+    how_to_test: "1. Set up venv: python -m venv triage_env && source triage_env/bin/activate. 2. Install deps: pip install -r requirements.txt. 3. Run tests: pytest tests/. 4. Validate schema: jsonschema -i copilot_triage_rules.yml json_schema"

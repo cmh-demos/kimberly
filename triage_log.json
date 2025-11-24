@@ -1,0 +1,23 @@
+[
+  {
+    "issue_number": 7,
+    "timestamp": "2025-11-24T19:24:28.139831Z",
+    "event_type": "initial_triage",
+    "triage_owner": "copilot-bot",
+    "severity": "medium",
+    "priority": "p2",
+    "size_estimate": null,
+    "pii_detected": false,
+    "redacted_fields": [],
+    "redaction_actions": [],
+    "dry_run": true,
+    "execution_branch": "unknown",
+    "title_sanitized": true,
+    "original_title": "[Top Priority] README placeholders: add dev quickstart + runnable example (why: onboarding friction).",
+    "changed_fields": [
+      "would_replace_title"
+    ],
+    "notes": "",
+    "references": []
+  }
+]
