@@ -35,13 +35,13 @@ Example component diagram (Mermaid):
 
 ```mermaid
 graph LR
-	Client -->|HTTPS| API[API Gateway]
-	API --> Auth[Auth Service]
-	API --> Users[User Service]
-	Users --> Postgres[(PostgreSQL)]
-	Auth --> Redis[(Redis Cache)]
-	Jobs[Worker] --> Queue[(Message Queue)]
-	Jobs --> S3[(Object Storage)]
+ Client -->|HTTPS| API[API Gateway]
+ API --> Auth[Auth Service]
+ API --> Users[User Service]
+ Users --> Postgres[(PostgreSQL)]
+ Auth --> Redis[(Redis Cache)]
+ Jobs[Worker] --> Queue[(Message Queue)]
+ Jobs --> S3[(Object Storage)]
 ```
 
 ## Sequence Diagrams

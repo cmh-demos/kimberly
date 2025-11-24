@@ -104,7 +104,7 @@ This backlog converts audit findings into epics and prioritized user stories for
 - Sprint 2: A.2, A.3, B.3, C.1 (CI checks, openapi, tests, meditation prototype)
 - Sprint 3: C.2, D.1, D.2 (long-term memory hardening, agents skeleton, sandboxing)
 
-### Next steps I can take (select 1):
+### Next steps I can take (select 1)
 
 - Create GitHub issues for each story with labels and owners.
 - Open PRs for Quickstart README + CI changes.

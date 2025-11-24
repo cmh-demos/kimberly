@@ -1,7 +1,7 @@
 # Kimberly — AI Memory Model (final)
 
 STATUS: Canonical source of truth for the memory model — EDIT THIS FILE.
-Owner: docs-team@kimberly.local (primary), infra@kimberly.local (infra implementer), backend@kimberly.local (code owner)
+Owner: <docs-team@kimberly.local> (primary), <infra@kimberly.local> (infra implementer), <backend@kimberly.local> (code owner)
 How to regenerate derived artifacts: run `scripts/refine_memory_model.py` which will produce generated outputs in `docs/generated/` (do not edit generated files).
 
 **Note**: For discussions and updates, see the [Memory Model Wiki Page](https://github.com/cmh-demos/kimberly/wiki/Memory-Model).
@@ -9,44 +9,50 @@ How to regenerate derived artifacts: run `scripts/refine_memory_model.py` which 
 TL;DR — COST CEILING: FREE. This model enforces a zero-dollar deployment: no paid managed services, no paid embedding APIs, and defaults that favor local OSS tooling, lexical-first retrieval, and user-device/offline compute only. Embeddings are disabled by default and allowed only via self-hosted, local models (no external paid calls).
 
 1. Executive summary
+
 --------------------
+
 - Memory is split into three tiers: short-term (ephemeral session context), long-term (persistent personalization), and permanent (canonical facts).
 - A nightly scoring process ("meditation") grades memories for retention; low-score items are archived and eventually removed when quotas are exceeded.
 - Retrieval uses a hybrid approach: metadata filtering + vector similarity re-ranking for the best context.
 - The system is designed for predictable quotas, per-user control, strong privacy, and auditability.
 
-2. Goals and success criteria (free-by-default)
+1. Goals and success criteria (free-by-default)
+
 -----------------------------
+
 - No monetary cost: avoid any paid APIs, managed services, or hosted vector providers.
 - Runable on developer or user hardware (laptop / small VPS) using only open-source components.
 - Strong metadata/lexical-first retrieval to avoid embeddings where possible; optional self-hosted embeddings only when explicitly enabled.
 
-3. Memory tiers and behavior (cost-optimized)
+1. Memory tiers and behavior (cost-optimized)
+
 ---------------------------
 All tiers are configurable per-user but offer sane defaults.
 
-  - Default quota: 1 MB per user (cost-first default — adjust for heavy users)
+- Default quota: 1 MB per user (cost-first default — adjust for heavy users)
 -- Short-term (session / ephemeral)
-  - Default quota: 512 KB per user (aggressively conservative for free-mode)
-  - Lifetime: ~24 hours (rotated nightly), or until session end
-  - Purpose: immediate context, conversation state, transient observations
-  - Access: highest priority for active sessions, cached in Redis for low latency
+- Default quota: 512 KB per user (aggressively conservative for free-mode)
+- Lifetime: ~24 hours (rotated nightly), or until session end
+- Purpose: immediate context, conversation state, transient observations
+- Access: highest priority for active sessions, cached in Redis for low latency
 
-  - Default quota: 10 MB per user (conservative default to reduce persistent storage)
+- Default quota: 10 MB per user (conservative default to reduce persistent storage)
 -- Long-term (personalization/ongoing state)
-  - Default quota: 2 MB per user (embed only explicitly-marked high-value items)
-  - Lifetime: rolling retention that depends on score (weekly baseline)
-  - Purpose: preferences, habits, project context, frequently useful items
-  - Access: used during cold-start and background agent reasoning; stored in DB + vector store
+- Default quota: 2 MB per user (embed only explicitly-marked high-value items)
+- Lifetime: rolling retention that depends on score (weekly baseline)
+- Purpose: preferences, habits, project context, frequently useful items
+- Access: used during cold-start and background agent reasoning; stored in DB + vector store
 
-  - Default quota: 100 MB per user (useful for critical facts but limited to avoid high per-user storage growth)
+- Default quota: 100 MB per user (useful for critical facts but limited to avoid high per-user storage growth)
 -- Permanent (canonical/trusted data)
-  - Default quota: 10 MB per user (keep permanent storage small; encourage user export/backup)
-  - Lifetime: persistent but subject to rotation when quota is exceeded
-  - Purpose: canonical facts, credentials (encrypted), user-defined notes
-  - Access: read-optimized, prioritized for factual responses
+- Default quota: 10 MB per user (keep permanent storage small; encourage user export/backup)
+- Lifetime: persistent but subject to rotation when quota is exceeded
+- Purpose: canonical facts, credentials (encrypted), user-defined notes
+- Access: read-optimized, prioritized for factual responses
 
-4. Data model and versioning
+1. Data model and versioning
+
 ---------------------------
 Every memory item is a versioned object with lightweight structured metadata to enable evolution of schema and safe migrations.
 
@@ -78,11 +84,13 @@ MemoryItem (canonical JSON schema)
 }
 
 Notes (free-mode):
+
 - Keep content small; avoid storing large files and transcripts by default. If attachments are required, store them on user devices or local FS; do not use paid object storage by default.
 - Sensitive content: flag metadata.sensitive=true and use local encryption; avoid paid KMS services.
   - Note: ensure retention policies are user-configurable and that consent logs are recorded for sensitive items.
 
-5. Scoring / meditation (cost-aware operations)
+1. Scoring / meditation (cost-aware operations)
+
 -----------------------------------------------
 The meditation pipeline is the nightly scoring and retention pipeline. Key properties:
 
@@ -92,61 +100,71 @@ The meditation pipeline is the nightly scoring and retention pipeline. Key prope
 
 Recommended baseline scoring formula (interpretable hybrid). Cost changes / operational notes after this section.
 
-score = normalize( w1 * relevance_to_goals + w2 * emotional_weight + w3 * predictive_value + w4 * recency_freq )
+score = normalize( w1 *relevance_to_goals + w2* emotional_weight + w3 *predictive_value + w4* recency_freq )
 
 Suggested weights (configurable per user/system): w1=0.40, w2=0.30, w3=0.20, w4=0.10
 
 Component detectors and signals:
+
 - relevance_to_goals: match against active goal models, project tags, and recent agent tasks (0..1)
 - emotional_weight: sentiment + explicit user signals (0..1)
 - predictive_value: past-match usability (did similar items lead to useful actions?) (0..1)
 - recency_freq: frequency and recency normalized (0..1)
 
 Pruning rules (cost-aware):
+
 1. For each tier, compute current_size vs quota.
 2. If over quota, sort items by ascending score; move lowest-scoring items into an 'archived-for-grace-period' bucket (retained but excluded from active retrieval).
 3. After a configurable grace window (e.g., 30d), items still low-scoring and archived are deleted permanently (unless user-saved or manually rescued).
 4. Special-case protection: always retain items explicitly marked 'permanent' or flagged by user overrides.
 
 Free-mode specifics:
+
 - Frequency: run meditation rarely (weekly or on-demand) to minimize local compute and battery use.
 - Sampling: only re-score hot/new items; avoid full-dataset scoring unless explicitly triggered.
 - Embeddings: OFF by default. If enabled, embeddings must be generated using local/self-hosted OSS models only (no external paid embedding APIs).
 
-6. Retrieval strategies (minimal cost best-effort)
+1. Retrieval strategies (minimal cost best-effort)
+
 ------------------------------------------------
 High-quality retrieval is a hybrid of metadata pre-filter + vector similarity re-ranking.
 
 Flow for typical chat context retrieval (cost-aware):
+
 1. Build a metadata filter (tier, tags, time window, sensitivity) to narrow candidate set.
 2. For candidates, prefer lexical matching first (SQLite FTS, trigram) or other metadata heuristics. If self-hosted embeddings are available they may be used as an optional re-ranker, but embedding-based search is explicitly opt-in and must be locally generated.
 
   Example: filter candidates by tag="preference" (or other metadata) and then re-rank the filtered set using cosine similarity over vectors for top-K relevance.
-3. Re-rank by a hybrid score: lambda * semantic_similarity + (1-lambda) * memory_score + freshness_boost.
+3. Re-rank by a hybrid score: lambda *semantic_similarity + (1-lambda)* memory_score + freshness_boost.
 4. Return top-K for prompt context.
 
 Performance tips (free-mode):
+
 - Prefer in-process caches and local FS-based indexes (SQLite FTS) to avoid running additional services.
 - If embeddings are enabled (self-hosted only), run small CPU-friendly models and batch processing on local hardware; otherwise rely on lexical search.
 - Use FAISS/Annoy on-disk indices if vector search is necessary and keep vectors quantized to reduce RAM usage.
 - Always pre-filter with metadata to keep candidate sets tiny before any heavier re-ranking.
 
-7. Storage & architecture (cheap-by-default stack)
+1. Storage & architecture (cheap-by-default stack)
+
 -------------------------------------------
 Free-mode stack (no paid services):
+
 - SQLite + FTS5 for metadata and text search; run everything on a single machine (developer laptop or small VPS) with no managed services.
 - FAISS or Annoy (self-hosted, on-disk) for optional vector search if embeddings are enabled and produced locally.
 - Avoid managed Redis if possible — use in-process LRU caches; if needed, run a tiny local Redis instance.
 - Local filesystem or user-hosted MinIO for attachments; avoid paid object stores.
 
 Component responsibilities (free-mode):
+
 - API service (stateless): defaults to metadata-only writes and never calls paid embeddings or external APIs. Enforce strict per-user quotas.
 - Embedding pipeline: optional; must be self-hosted and invoked explicitly by admin/user. No paid embedding provider is allowed.
 - Scoring worker: lightweight, event-driven, or weekly — avoid heavy ML unless run locally by the user.
 - Retention worker: run in small batched jobs and use local FS + compact index maintenance.
 - Observability: local-only logs and compressed metrics; do not ship to paid analytics services.
 
-8. Privacy, security, and compliance (keep cheap & safe)
+1. Privacy, security, and compliance (keep cheap & safe)
+
 -----------------------------------
 Design for user control and regulatory compliance.
 
@@ -158,14 +176,17 @@ Design for user control and regulatory compliance.
 
 Cost note: encryption and audit trails add modest storage and CPU overhead. Use efficient audit schemas + compression for logs to minimize long-term storage costs.
 
-9. API contract & usage patterns (cost-transparent)
+1. API contract & usage patterns (cost-transparent)
+
 --------------------------------
 Existing endpoints (in OpenAPI):
+
 - POST /memory — create memory (content + metadata) -> returns id, size, computed score
 - GET /memory — list with filters (type, tags, created_at) + pagination
 - DELETE /memory/{id} — delete single memory, with audit log
 
 Recommended additions (now in `docs/openapi.yaml`):
+
 - POST /memory/query — hybrid semantic search + filters
   - Request: { query: string, type?: enum, top_k?: int, filters?: dict }
   - Response: { results: [MemoryItem] }
@@ -174,11 +195,13 @@ Recommended additions (now in `docs/openapi.yaml`):
 - GET /memory/metrics — quota usage and last_meditation timestamp
 
 Free-mode API features to implement:
+
 - POST /memory (free-mode): accept metadata + content; embedding_ref must be null unless embedding is explicitly enabled with a self-hosted mode.
 - POST /memory/embed (optional): accept batch-uploaded embeddings produced offline by a local process (self-hosted only).
 - GET /memory/metrics — expose local resource usage (disk bytes, sqlite index size) and embedding-enabled flag; do not include paid-provider metrics.
 
-10. Testing, validation & cost KPIs
+1. Testing, validation & cost KPIs
+
 -------------------------------
 Focus on correctness, recall, and hallucination reduction.
 
@@ -188,19 +211,23 @@ Focus on correctness, recall, and hallucination reduction.
 - Metric-driven evaluation: recall/precision, false-positive retrievals, rate of irrelevant memory inclusion in prompts
 
 Add free-mode tests:
+
 - Ensure embedding calls to paid providers are disabled by default and that the system reports embedding provider disabled.
 - Validate that the default mode performs lexical search (FTS) and does not reach out to external paid services under normal operations.
 - Confirm quotas and archiving/deletion work as expected within strict free-mode limits.
 
-11. Operations, budgets & observability
+1. Operations, budgets & observability
+
 -----------------------------
 Track these operational metrics per user and system-wide:
+
 - memory.items.created, memory.items.deleted, memory.items.archived
 - memory.quota.usage.short_term / long_term / permanent
 - memory.meditation.last_run, memory.meditation.processed, memory.meditation.pruned
 - retrieval.latency and retrieval.precision@K
 
 Add these cost-focused observability metrics:
+
 - embedding.calls.total, embedding.calls.failed, embedding.calls.avg_latency
 - embedding.budget.remaining_per_user
 - vector_index.memory_bytes and vector_index.disk_bytes
@@ -209,19 +236,22 @@ Add these cost-focused observability metrics:
 Set budget alerts: stop embedding ingestion or switch to cheap mode when a user exceeds their embedding budget; schedule cleanup jobs when per-user storage exceeds thresholds.
 
 Set alerts for:
+
 - quota usage exceeding thresholds
 - large spikes in pruned or deleted items
 - memory service errors and embedding failures
 
-12. Low-cost implementation patterns & workflows
+1. Low-cost implementation patterns & workflows
+
 ---------------------------------
 Creating memory (simplified):
 
 POST /memory
 payload = {"type": "long-term", "content": "Prefers black coffee", "metadata": {"tags":["preference"]}}
 server (low-cost mode):
-  - accept metadata + content, store metadata and content, but mark embedding_ref=null and score=0
-  - enqueue embedding job in a low-priority queue and batch process embeddings during off-peak to save compute costs; respond quickly to caller
+
+- accept metadata + content, store metadata and content, but mark embedding_ref=null and score=0
+- enqueue embedding job in a low-priority queue and batch process embeddings during off-peak to save compute costs; respond quickly to caller
 
 Querying memory (chat context):
 client -> create query embedding
@@ -231,12 +261,14 @@ server -> re-rank by hybrid score
 server -> return top K
 
 Nightly meditation (simplified):
+
 1. For each user: retrieve candidate memory items (all tiers or subset)
 2. Compute signals for each (goals match, sentiment, predictive value, recency)
 3. Compute score = normalize(weighted sum) and store score
 4. If tier over quota: archive lowest scoring items until under quota; mark for deletion after grace period — run pruning in small batches to spread cost.
 
-13. Retention & rotation algorithm (detailed pseudocode, cost controlled)
+5. Retention & rotation algorithm (detailed pseudocode, cost controlled)
+
 ----------------------------------------------------
 function run_meditation(user_id):
   items = fetch_user_memory(user_id)
@@ -257,38 +289,47 @@ function run_meditation(user_id):
 
 14. Acceptance criteria (cost targets)
 -----------------------
+
 - The system implements /memory, /memory/query, /memory/meditate and /memory/metrics according to the OpenAPI changes.
 - The mediation pipeline runs deterministically and reduces per-user quota exceed events to <1% after steady-state.
 - The retrieval pipeline provides high relevance (measured via user-simulated tests) and keeps latency consistent with SLOs
 
 Free targets (strict defaults):
+
 - Average monthly storage per-user (free-default): < 3 MB
 - Embedding calls to paid APIs: 0 (no external paid embeddings allowed)
 - Vector index memory per 1k users: minimal — prefer on-disk quantized indices and <= 200 vectors/user if used
 
-15. Implementation suggestions & low-cost roadmap
+1. Implementation suggestions & low-cost roadmap
+
 --------------------------------------
 Phase A (free-only MVP/prototype):
+
 - SQLite + FTS5 for metadata & lexical search. Optional FAISS/Annoy for on-disk vector search if embeddings are enabled locally.
 - Implement free-mode: metadata-first writes; embedding disabled unless self-hosted; provide a CLI/tool to generate local embeddings offline if needed.
 - Basic unit & integration tests and a demo that runs entirely on a laptop without external paid APIs.
 
 Phase B (free scaling):
+
 - Scale using sharded SQLite/Postgres instances and on-disk FAISS/Annoy indices; continue to avoid paid services.
 - Add per-user caps on vectors, enforced automatically, and auto-disable embedding for users that exceed caps.
 
 Phase C (cost-mature):
+
 - Add privacy-preserving analytics, advanced audit tooling; keep analytics aggregated and sampled to reduce costs
 
-16. Questions / open decisions
+1. Questions / open decisions
+
 ----------------------------
+
 - How much user configuration do we expose for scoring weights vs. system defaults?
 - Do we allow cross-user shared memories or purely per-user? (Current approach assumes single-user scope.)
 - How aggressively to archive vs. delete (grace-period length)?
- - Consider differential privacy options for aggregated analytics and metrics reporting (avoid exposing sensitive data in aggregated views).
+- Consider differential privacy options for aggregated analytics and metrics reporting (avoid exposing sensitive data in aggregated views).
 
 Appendix: artifacts & repository notes
 -------------------------------------
+
 - Iteration artifacts are available at `docs/iterations/` (generated during refinement).
 - The final source is `docs/memory-model.md` (this file) and the quick OpenAPI changes were added to `docs/openapi.yaml`.
 
@@ -310,13 +351,14 @@ Short, targeted guide listing concrete, "free-mode" implementation choices and p
 ### Quick storage math (approximate)
 
 - Vector size estimates per vector:
-  - 512 dims * float32 = 512 * 4 bytes = 2,048 bytes (~2 KB)
-  - 512 dims * float16 = 512 * 2 bytes = 1,024 bytes (~1 KB)
+  - 512 dims *float32 = 512* 4 bytes = 2,048 bytes (~2 KB)
+  - 512 dims *float16 = 512* 2 bytes = 1,024 bytes (~1 KB)
   - 512 dims quantized to int8 = 512 bytes (~0.5 KB)
 
 -- Example: per-user storage (free-default)
-  - Long-term quota = 2 MB user data stored (text+metadata), prefer storing short structured items
-  - Avoid embedding most items — embed only small, explicitly-marked items (<= 200 vectors/user)
+
+- Long-term quota = 2 MB user data stored (text+metadata), prefer storing short structured items
+- Avoid embedding most items — embed only small, explicitly-marked items (<= 200 vectors/user)
 
 - Realistic small-case (better): 10 MB content / average memory item 500 bytes -> 20k items, but we should avoid this explosion by storing shorter items and embedding only important items.
 
@@ -330,7 +372,7 @@ Assume per-user:
 With 200 vectors/user * ~1 KB each (fp16 equivalent) = ~200 KB per user for vectors
 Add metadata + content stored in SQLite/Postgres (2 MB cap) -> total ~2.2 MB per user on average -> suitable for local deployments.
 
-### Resource footprint (example):
+### Resource footprint (example)
 
 - For 1,000 active users with 200 vectors each (1 KB per vector): ~200 MB storage for vectors (disk-backed)
 - With quantization or int8 you can drop vector storage to ~100 MB. Disk-backed index keeps RAM low.
@@ -350,23 +392,24 @@ Add metadata + content stored in SQLite/Postgres (2 MB cap) -> total ~2.2 MB per
 ### Free-mode stack recommendations
 
 -- Prototype (free-only): SQLite + FTS5 for text search, FAISS/Annoy on-disk for optional vectors, local MinIO or FS for attachments.
-  - Pros: Runs on a developer laptop or small VPS, no external paid services.
-  - Cons: Some local CPU usage for embeddings if generated locally; limit embedding operations.
+
+- Pros: Runs on a developer laptop or small VPS, no external paid services.
+- Cons: Some local CPU usage for embeddings if generated locally; limit embedding operations.
 
 - Scale: Milvus/Weaviate self-hosted with disk-backed indices + PQ/OPQ quantization; use spot/cheap VMs for embedding workers.
 
 ### Operational & policy tweaks (free-mode)
 
- - Embeddings OFF by default: store embedding_ref=null unless explicitly enabled via self-hosted pipeline.
- - Provide a local CLI/worker for optional embedding generation; schedule embedding tasks manually or on-demand to keep resource usage under user control.
- - Enforce strict daily/weekly caps on local embedding runs and per-user vectors to stay within resource limits.
- - Use compression (gzip) and local lifecycle scripts to age-out old artifacts.
+- Embeddings OFF by default: store embedding_ref=null unless explicitly enabled via self-hosted pipeline.
+- Provide a local CLI/worker for optional embedding generation; schedule embedding tasks manually or on-demand to keep resource usage under user control.
+- Enforce strict daily/weekly caps on local embedding runs and per-user vectors to stay within resource limits.
+- Use compression (gzip) and local lifecycle scripts to age-out old artifacts.
 
 ### Testing & validation (free-mode)
 
- - Ensure that default operations do not call any external paid API (embed provider disabled).
- - Simulate local embedding runs and validate that offline pipelines respect per-user caps and run-time limits.
- - Measure index size and ensure on-disk indices fit within the available disk for the target deployment.
+- Ensure that default operations do not call any external paid API (embed provider disabled).
+- Simulate local embedding runs and validate that offline pipelines respect per-user caps and run-time limits.
+- Measure index size and ensure on-disk indices fit within the available disk for the target deployment.
 
 ### Example commands (pgvector) - quick start
 
@@ -381,9 +424,9 @@ Add metadata + content stored in SQLite/Postgres (2 MB cap) -> total ~2.2 MB per
     created_at timestamptz
   );
 
-2) Use float16 and compressed storage when available (engine dependent) and set up periodic VACUUM/REINDEX jobs to maintain index size.
+1) Use float16 and compressed storage when available (engine dependent) and set up periodic VACUUM/REINDEX jobs to maintain index size.
 
-### Next steps (free-mode):
+### Next steps (free-mode)
 
 -- Confirm that "cost ceiling = free" means no paid provider usage and I'll lock defaults accordingly across the codebase.
 -- Implement free-mode enforcement: embedding provider disabled by default, API writes default to metadata-only, and CI tests to prevent paid-API calls in the free branch.
@@ -392,4 +435,5 @@ Add metadata + content stored in SQLite/Postgres (2 MB cap) -> total ~2.2 MB per
 
 License and ownership
 ---------------------
+
 This document is part of the Kimberly project and follows repository license and contribution rules.

@@ -132,6 +132,7 @@ These questions inform the UI design and are necessary to finalize wireframes, f
 - Branding / visual system: do we have brand colors, typography, iconography to include in mocks (or should we create a neutral placeholder system)?
 
 Next work items (UX deliverables):
+
 - Create low-fidelity wireframes for Chat, Memory Manager, and Agents (desktop + mobile) — acceptance: annotated wireframes added to `docs/` and a simple PNG export.
 - Create high-fidelity mockups (Figma file or HTML/CSS) for final screens and accessible styles — acceptance: link or static prototype published.
 - Accessibility checklist & tests — acceptance: WCAG checklist in `docs/` and a short list of automated/manual tests.
@@ -232,7 +233,7 @@ Based on a deeper scan of the codebase, documentation, and infrastructure, the f
 ### Dependency and Environment Management
 
 - No `requirements.txt` or `pyproject.toml` in root (README references `requirements.txt` but it doesn't exist). Why: Dependencies not declared, hard to install/reproduce. Next: Create `requirements.txt` with core deps (e.g., fastapi, sqlalchemy, sentence-transformers for optional embeddings).
-- No `.gitignore` file. Why: Sensitive files (secrets, logs) may be committed accidentally. Next: Add standard Python .gitignore excluding .venv, __pycache__, secrets, and misc/copilot_tracking.json if sensitive.
+- No `.gitignore` file. Why: Sensitive files (secrets, logs) may be committed accidentally. Next: Add standard Python .gitignore excluding .venv, **pycache**, secrets, and misc/copilot_tracking.json if sensitive.
 - No `LICENSE` file (README claims MIT). Why: Legal clarity missing. Next: Add MIT LICENSE file.
 
 ### Containerization and Deployment
@@ -289,7 +290,7 @@ The following ambiguities were found during a comprehensive scan of all docs. Th
 ### Placeholders and Incomplete References
 
 - **TBD Owners (Multiple Files)**: @backend-dev, @ml TBD in docs/RISK_ANALYSIS.md, docs/RISK_ACTIONS.md, docs/sprint-plan.md. Why: Accountability missing. Next: Assign from roles.md.
-- **Fictional Emails/Contacts**: docs-team@kimberly.local in docs/memory-model.md; product-design@kimberly.local in docs/ui-design.md. Why: Unrealistic. Next: Replace with real contacts or remove.
+- **Fictional Emails/Contacts**: <docs-team@kimberly.local> in docs/memory-model.md; <product-design@kimberly.local> in docs/ui-design.md. Why: Unrealistic. Next: Replace with real contacts or remove.
 - **Target User "Me" (PROJECT.md)**: "Target user: ... (me)" first-person. Why: Confusing for readers. Next: Rephrase to "project owner/developer".
 - **FE Abbreviation (docs/backlog-next-3-sprints.md)**: "Docs/FE" likely Frontend. Why: Unclear. Next: Spell out "Documentation/Frontend".
 - **TBD in README.md**: "Mobile: Download app (TBD)". Why: Incomplete. Next: Specify if planned or remove.

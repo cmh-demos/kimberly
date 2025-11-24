@@ -5,14 +5,16 @@
 ## Supported Versions
 
 We actively monitor and patch security vulnerabilities in the following versions:
+
 - Latest release
 - Main branch
 
 ## Reporting a Vulnerability
 
 If you discover a security vulnerability, please report it responsibly:
+
 - **Do not** create public GitHub issues for vulnerabilities.
-- Email: security@kimberly.ai (placeholder; replace with actual contact).
+- Email: <security@kimberly.ai> (placeholder; replace with actual contact).
 - Response time: Within 48 hours.
 - Include details: Description, impact, reproduction steps, and any proposed fixes.
 
@@ -244,6 +246,7 @@ These unknowns are important to resolve because they materially change mitigatio
 ### Template: add/update a risk
 
 When adding or updating a risk, include:
+
 - short description + id
 - category
 - owner (GitHub handle) and target date
@@ -253,6 +256,7 @@ When adding or updating a risk, include:
 ---
 
 If you'd like, I can also:
+
 - create the GitHub issues for the top unknowns and high-priority risks, or
 - add a CI workflow to validate the OpenAPI file and copilot schema immediately.
 
@@ -269,6 +273,7 @@ This plan outlines how to securely manage credentials (API keys, database passwo
 ### Identified Credentials Needed
 
 Based on project requirements:
+
 - **LLM API Keys**: For Llama 3.1 or other models (e.g., Hugging Face token for transformers).
 - **Database Credentials**: Username/password for PostgreSQL or SQLite (if remote).
 - **Telemetry/Tracking Keys**: For monitoring services (e.g., Prometheus, Grafana API keys).
@@ -283,12 +288,14 @@ Enforce "free-mode": Block paid API usage in CI with grep checks.
 
 - All credentials accessed via `os.getenv()` in Python code.
 - Example in `app.py`:
+
   ```python
   import os
   HUGGINGFACE_TOKEN = os.getenv('HUGGINGFACE_TOKEN')
   if not HUGGINGFACE_TOKEN:
       raise ValueError("HUGGINGFACE_TOKEN not set")
   ```
+
 - For optional creds, provide defaults or skip features.
 
 #### 2. Local Development Setup
@@ -298,6 +305,7 @@ Enforce "free-mode": Block paid API usage in CI with grep checks.
 - Load in code: `from dotenv import load_dotenv; load_dotenv()`.
 - Add `.env` to `.gitignore` (update existing file).
 - Example `.env` (template in repo as `.env.example`):
+
   ```
   HUGGINGFACE_TOKEN=your_token_here
   DATABASE_URL=sqlite:///kimberly.db

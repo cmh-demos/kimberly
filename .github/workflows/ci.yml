@@ -37,7 +37,12 @@ jobs:
     - name: Lint Markdown
       uses: DavidAnson/markdownlint-cli2-action@v16
       with:
-        globs: '**/*.md'
+        # Lint all markdown files but exclude vendor folders like node_modules.
+        # markdownlint-cli2 supports negated globs; using the '#' prefix is the
+        # cross-shell-compatible form for negation.
+        globs: |
+          '**/*.md'
+          '#node_modules'
 
   test:
     runs-on: ubuntu-latest

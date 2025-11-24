@@ -29,6 +29,7 @@ Provide a clear and concise description of the issue or work item. Include conte
 ## Acceptance Criteria
 
 List the specific criteria that must be met for this issue to be considered complete:
+
 - [ ] Criterion 1
 - [ ] Criterion 2
 - [ ] Criterion 3
@@ -58,6 +59,7 @@ Assign to the appropriate team member from the roles list in `roles.md`. Every i
 ---
 
 **Guidelines for Using This Template:**
+
 - **Assignment**: Every issue must be assigned to someone from the roles defined in `roles.md`. If unsure, assign to the most relevant role (e.g., Backend Developer for API tasks).
 - **Time Tracking**: Provide an estimate at creation. When the issue is resolved, update the "Actual Time Spent" field in the issue description or comments for tracking purposes.
 - **Labels**: Use appropriate labels (e.g., "bug", "feature", "backend") in addition to "work-tracking".

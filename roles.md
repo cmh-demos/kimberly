@@ -8,6 +8,7 @@ This document outlines the key roles required to complete the Kimberly project, 
 
 **Description**: Focuses on server-side logic, data processing, and API development.
 **Responsibilities**:
+
 - Implement core APIs (e.g., POST /chat, memory management, agent orchestration).
 - Handle memory persistence, ranking, and nightly "meditation" processes.
 - Develop agent runners, quotas, and failure handling.
@@ -28,6 +29,7 @@ This document outlines the key roles required to complete the Kimberly project, 
 
 **Description**: Builds user-facing interfaces and client-side applications.
 **Responsibilities**:
+
 - Develop web and voice UI components (e.g., chat interface, memory manager, agent dashboard).
 - Integrate TTS/ASR for voice interactions.
 - Ensure responsive design, accessibility (WCAG 2.1), and cross-platform compatibility.
@@ -48,6 +50,7 @@ This document outlines the key roles required to complete the Kimberly project, 
 
 **Description**: Oversees technical architecture and engineering efforts.
 **Responsibilities**:
+
 - Define system architecture, including memory tiers, agent delegation, and infra design.
 - Coordinate between backend, frontend, and ops teams.
 - Review code, ensure best practices, and guide technical decisions.
@@ -69,6 +72,7 @@ This document outlines the key roles required to complete the Kimberly project, 
 
 **Description**: Ensures system reliability, monitoring, and operational efficiency.
 **Responsibilities**:
+
 - Set up monitoring (e.g., Prometheus/Grafana), alerting, and SLOs (e.g., 99.9% availability).
 - Manage backups, disaster recovery, and runbooks for incidents.
 - Implement telemetry, cost monitoring, and performance optimization.
@@ -88,6 +92,7 @@ This document outlines the key roles required to complete the Kimberly project, 
 
 **Description**: Manages infrastructure provisioning and deployment automation.
 **Responsibilities**:
+
 - Configure Kubernetes, Docker, and cloud-agnostic infra (e.g., Terraform, Helm).
 - Set up CI runners, container registries (e.g., ghcr.io), and local development environments.
 - Ensure portability across providers (e.g., Oracle Cloud, Fly.io) and free-hosting options.
@@ -109,6 +114,7 @@ This document outlines the key roles required to complete the Kimberly project, 
 
 **Description**: Ensures software quality through testing and validation.
 **Responsibilities**:
+
 - Develop and run E2E tests, smoke tests, and memory recall validations.
 - Maintain test coverage (target 95%) and automate CI checks.
 - Perform manual QA, bug tracking, and regression testing.
@@ -130,6 +136,7 @@ This document outlines the key roles required to complete the Kimberly project, 
 
 **Description**: Protects the system from threats and ensures secure implementation.
 **Responsibilities**:
+
 - Conduct threat modeling, implement encryption (e.g., AES for data-at-rest), and JWT authentication.
 - Enforce sandboxing, rate limiting, and agent isolation.
 - Perform security audits, vulnerability assessments, and incident response.
@@ -149,6 +156,7 @@ This document outlines the key roles required to complete the Kimberly project, 
 
 **Description**: Manages data privacy, compliance, and user data handling.
 **Responsibilities**:
+
 - Implement GDPR-compliant data deletion/export APIs and consent flows.
 - Redact PII in telemetry and logs, enforce retention policies.
 - Design privacy-first features (e.g., local-first storage, opt-in telemetry).
@@ -168,6 +176,7 @@ This document outlines the key roles required to complete the Kimberly project, 
 
 **Description**: Ensures legal compliance and risk mitigation.
 **Responsibilities**:
+
 - Audit LLM licensing (e.g., Llama 3.1) for redistribution and commercial use.
 - Review regulatory requirements, contributor agreements, and open-source compliance.
 - Advise on AI ethics, bias mitigation, and intellectual property.
@@ -188,6 +197,7 @@ This document outlines the key roles required to complete the Kimberly project, 
 
 **Description**: Drives product vision, planning, and delivery.
 **Responsibilities**:
+
 - Define roadmap, prioritize backlog, and set KPIs (e.g., latency, retention).
 - Manage sprints, retros, and stakeholder reviews.
 - Gather requirements, write PRDs, and ensure feature alignment with goals.
@@ -206,6 +216,7 @@ This document outlines the key roles required to complete the Kimberly project, 
 
 **Description**: Designs user interfaces and experiences.
 **Responsibilities**:
+
 - Create wireframes, mockups, and prototypes for chat, memory, and agent screens.
 - Ensure accessibility, usability, and privacy transparency in designs.
 - Collaborate on interaction patterns (e.g., context toggles, quota visualizations).
@@ -224,6 +235,7 @@ This document outlines the key roles required to complete the Kimberly project, 
 
 **Description**: Develops and manages the brand identity for Kimberly.
 **Responsibilities**:
+
 - Define brand colors, typography, logo, and visual elements (e.g., purple-centric palette for AI/tech feel).
 - Create branding guidelines and ensure consistent application across platforms (web, mobile, voice).
 - Develop taglines, messaging, and tone of voice (e.g., conversational, intelligent, and approachable).
@@ -244,6 +256,7 @@ This document outlines the key roles required to complete the Kimberly project, 
 
 **Description**: Handles machine learning models and AI integrations.
 **Responsibilities**:
+
 - Benchmark and host LLMs (e.g., Llama 3.1), manage embeddings and vector search.
 - Optimize model performance, latency, and resource usage.
 - Implement learning algorithms, bias checks, and model updates.
@@ -262,6 +275,7 @@ This document outlines the key roles required to complete the Kimberly project, 
 
 **Description**: Manages API design, documentation, and integration.
 **Responsibilities**:
+
 - Maintain OpenAPI specs, validate schemas, and ensure API consistency.
 - Implement RESTful endpoints, OAuth, and third-party integrations.
 - Enforce API contracts, versioning, and SDK generation.
@@ -280,6 +294,7 @@ This document outlines the key roles required to complete the Kimberly project, 
 
 **Description**: Creates and maintains project documentation.
 **Responsibilities**:
+
 - Write READMEs, runbooks, onboarding guides, and API docs.
 - Maintain changelogs, decision records (ADRs), and project boards.
 - Ensure docs are up-to-date, accessible, and include examples.

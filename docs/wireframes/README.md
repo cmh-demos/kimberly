@@ -13,24 +13,30 @@ Files added:
 
 How to view
 -----------
+
 Open the files in a browser or your editor preview pane. The SVGs are intentionally simple to be used as conversation starters for the next design steps.
 
 Notes / next steps
 ------------------
+
 - Annotated flows for each screen (short text annotations) — included below.
 - Create hi-fidelity mockups for approved layouts (Figma or static HTML/CSS).
 - Add accessibility checks and detailed copy for microcopy/confirmations.
 
 Annotations
 -----------
+
 Chat screen notes
+
 - Composer should include an explicit "Save to memory" control and show the last meditation run timestamp.
 - Right rail context preview must show 'why' a memory item was included and provide quick remove/protect controls.
 
 Memory Manager notes
+
 - Show a visual quota bar with clear thresholds and actions for when limits are approached/exceeded.
 - Memory detail must include audit history and consent flags for sensitive items.
 
 Agents Dashboard notes
+
 - Agents need a clear sandbox toggle and an explicit summary of memory reads/writes before the final commit.
 - Run history should be available with re-run or revert actions for admin/power-users.
