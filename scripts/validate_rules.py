@@ -3,7 +3,6 @@
 Validate the copilot_triage_rules.yml file against its embedded JSON schema.
 """
 import argparse
-import json
 import sys
 
 import jsonschema

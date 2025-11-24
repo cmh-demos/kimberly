@@ -64,8 +64,12 @@ class MemoryScorer:
         elif "thumbs_down" in feedback:
             emotion = 0.2
         elif "rating:" in feedback:
-            rating = int(feedback.split(":")[1])
-            emotion = rating / 5.0
+            try:
+                rating_str = feedback.split(":")[1]
+                rating = int(rating_str)
+                emotion = rating / 5.0
+            except (ValueError, IndexError):
+                emotion = 0.5
         else:
             emotion = 0.5
 
