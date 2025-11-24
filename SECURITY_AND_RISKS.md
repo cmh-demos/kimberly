@@ -306,7 +306,7 @@ Enforce "free-mode": Block paid API usage in CI with grep checks.
 - Add `.env` to `.gitignore` (update existing file).
 - Example `.env` (template in repo as `.env.example`):
 
-  ```bash
+  ```env
   HUGGINGFACE_TOKEN=your_token_here
   DATABASE_URL=sqlite:///kimberly.db
   ```

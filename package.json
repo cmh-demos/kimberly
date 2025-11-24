@@ -203,8 +203,8 @@
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
-    "lint:md": "markdownlint \"**/*.md\" --ignore node_modules",
-    "lint:md:fix": "markdownlint \"**/*.md\" --ignore node_modules --fix",
+    "lint:md": "markdownlint \"**/*.md\"",
+    "lint:md:fix": "markdownlint \"**/*.md\" --fix",
     "test": "node ./out/test/runTest.js"
   },
   "devDependencies": {

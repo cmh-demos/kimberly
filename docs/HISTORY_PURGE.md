@@ -20,13 +20,17 @@ Recommended steps for collaborators
 1. Save any local changes you haven't published (e.g., create patches or branches).
 2. The easiest way to avoid issues is to re-clone the repository:
 
-   git clone <https://github.com/cmh-demos/kimberly.git>
+   ```bash
+   git clone https://github.com/cmh-demos/kimberly.git
+   ```
 
    or, if you must keep an existing clone, reset safely:
 
+   ```bash
    git fetch origin
    git checkout <branch-you-want>
    git reset --hard origin/<branch-you-want>
+   ```
 
 3. For local branches with commits you want to keep, create a new branch and rebase or cherry-pick them onto the updated tips.
 
@@ -55,12 +59,16 @@ Recommended steps for collaborators
 
 1. Re-clone the repository or reset your local branches:
 
-   git clone <https://github.com/cmh-demos/kimberly.git>
+   ```bash
+   git clone https://github.com/cmh-demos/kimberly.git
+   ```
 
    or
 
+   ```bash
    git fetch origin
    git checkout <branch-you-want>
    git reset --hard origin/<branch-you-want>
+   ```
 
 2. If you have local work to keep, create patches or a temporary branch and rebase/cherry-pick onto the new tips.
