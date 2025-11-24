@@ -127,6 +127,7 @@ def fetch_related_docs(
             for item in items[:3]:  # limit to 3
                 references.append(item.get("html_url", ""))
     except Exception:
+        # Placeholder implementation: silently ignore API errors
         pass
     return references
 
@@ -614,22 +615,17 @@ def main() -> int:
                         ):
                             # respect grace_period_hours: if recently modified by a human, skip
                             # (not implemented full recent human action detection here)
-                            if dry_run:
-                                print(
-                                    "[dry-run] would add Backlog to keep pair with Triaged"
-                                )
-                            else:
-                                post_label(owner, repo, number, "Backlog", gh_token)
-                                post_comment(
-                                    owner,
-                                    repo,
-                                    number,
-                                    rules.get("bot_comment_templates", {}).get(
-                                        "backlog_added_notice", "Added to backlog"
-                                    ),
-                                    gh_token,
-                                )
-                                changed_fields.append("Backlog")
+                            post_label(owner, repo, number, "Backlog", gh_token)
+                            post_comment(
+                                owner,
+                                repo,
+                                number,
+                                rules.get("bot_comment_templates", {}).get(
+                                    "backlog_added_notice", "Added to backlog"
+                                ),
+                                gh_token,
+                            )
+                            changed_fields.append("Backlog")
 
                         # When Backlog is present and Triaged missing -> add Triaged
                         if (
@@ -637,22 +633,17 @@ def main() -> int:
                             and "Triaged" not in latest_labels
                             and not (set(latest_labels) & set(skip_labels))
                         ):
-                            if dry_run:
-                                print(
-                                    "[dry-run] would add Triaged to keep pair with Backlog"
-                                )
-                            else:
-                                post_label(owner, repo, number, "Triaged", gh_token)
-                                post_comment(
-                                    owner,
-                                    repo,
-                                    number,
-                                    rules.get("bot_comment_templates", {}).get(
-                                        "label_added", "Added missing Triaged"
-                                    ),
-                                    gh_token,
-                                )
-                                changed_fields.append("Triaged")
+                            post_label(owner, repo, number, "Triaged", gh_token)
+                            post_comment(
+                                owner,
+                                repo,
+                                number,
+                                rules.get("bot_comment_templates", {}).get(
+                                    "label_added", "Added missing Triaged"
+                                ),
+                                gh_token,
+                            )
+                            changed_fields.append("Triaged")
 
                 # triaged_if: deterministic triage completion
                 triaged_if = rules.get("triaged_if") or []
@@ -686,18 +677,15 @@ def main() -> int:
                 if triage_complete:
                     # remove 'Needs Triage' and ensure Triaged/Backlog present
                     if "Needs Triage" in latest_labels:
-                        if dry_run:
-                            print("[dry-run] would remove label Needs Triage")
-                        else:
-                            # remove label via issues API
-                            requests.delete(
-                                f"https://api.github.com/repos/{owner}/{repo}/issues/{number}/labels/Needs%20Triage",
-                                headers={
-                                    "Authorization": f"Bearer {gh_token}",
-                                    "Accept": "application/vnd.github+json",
-                                },
-                            )
-                            changed_fields.append("Needs Triage")
+                        # remove label via issues API
+                        requests.delete(
+                            f"https://api.github.com/repos/{owner}/{repo}/issues/{number}/labels/Needs%20Triage",
+                            headers={
+                                "Authorization": f"Bearer {gh_token}",
+                                "Accept": "application/vnd.github+json",
+                            },
+                        )
+                        changed_fields.append("Needs Triage")
 
             except Exception as e:
                 print(

@@ -1,6 +1,4 @@
-import json
 import os
-import tempfile
 import unittest
 from unittest.mock import mock_open, patch
 
@@ -168,7 +166,7 @@ class TestSmokeRunner(unittest.TestCase):
     )
     @patch("scripts.triage_runner.github_search_issues")
     @patch("builtins.open", new_callable=mock_open)
-    @patch("json.dump")
+    @patch("scripts.triage_runner.json.dump")
     def test_main_dry_run_with_token(self, mock_dump, mock_file, mock_search):
         mock_search.return_value = [
             {"number": 1, "title": "Test", "body": "body", "labels": []}
@@ -189,7 +187,7 @@ class TestSmokeRunner(unittest.TestCase):
     @patch("scripts.triage_runner.post_comment")
     @patch("scripts.triage_runner.assign_triage_owner")
     @patch("builtins.open", new_callable=mock_open)
-    @patch("json.dump")
+    @patch("scripts.triage_runner.json.dump")
     def test_main_with_issue_number(
         self,
         mock_dump,
@@ -248,7 +246,7 @@ class TestSmokeRunner(unittest.TestCase):
     @patch("scripts.triage_runner.post_comment")
     @patch("scripts.triage_runner.assign_triage_owner")
     @patch("builtins.open", new_callable=mock_open)
-    @patch("json.dump")
+    @patch("scripts.triage_runner.json.dump")
     def test_main_with_low_severity(
         self, mock_dump, mock_file, mock_assign, mock_comment, mock_label, mock_search
     ):
@@ -266,7 +264,7 @@ class TestSmokeRunner(unittest.TestCase):
     @patch("scripts.triage_runner.post_comment")
     @patch("scripts.triage_runner.assign_triage_owner")
     @patch("builtins.open", new_callable=mock_open)
-    @patch("json.dump")
+    @patch("scripts.triage_runner.json.dump")
     def test_main_with_typo_severity(
         self, mock_dump, mock_file, mock_assign, mock_comment, mock_label, mock_search
     ):
@@ -284,7 +282,7 @@ class TestSmokeRunner(unittest.TestCase):
     @patch("scripts.triage_runner.post_comment")
     @patch("scripts.triage_runner.assign_triage_owner")
     @patch("builtins.open", new_callable=mock_open)
-    @patch("json.dump")
+    @patch("scripts.triage_runner.json.dump")
     @patch("scripts.triage_runner.requests.patch")
     def test_main_with_title_sanitization(
         self,
@@ -315,7 +313,7 @@ class TestSmokeRunner(unittest.TestCase):
     @patch("scripts.triage_runner.post_comment")
     @patch("scripts.triage_runner.assign_triage_owner")
     @patch("builtins.open", new_callable=mock_open)
-    @patch("json.dump")
+    @patch("scripts.triage_runner.json.dump")
     def test_main_with_missing_fields(
         self, mock_dump, mock_file, mock_assign, mock_comment, mock_label, mock_search
     ):
@@ -333,7 +331,7 @@ class TestSmokeRunner(unittest.TestCase):
     @patch("scripts.triage_runner.post_comment")
     @patch("scripts.triage_runner.assign_triage_owner")
     @patch("builtins.open", new_callable=mock_open)
-    @patch("json.dump")
+    @patch("scripts.triage_runner.json.dump")
     def test_main_backlog_added(
         self, mock_dump, mock_file, mock_assign, mock_comment, mock_label, mock_search
     ):
@@ -352,7 +350,7 @@ class TestSmokeRunner(unittest.TestCase):
     @patch("scripts.triage_runner.post_comment")
     @patch("scripts.triage_runner.assign_triage_owner")
     @patch("builtins.open", new_callable=mock_open)
-    @patch("json.dump")
+    @patch("scripts.triage_runner.json.dump")
     def test_main_with_critical_issue(
         self, mock_dump, mock_file, mock_assign, mock_comment, mock_label, mock_search
     ):
@@ -370,7 +368,7 @@ class TestSmokeRunner(unittest.TestCase):
     @patch("scripts.triage_runner.post_comment")
     @patch("scripts.triage_runner.assign_triage_owner")
     @patch("builtins.open", new_callable=mock_open)
-    @patch("json.dump")
+    @patch("scripts.triage_runner.json.dump")
     @patch("scripts.triage_runner.requests.delete")
     def test_main_with_complete_triage(
         self,
@@ -402,7 +400,7 @@ class TestSmokeRunner(unittest.TestCase):
     @patch("scripts.triage_runner.post_comment")
     @patch("scripts.triage_runner.assign_triage_owner")
     @patch("builtins.open", new_callable=mock_open)
-    @patch("json.dump")
+    @patch("scripts.triage_runner.json.dump")
     @patch("scripts.triage_runner.requests.get")
     def test_main_with_pair_enforcement_add_backlog(
         self,
@@ -437,7 +435,7 @@ class TestSmokeRunner(unittest.TestCase):
     @patch("scripts.triage_runner.post_comment")
     @patch("scripts.triage_runner.assign_triage_owner")
     @patch("builtins.open", new_callable=mock_open)
-    @patch("json.dump")
+    @patch("scripts.triage_runner.json.dump")
     @patch("scripts.triage_runner.requests.get")
     def test_main_with_backlog_gate_blocked(
         self,
@@ -472,7 +470,7 @@ class TestSmokeRunner(unittest.TestCase):
     @patch("scripts.triage_runner.post_comment")
     @patch("scripts.triage_runner.assign_triage_owner")
     @patch("builtins.open", new_callable=mock_open)
-    @patch("json.dump")
+    @patch("scripts.triage_runner.json.dump")
     def test_main_live_action_failure(
         self, mock_dump, mock_file, mock_assign, mock_comment, mock_label, mock_search
     ):

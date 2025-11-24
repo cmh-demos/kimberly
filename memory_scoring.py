@@ -6,7 +6,7 @@ for memory retention and pruning.
 """
 
 import math
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from typing import Any, Dict, List
 
 # Scoring weights (configurable)
