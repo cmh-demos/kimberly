@@ -23,3 +23,39 @@ secrets.json
 # Logs and sensitive files
 *.log
 misc/copilot_tracking.json  # If sensitive, otherwise remove
+
+# Python bytecode and test caches
+# ignore compiled Python files
+*.py[cod]
+*$py.class
+
+# ignore __pycache__ directories at any depth
+**/__pycache__/
+
+# ignore pytest cache directories
+.pytest_cache/
+**/.pytest_cache/
+
+# Common build/test outputs and tool caches (safe to ignore)
+# packaging/build
+build/
+dist/
+pip-wheel-metadata/
+*.egg-info/
+
+# coverage/test reports
+.coverage
+coverage.xml
+htmlcov/
+
+# typecheck/lint/tool caches
+.mypy_cache/
+.tox/
+.cache/
+.ruff_cache/
+
+# Jupyter/Reproducible notebook artifacts
+.ipynb_checkpoints/
+
+# macOS and editor cruft
+.DS_Store
