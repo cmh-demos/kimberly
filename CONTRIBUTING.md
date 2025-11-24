@@ -58,11 +58,16 @@ Testing strategy, CI requirements, unit/integration/e2e matrices.
 
 ## Definition of Done (DoD)
 
-This document defines the criteria that must be met for an issue (feature, bug fix, or task) to be considered "done" in the Kimberly project. The DoD ensures quality, completeness, and alignment with project standards before marking issues as completed.
+This document defines the criteria that must be met for an issue (feature, bug
+fix, or task) to be considered "done" in the Kimberly project. The DoD ensures
+quality, completeness, and alignment with project standards before marking
+issues as completed.
 
 ### Purpose
 
-The Definition of Done provides a clear checklist to prevent incomplete work from being accepted. It promotes consistency, reduces rework, and ensures that all aspects of quality are addressed.
+The Definition of Done provides a clear checklist to prevent incomplete work
+from being accepted. It promotes consistency, reduces rework, and ensures that
+all aspects of quality are addressed.
 
 ### Criteria
 
