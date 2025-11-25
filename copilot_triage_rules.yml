@@ -737,10 +737,9 @@ rules:
         "dry_run": false,
         "execution_branch": "main",
         "title_sanitized": true,
-        "original_title": "[Top Priority] README placeholders: add dev
-          quickstart + runnable example (why: onboarding friction).",
+        "original_title": "[Top Priority] README placeholders",
         "changed_fields": ["severity","triage_owner","labels"],
-        "notes": "Confirmed reproducible, linked doc: docs/memory-model.md",
+        "notes": "Confirmed reproducible",
         "references": ["docs/memory-model.md","PR#456"]
       }
 
@@ -1096,8 +1095,9 @@ rules:
     linters: "yamllint for YAML, jsonschema for JSON schema validation"
     how_to_test: |-
       1. Set up venv:
-         python -m venv triage_env && source triage_env/bin/activate.
-      2. Install deps: pip install -r requirements.txt.
-      3. Run tests: pytest tests/.
-      4. Validate schema: jsonschema -i copilot_triage_rules.yml
-         json_schema
+         python -m venv triage_env
+         source triage_env/bin/activate
+      2. Install deps: pip install -r requirements.txt
+      3. Run tests: pytest tests/
+      4. Validate schema:
+         jsonschema -i copilot_triage_rules.yml json_schema
