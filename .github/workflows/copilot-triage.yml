@@ -8,6 +8,7 @@ on:
 permissions:
   contents: read
   issues: write
+  pull-requests: write
 
 env:
   RULES_PATH: copilot_triage_rules.yml
