@@ -1,14 +1,15 @@
+---
 name: Copilot triage (manual)
 
 on:
-  workflow_dispatch: {}
+  workflow_dispatch
 
 # Minimal permissions — only what we need to read config and (optionally)
 # modify issues when running on main.
 permissions:
-  contents: read
-  issues: write
-  pull-requests: write
+  contents: "read"
+  issues: "write"
+  pull-requests: "write"
 
 env:
   RULES_PATH: copilot_triage_rules.yml
@@ -26,7 +27,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
       - name: Determine dry-run
         id: determine
