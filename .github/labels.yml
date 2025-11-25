@@ -17,9 +17,9 @@ labels:
     description: For maintenance tasks and non-feature work
     color: fbca04  # Yellow
 
-  - name: feature-request
-    description: For new feature proposals requiring product approval
-    color: 0052cc  # Blue
+  - name: documentation
+    description: Improvements or additions to documentation
+    color: 0075ca  # Blue-gray
 
   # Status and Workflow
   - name: needs-triage
@@ -89,3 +89,19 @@ labels:
   - name: feature
     description: General feature-related work
     color: a2eeef  # Light blue
+
+  - name: P0
+    description: Critical priority (highest urgency)
+    color: b60205  # Dark red
+
+  - name: P1
+    description: High priority
+    color: d73a49  # Red
+
+  - name: P2
+    description: Medium priority
+    color: fbca04  # Yellow
+
+  - name: P3
+    description: Low priority
+    color: fef2c0  # Light yellow

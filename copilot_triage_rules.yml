@@ -1007,7 +1007,7 @@ rules:
           issue2: "Application crashes when starting"
           expected: true
       negative:
-        - issue1: "Feature request for dark mode"
+        - issue1: "Enhancement request for dark mode"
           issue2: "Bug: login fails"
           expected: false
     execution_policy:
@@ -1024,7 +1024,7 @@ rules:
       - path: ".github/ISSUE_TEMPLATE/bug_report.md"
         purpose: "bug reports — include reproduction, logs, and screenshots"
       - path: ".github/ISSUE_TEMPLATE/feature_request.md"
-        purpose: "feature requests — include goals and acceptance criteria"
+        purpose: "enhancement requests — include goals and acceptance criteria"
       - path: ".github/ISSUE_TEMPLATE/task.md"
         purpose: "small tasks and chores"
 
@@ -1046,8 +1046,8 @@ rules:
     - name: "dry-run"
       definition: "Triage run is simulated on non-protected branches; no real changes made to issues."
       gating_criteria: "Added automatically on branches not in protected_branches (e.g., not main); removed on real runs."
-    - name: "feature-request"
-      definition: "Request for new features or enhancements, subject to product approval gating."
+    - name: "enhancement"
+      definition: "Request for new features or enhancements."
       gating_criteria: "User-applied or detected; no auto-add."
     - name: "manual-triage"
       definition: "Human override to skip or modify automated triage for this issue."

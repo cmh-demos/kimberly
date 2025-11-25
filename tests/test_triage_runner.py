@@ -451,13 +451,13 @@ class TestSmokeRunner(unittest.TestCase):
                 "number": 1,
                 "title": "Test",
                 "body": "body",
-                "labels": [{"name": "feature-request"}],
+                "labels": [{"name": "enhancement"}],
             }
         ]
         # Mock label refresh
         mock_resp = mock_get.return_value
         mock_resp.ok = True
-        mock_resp.json.return_value = {"labels": [{"name": "feature-request"}]}
+        mock_resp.json.return_value = {"labels": [{"name": "enhancement"}]}
         rv = tr.main()
         self.assertEqual(rv, 0)
 
