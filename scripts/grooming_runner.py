@@ -120,7 +120,12 @@ def retry_on_failure(max_retries: int = 3, backoff_factor: float = 2.0):
                     else:
                         logger.error(f"All {max_retries + 1} attempts failed.")
                         raise last_exception
-            raise last_exception
+            if last_exception is not None:
+                raise last_exception
+            raise RuntimeError(
+                "Function failed after retries, "
+                "but no exception was captured."
+            )
 
         return wrapper
 
@@ -462,13 +467,14 @@ def process_issue(
                 updated_at_str.replace("Z", "+00:00")
             )
             now = datetime.now(timezone.utc)
-            if (now - updated_at).days > stale_days and any(
+            days_since_update = (now - updated_at).days
+            if days_since_update > stale_days and any(
                 label in labels for label in stale_labels
             ):
                 actions.append(f"{stale_action} stale issue")
-                audit_entry[
-                    "notes"
-                ] += f"stale detected ({(now - updated_at).days} days); "
+                audit_entry["notes"] += (
+                    f"stale detected ({days_since_update} days); "
+                )
                 if not dry_run:
                     try:
                         if stale_action == "close":
@@ -510,7 +516,8 @@ def process_issue(
                 logger.error(f"Failed to update issue #{number}: {e}")
         else:
             changed_fields.append(
-                f"would assign to {assignee_for_needs_info} and remove Triaged"
+                f"would assign to {assignee_for_needs_info} "
+                f"and remove Triaged"
             )
 
     # Check for Triaged and Backlog
@@ -569,9 +576,9 @@ def process_issue(
                 )
                 if target_column_id:
                     actions.append(f"move to {to_column} column")
-                    audit_entry[
-                        "notes"
-                    ] += f"workflow transition to {to_column}; "
+                    audit_entry["notes"] += (
+                        f"workflow transition to {to_column}; "
+                    )
                     if not dry_run:
                         try:
                             move_issue_to_column(
@@ -656,7 +663,9 @@ def main() -> int:
     stale_labels = stale_handling.get("labels_to_check", [])
     stale_days = stale_handling.get("days_threshold", 14)
     stale_action = stale_handling.get("action", "close")
-    stale_comment = stale_handling.get("close_comment", "Closing stale issue.")
+    stale_comment = stale_handling.get(
+        "close_comment", "Closing stale issue."
+    )
 
     # Get workflow automation settings
     workflow_automation = grooming_settings.get("workflow_automation", {})
@@ -665,8 +674,6 @@ def main() -> int:
 
     # Get project columns
     project_columns = grooming_settings.get("project_columns", {})
-
-    gh_token = os.environ.get("GITHUB_TOKEN")
 
     dry_run_env = os.environ.get("DRY_RUN", "").lower()
     dry_run = dry_run_env in ("1", "true", "yes")
@@ -677,7 +684,8 @@ def main() -> int:
     # Validate token for security
     if gh_token and not validate_github_token(gh_token):
         logger.error(
-            "Invalid GitHub token format. Ensure it's a valid GitHub token."
+            "Invalid GitHub token format. "
+            "Ensure it's a valid GitHub token."
         )
         return 1
 
