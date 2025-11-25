@@ -38,7 +38,9 @@ from typing import Any, Dict, List, Optional
 
 
 # Set up logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 
@@ -46,37 +48,50 @@ def validate_github_token(token: str | None) -> bool:
     """Validate GitHub token format (basic check for gh_ or github_ prefix)."""
     if not token:
         return False
-    return token.startswith(("gh_", "github_")) or len(token) == 40  # Classic token length
+    return (
+        token.startswith(("gh_", "github_")) or len(token) == 40
+    )  # Classic token length
 
 
 def sanitize_log_entry(entry: dict) -> dict:
     """Remove or redact sensitive information from log entries."""
     sanitized = entry.copy()
     # Redact any potential PII in notes or titles (basic check)
-    if "notes" in sanitized and any(word in sanitized["notes"].lower() for word in ["email", "password", "token"]):
+    if "notes" in sanitized and any(
+        word in sanitized["notes"].lower() for word in ["email", "password", "token"]
+    ):
         sanitized["notes"] = "[REDACTED: Potential PII]"
     return sanitized
 
 
 def retry_on_failure(max_retries: int = 3, backoff_factor: float = 2.0):
     """Decorator to retry a function on failure with exponential backoff."""
+
     def decorator(func):
         def wrapper(*args, **kwargs):
             last_exception = None
             for attempt in range(max_retries + 1):
                 try:
                     return func(*args, **kwargs)
-                except (requests.ConnectionError, requests.Timeout, requests.HTTPError) as e:
+                except (
+                    requests.ConnectionError,
+                    requests.Timeout,
+                    requests.HTTPError,
+                ) as e:
                     last_exception = e
                     if attempt < max_retries:
-                        wait_time = backoff_factor ** attempt
-                        logger.warning(f"Attempt {attempt + 1} failed: {e}. Retrying in {wait_time:.1f}s...")
+                        wait_time = backoff_factor**attempt
+                        logger.warning(
+                            f"Attempt {attempt + 1} failed: {e}. Retrying in {wait_time:.1f}s..."
+                        )
                         time.sleep(wait_time)
                     else:
                         logger.error(f"All {max_retries + 1} attempts failed.")
                         raise last_exception
             raise last_exception
+
         return wrapper
+
     return decorator
 
 
@@ -90,15 +105,20 @@ def close_issue(owner: str, repo: str, issue_number: int, token: str) -> None:
     data = {"state": "closed"}
     resp = requests.patch(url, headers=headers, json=data)
     resp.raise_for_status()
-    
+
     # Check rate limit
     remaining = int(resp.headers.get("X-RateLimit-Remaining", 0))
     if remaining < 5:
-        print(f"Warning: Low rate limit remaining ({remaining}). Consider pausing.", file=sys.stderr)
+        print(
+            f"Warning: Low rate limit remaining ({remaining}). Consider pausing.",
+            file=sys.stderr,
+        )
 
 
 @retry_on_failure()
-def post_comment(owner: str, repo: str, issue_number: int, comment: str, token: str) -> None:
+def post_comment(
+    owner: str, repo: str, issue_number: int, comment: str, token: str
+) -> None:
     url = f"https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}/comments"
     headers = {
         "Accept": "application/vnd.github+json",
@@ -107,11 +127,16 @@ def post_comment(owner: str, repo: str, issue_number: int, comment: str, token: 
     data = {"body": comment}
     resp = requests.post(url, headers=headers, json=data)
     resp.raise_for_status()
-    
+
     # Check rate limit
     remaining = int(resp.headers.get("X-RateLimit-Remaining", 0))
     if remaining < 5:
-        print(f"Warning: Low rate limit remaining ({remaining}). Consider pausing.", file=sys.stderr)
+        print(
+            f"Warning: Low rate limit remaining ({remaining}). Consider pausing.",
+            file=sys.stderr,
+        )
+
+
 def load_rules(path: str) -> dict | None:
     """Load YAML rules from file path. Returns None if file not found."""
     try:
@@ -144,21 +169,21 @@ def github_search_issues(
 
         resp = requests.get(url, headers=headers, params=params)
         resp.raise_for_status()
-        
+
         # Check rate limit
         remaining = int(resp.headers.get("X-RateLimit-Remaining", 0))
         if remaining < 5:
             logger.warning(f"Low rate limit remaining ({remaining}). Consider pausing.")
-        
+
         data = resp.json()
         items = data.get("items", [])
         all_items.extend(items)
-        
+
         total_count = data.get("total_count", 0)
         if len(all_items) >= total_count or len(items) < per_page:
             break
         page += 1
-    
+
     return all_items
 
 
@@ -175,12 +200,15 @@ def github_get_issue(
     if resp.status_code == 404:
         return None
     resp.raise_for_status()
-    
+
     # Check rate limit
     remaining = int(resp.headers.get("X-RateLimit-Remaining", 0))
     if remaining < 5:
-        print(f"Warning: Low rate limit remaining ({remaining}). Consider pausing.", file=sys.stderr)
-    
+        print(
+            f"Warning: Low rate limit remaining ({remaining}). Consider pausing.",
+            file=sys.stderr,
+        )
+
     return resp.json()
 
 
@@ -195,11 +223,14 @@ def assign_issue(
     }
     resp = requests.patch(url, headers=headers, json={"assignees": [assignee]})
     resp.raise_for_status()
-    
+
     # Check rate limit
     remaining = int(resp.headers.get("X-RateLimit-Remaining", 0))
     if remaining < 5:
-        print(f"Warning: Low rate limit remaining ({remaining}). Consider pausing.", file=sys.stderr)
+        print(
+            f"Warning: Low rate limit remaining ({remaining}). Consider pausing.",
+            file=sys.stderr,
+        )
 
 
 @retry_on_failure()
@@ -214,11 +245,14 @@ def remove_label(
     }
     resp = requests.delete(url, headers=headers)
     resp.raise_for_status()
-    
+
     # Check rate limit
     remaining = int(resp.headers.get("X-RateLimit-Remaining", 0))
     if remaining < 5:
-        print(f"Warning: Low rate limit remaining ({remaining}). Consider pausing.", file=sys.stderr)
+        print(
+            f"Warning: Low rate limit remaining ({remaining}). Consider pausing.",
+            file=sys.stderr,
+        )
 
 
 @retry_on_failure()
@@ -232,12 +266,15 @@ def get_project_columns(
     }
     resp = requests.get(url, headers=headers)
     resp.raise_for_status()
-    
+
     # Check rate limit
     remaining = int(resp.headers.get("X-RateLimit-Remaining", 0))
     if remaining < 5:
-        print(f"Warning: Low rate limit remaining ({remaining}). Consider pausing.", file=sys.stderr)
-    
+        print(
+            f"Warning: Low rate limit remaining ({remaining}). Consider pausing.",
+            file=sys.stderr,
+        )
+
     return resp.json()
 
 
@@ -250,12 +287,15 @@ def get_column_cards(column_id: int, token: str) -> List[dict]:
     }
     resp = requests.get(url, headers=headers)
     resp.raise_for_status()
-    
+
     # Check rate limit
     remaining = int(resp.headers.get("X-RateLimit-Remaining", 0))
     if remaining < 5:
-        print(f"Warning: Low rate limit remaining ({remaining}). Consider pausing.", file=sys.stderr)
-    
+        print(
+            f"Warning: Low rate limit remaining ({remaining}). Consider pausing.",
+            file=sys.stderr,
+        )
+
     return resp.json()
 
 
@@ -276,11 +316,14 @@ def move_card(card_id: int, to_column_id: int, token: str) -> None:
     data = {"card_id": card_id, "position": "top"}
     resp = requests.post(url, headers=headers, json=data)
     resp.raise_for_status()
-    
+
     # Check rate limit
     remaining = int(resp.headers.get("X-RateLimit-Remaining", 0))
     if remaining < 5:
-        print(f"Warning: Low rate limit remaining ({remaining}). Consider pausing.", file=sys.stderr)
+        print(
+            f"Warning: Low rate limit remaining ({remaining}). Consider pausing.",
+            file=sys.stderr,
+        )
 
 
 def move_issue_to_column(
@@ -403,11 +446,15 @@ def process_issue(
     if stale_enabled:
         updated_at_str = issue.get("updated_at")
         if updated_at_str:
-            updated_at = datetime.fromisoformat(updated_at_str.replace('Z', '+00:00'))
+            updated_at = datetime.fromisoformat(updated_at_str.replace("Z", "+00:00"))
             now = datetime.now(timezone.utc)
-            if (now - updated_at).days > stale_days and any(label in labels for label in stale_labels):
+            if (now - updated_at).days > stale_days and any(
+                label in labels for label in stale_labels
+            ):
                 actions.append(f"{stale_action} stale issue")
-                audit_entry["notes"] += f"stale detected ({(now - updated_at).days} days); "
+                audit_entry[
+                    "notes"
+                ] += f"stale detected ({(now - updated_at).days} days); "
                 if not dry_run:
                     try:
                         if stale_action == "close":
@@ -425,7 +472,9 @@ def process_issue(
 
     # Check for workflow transitions
     if workflow_enabled and project_enabled and project_id:
-        assignee = issue.get("assignee", {}).get("login") if issue.get("assignee") else None
+        assignee = (
+            issue.get("assignee", {}).get("login") if issue.get("assignee") else None
+        )
         for transition in transitions:
             condition = transition.get("condition", {})
             required_labels = condition.get("labels", [])
@@ -442,18 +491,28 @@ def process_issue(
             has_no_not_labels = not any(label in labels for label in not_labels)
 
             if has_required_labels and has_assignee and has_no_not_labels:
-                target_column_id = project_columns.get(to_column.lower().replace(" ", "_"))
+                target_column_id = project_columns.get(
+                    to_column.lower().replace(" ", "_")
+                )
                 if target_column_id:
                     actions.append(f"move to {to_column} column")
                     audit_entry["notes"] += f"workflow transition to {to_column}; "
                     if not dry_run:
                         try:
                             move_issue_to_column(
-                                owner, repo, number, issue_url, project_id, target_column_id, gh_token
+                                owner,
+                                repo,
+                                number,
+                                issue_url,
+                                project_id,
+                                target_column_id,
+                                gh_token,
                             )
                             changed_fields.append(f"moved to {to_column} column")
                         except Exception as e:
-                            logger.error(f"Failed to move issue #{number} to {to_column}: {e}")
+                            logger.error(
+                                f"Failed to move issue #{number} to {to_column}: {e}"
+                            )
                     else:
                         changed_fields.append(f"would move to {to_column} column")
                 break  # Only apply the first matching transition
