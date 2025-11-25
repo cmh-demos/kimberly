@@ -19,5 +19,24 @@
     ],
     "notes": "",
     "references": []
+  },
+  {
+    "issue_number": 217,
+    "timestamp": "2025-11-25T04:41:41.541220Z",
+    "event_type": "initial_triage",
+    "triage_owner": "copilot-bot",
+    "severity": "medium",
+    "priority": "p2",
+    "size_estimate": null,
+    "pii_detected": false,
+    "redacted_fields": [],
+    "redaction_actions": [],
+    "dry_run": true,
+    "execution_branch": "unknown",
+    "title_sanitized": false,
+    "original_title": null,
+    "changed_fields": [],
+    "notes": "",
+    "references": []
   }
 ]

@@ -959,6 +959,20 @@ rules:
     # remove labels/add labels/move cards
     # must check execution_policy before performing stateful changes.
 
+  # project management — configure project board integration
+  - project_management:
+    description: |-
+      Configure GitHub Projects integration for automatic card movement
+      during triage. When issues are triaged and moved to backlog,
+      also move the associated project card to the Backlog column.
+    enabled: true
+    project_id: 1234567  # Replace with actual project ID
+    columns:
+      Backlog: 8765432  # Replace with actual column ID for Backlog
+    # Note: Project IDs and column IDs can be found via GitHub API:
+    # GET /repos/{owner}/{repo}/projects
+    # GET /projects/{project_id}/columns
+
   # guidance for bots to check the execution policy before state-changing ops
   - execution_policy_checks:
     description: |
