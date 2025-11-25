@@ -18,7 +18,7 @@ import json
 import os
 import re
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from difflib import SequenceMatcher
 from typing import Any, Dict, List, Optional
 
@@ -292,7 +292,7 @@ def main() -> int:
         changed_fields: List[str] = []
         audit_entry: Dict[str, Any] = {
             "issue_number": number,
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
             "event_type": "initial_triage",
             "triage_owner": default_owner,
             "severity": None,
@@ -619,6 +619,10 @@ def main() -> int:
                             ]
                         else:
                             latest_labels = labels_list
+
+                        if "Triaged" in latest_labels:
+                            print(f"Issue #{number} already triaged, skipping")
+                            continue
 
                         # When Triaged is present and Backlog missing -> add Backlog
                         if (
