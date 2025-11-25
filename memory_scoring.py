@@ -83,7 +83,7 @@ class MemoryScorer:
         recency = math.exp(-days_since_seen / 30.0)  # Decay over 30 days
         frequency = min(
             days_since_created / 7.0, 1.0
-        )  # Increase with age (up to 1 week)
+        )  # Increases with age, reaches max at 1 week and remains constant
         recency_freq = (recency + frequency) / 2.0
 
         return {
