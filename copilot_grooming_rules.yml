@@ -25,3 +25,60 @@ grooming_bot_settings:
     days_threshold: 14
     action: "close"  # or "comment", "label"
     close_comment: "This issue has been inactive for 14 days with needs-info label. Closing for now. Please reopen if you have more information."
+
+  # Workflow automation settings
+  workflow_automation:
+    enabled: true
+    description: >
+      Automate issue state transitions across the project board based on labels, assignees, and conditions.
+      Transitions follow the workflow: Backlog -> Ready -> In progress -> In review -> Done
+    transitions:
+      - name: "backlog_to_ready"
+        description: "Move from Backlog to Ready when assigned to copilot-bot"
+        from_column: "Backlog"
+        to_column: "Ready"
+        condition:
+          labels: ["Backlog"]
+          assignee: "copilot-bot"
+          not_labels: ["ready", "in-progress", "in-review", "done"]
+
+      - name: "ready_to_in_progress"
+        description: "Move from Ready to In progress when PR is created (detected by in-progress label or assignee action)"
+        from_column: "Ready"
+        to_column: "In progress"
+        condition:
+          labels: ["ready", "in-progress"]
+          assignee: "copilot-bot"
+
+      - name: "in_progress_to_in_review"
+        description: "Move to In review when PR is opened for review"
+        from_column: "In progress"
+        to_column: "In review"
+        condition:
+          labels: ["in-progress", "in-review"]
+          assignee: "copilot-bot"
+
+      - name: "in_review_to_in_progress"
+        description: "Kick back to In progress if review finds issues"
+        from_column: "In review"
+        to_column: "In progress"
+        condition:
+          labels: ["in-review", "needs_work"]
+          assignee: "copilot-bot"
+
+      - name: "in_review_to_done"
+        description: "Move to Done when all reviews pass and ready for merge"
+        from_column: "In review"
+        to_column: "Done"
+        condition:
+          labels: ["in-review", "ready"]
+          assignee: "copilot-bot"
+          not_labels: ["needs_work", "blocked"]
+
+  # Project board column IDs (must be configured for the specific project)
+  project_columns:
+    backlog: 12345678  # Replace with actual column ID
+    ready: 87654321
+    in_progress: 11223344
+    in_review: 44332211
+    done: 55667788

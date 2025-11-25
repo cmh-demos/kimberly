@@ -283,13 +283,13 @@ def move_card(card_id: int, to_column_id: int, token: str) -> None:
         print(f"Warning: Low rate limit remaining ({remaining}). Consider pausing.", file=sys.stderr)
 
 
-def move_issue_to_backlog_column(
+def move_issue_to_column(
     owner: str,
     repo: str,
     issue_number: int,
     issue_url: str,
     project_id: int,
-    backlog_column_id: int,
+    target_column_id: int,
     token: str,
 ) -> None:
     # Get all columns for the project
@@ -304,8 +304,8 @@ def move_issue_to_backlog_column(
             break
 
     if card:
-        # Move existing card to Backlog column
-        move_card(card["id"], backlog_column_id, token)
+        # Move existing card to target column
+        move_card(card["id"], target_column_id, token)
 
 
 def process_issue(
@@ -327,6 +327,9 @@ def process_issue(
     stale_action: str,
     stale_comment: str,
     audit_event_type: str,
+    workflow_enabled: bool,
+    transitions: list,
+    project_columns: dict,
 ) -> Dict[str, Any]:
     number = issue.get("number")
     title = issue.get("title")
@@ -381,7 +384,7 @@ def process_issue(
         audit_entry["notes"] += "Triaged+Backlog detected; "
         if not dry_run:
             try:
-                move_issue_to_backlog_column(
+                move_issue_to_column(
                     owner,
                     repo,
                     number,
@@ -419,6 +422,41 @@ def process_issue(
                         logger.error(f"Failed to handle stale issue #{number}: {e}")
                 else:
                     changed_fields.append(f"would {stale_action} as stale")
+
+    # Check for workflow transitions
+    if workflow_enabled and project_enabled and project_id:
+        assignee = issue.get("assignee", {}).get("login") if issue.get("assignee") else None
+        for transition in transitions:
+            condition = transition.get("condition", {})
+            required_labels = condition.get("labels", [])
+            required_assignee = condition.get("assignee")
+            not_labels = condition.get("not_labels", [])
+            to_column = transition.get("to_column")
+            from_column = transition.get("from_column")
+
+            # Check if all required labels are present
+            has_required_labels = all(label in labels for label in required_labels)
+            # Check if assignee matches
+            has_assignee = required_assignee is None or assignee == required_assignee
+            # Check if none of the not_labels are present
+            has_no_not_labels = not any(label in labels for label in not_labels)
+
+            if has_required_labels and has_assignee and has_no_not_labels:
+                target_column_id = project_columns.get(to_column.lower().replace(" ", "_"))
+                if target_column_id:
+                    actions.append(f"move to {to_column} column")
+                    audit_entry["notes"] += f"workflow transition to {to_column}; "
+                    if not dry_run:
+                        try:
+                            move_issue_to_column(
+                                owner, repo, number, issue_url, project_id, target_column_id, gh_token
+                            )
+                            changed_fields.append(f"moved to {to_column} column")
+                        except Exception as e:
+                            logger.error(f"Failed to move issue #{number} to {to_column}: {e}")
+                    else:
+                        changed_fields.append(f"would move to {to_column} column")
+                break  # Only apply the first matching transition
 
     audit_entry["event_type"] = audit_event_type
     audit_entry["changed_fields"] = changed_fields
@@ -477,6 +515,18 @@ def main() -> int:
     stale_action = stale_handling.get("action", "close")
     stale_comment = stale_handling.get("close_comment", "Closing stale issue.")
 
+    # Get workflow automation settings
+    workflow_automation = grooming_settings.get("workflow_automation", {})
+    workflow_enabled = workflow_automation.get("enabled", False)
+    transitions = workflow_automation.get("transitions", [])
+
+    # Get project columns
+    project_columns = grooming_settings.get("project_columns", {})
+    ready_column_id = project_columns.get("ready")
+    in_progress_column_id = project_columns.get("in_progress")
+    in_review_column_id = project_columns.get("in_review")
+    done_column_id = project_columns.get("done")
+
     dry_run_env = os.environ.get("DRY_RUN", "").lower()
     dry_run = dry_run_env in ("1", "true", "yes")
 
@@ -533,6 +583,9 @@ def main() -> int:
             stale_action,
             stale_comment,
             audit_event_type,
+            workflow_enabled,
+            transitions,
+            project_columns,
         )
         audit_entries.append(audit_entry)
 

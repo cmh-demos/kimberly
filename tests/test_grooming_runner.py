@@ -156,27 +156,27 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
     @patch("scripts.grooming_runner.get_column_cards")
     @patch("scripts.grooming_runner.find_card_for_issue")
     @patch("scripts.grooming_runner.move_card")
-    def test_move_issue_to_backlog_column(
+    def test_move_issue_to_column(
         self, mock_move, mock_find, mock_cards, mock_columns
     ):
         mock_columns.return_value = [{"id": 1}]
         mock_cards.return_value = [{"id": 1}]
         mock_find.return_value = {"id": 1}
 
-        gr.move_issue_to_backlog_column("owner", "repo", 1, "url", 1, 2, "token")
+        gr.move_issue_to_column("owner", "repo", 1, "url", 1, 2, "token")
         mock_move.assert_called_once_with(1, 2, "token")
 
     @patch("scripts.grooming_runner.get_project_columns")
     @patch("scripts.grooming_runner.get_column_cards")
     @patch("scripts.grooming_runner.find_card_for_issue")
-    def test_move_issue_to_backlog_column_no_card(
+    def test_move_issue_to_column_no_card(
         self, mock_find, mock_cards, mock_columns
     ):
         mock_columns.return_value = [{"id": 1}]
         mock_cards.return_value = []
         mock_find.return_value = None
 
-        gr.move_issue_to_backlog_column("owner", "repo", 1, "url", 1, 2, "token")
+        gr.move_issue_to_column("owner", "repo", 1, "url", 1, 2, "token")
         # Should not call move_card
 
     @patch.dict(
@@ -297,7 +297,7 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
     )
     @patch("scripts.grooming_runner.load_rules")
     @patch("scripts.grooming_runner.github_search_issues")
-    @patch("scripts.grooming_runner.move_issue_to_backlog_column")
+    @patch("scripts.grooming_runner.move_issue_to_column")
     @patch("builtins.open", new_callable=mock_open)
     @patch("json.dump")
     def test_main_move_exception(
@@ -352,7 +352,8 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
         result = gr.process_issue(
             issue, "owner", "repo", "token", False,
             ["needs-info"], "bot", True, True, 1, 2, True,
-            True, ["needs-info"], 14, "close", "Close comment", "grooming"
+            True, ["needs-info"], 14, "close", "Close comment", "grooming",
+            False, [], {}
         )
 
         mock_post.assert_called_once()
@@ -376,7 +377,8 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
         result = gr.process_issue(
             issue, "owner", "repo", "token", False,
             ["needs-info"], "bot", True, True, 1, 2, True,
-            True, ["needs-info"], 14, "comment", "Comment", "grooming"
+            True, ["needs-info"], 14, "comment", "Comment", "grooming",
+            False, [], {}
         )
 
         mock_post.assert_called_once()
@@ -398,7 +400,8 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
         result = gr.process_issue(
             issue, "owner", "repo", "token", False,
             ["needs-info"], "bot", True, True, 1, 2, True,
-            True, ["needs-info"], 14, "close", "Close", "grooming"
+            True, ["needs-info"], 14, "close", "Close", "grooming",
+            False, [], {}
         )
 
         self.assertNotIn("closed as stale", result["changed_fields"])
@@ -538,7 +541,8 @@ class TestAdditionalCoverage(unittest.TestCase):
             result = gr.process_issue(
                 issue, "owner", "repo", "token", False,
                 ["needs-info"], "bot", True, False, 0, 0, False,
-                False, [], 0, "", "", "grooming"
+                False, [], 0, "", "", "grooming",
+                False, [], {}
             )
             mock_assign.assert_called_once()
             mock_logger.error.assert_called_once()
@@ -555,7 +559,8 @@ class TestAdditionalCoverage(unittest.TestCase):
         result = gr.process_issue(
             issue, "owner", "repo", "token", False,
             [], "", False, False, 0, 0, False,
-            True, ["needs-info"], 14, "close", "Stale", "grooming"
+            True, ["needs-info"], 14, "close", "Stale", "grooming",
+            False, [], {}
         )
         mock_post.assert_called_once()
         mock_close.assert_called_once()
@@ -572,7 +577,8 @@ class TestAdditionalCoverage(unittest.TestCase):
         result = gr.process_issue(
             issue, "owner", "repo", "token", False,
             [], "", False, False, 0, 0, False,
-            True, ["needs-info"], 14, "comment", "Stale", "grooming"
+            True, ["needs-info"], 14, "comment", "Stale", "grooming",
+            False, [], {}
         )
         mock_post.assert_called_once()
         self.assertIn("commented as stale", result["changed_fields"])
