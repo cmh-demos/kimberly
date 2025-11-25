@@ -50,6 +50,10 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Log rotation configuration
+MAX_LOG_ENTRIES = 1000  # Maximum entries before rotation
+LOG_ARCHIVE_DIR = "logs/archive"
+
 
 def validate_github_token(token: str | None) -> bool:
     """Validate GitHub token format (supports multiple token types)."""
@@ -764,8 +768,6 @@ def main() -> int:
 
     # Record audits in triage_log.json
     log_file = "triage_log.json"
-    max_log_entries = 1000  # Maximum entries before rotation
-    archive_dir = "logs/archive"
     try:
         import tempfile
 
@@ -783,17 +785,17 @@ def main() -> int:
         logs.extend(sanitized_entries)
 
         # Log rotation: archive old entries if exceeding max
-        if len(logs) > max_log_entries:
-            os.makedirs(archive_dir, exist_ok=True)
+        if len(logs) > MAX_LOG_ENTRIES:
+            os.makedirs(LOG_ARCHIVE_DIR, exist_ok=True)
             archive_timestamp = datetime.now(timezone.utc).strftime(
                 "%Y%m%d_%H%M%S"
             )
             archive_file = os.path.join(
-                archive_dir, f"triage_log_{archive_timestamp}.json"
+                LOG_ARCHIVE_DIR, f"triage_log_{archive_timestamp}.json"
             )
             # Archive older entries (keep only most recent)
-            entries_to_archive = logs[:-max_log_entries]
-            logs = logs[-max_log_entries:]
+            entries_to_archive = logs[:-MAX_LOG_ENTRIES]
+            logs = logs[-MAX_LOG_ENTRIES:]
             with open(archive_file, "w", encoding="utf-8") as af:
                 json.dump(entries_to_archive, af, indent=2)
             logger.info(
