@@ -6,25 +6,27 @@ This repository uses GitHub Projects for issue tracking and sprint planning.
 
 ### Board Structure
 
-- **Backlog**: Unprioritized features and bugs.
-- **In Progress**: Currently worked on items (max 3 per person).
-- **Review**: Items awaiting code review or testing.
+- **To triage**: New issues awaiting triage.
+- **Backlog**: Triaged issues ready for prioritization.
+- **Ready**: Issues prepared for active work.
+- **In progress**: Currently worked on items (max 3 per person).
+- **In review**: Items awaiting code review or testing.
 - **Done**: Completed items, ready for release.
 
 ### Sample Cards
 
 - **Card: Implement basic chat** - Backlog
   - Description: Add conversational interface.
-  - Labels: feature, MVP (see .github/labels.yml for full list of standard labels)
+  - Labels: enhancement, MVP (see .github/labels.yml for full list of standard labels)
   - Assignee: @developer
 
-- **Card: Memory management** - In Progress
+- **Card: Memory management** - In progress
   - Description: Implement short-term memory.
   - Labels: core, memory (see .github/labels.yml for full list of standard labels)
 
 ## Automation
 
-- Auto-move to Review on PR open.
+- Auto-move to In review on PR open.
 - Auto-close on merge to main.
 
 ## Workflow Process for Work Management in Kimberly Project
@@ -92,7 +94,7 @@ Work progress is monitored through GitHub issues, project boards, and meetings.
 
 - **Update Status**: Assignees update the issue with progress (e.g., add comments, link
 PRs, update acceptance criteria checkboxes).
-- **Project Board**: Move issues across columns (e.g., Backlog → In Progress → Done) in
+- **Project Board**: Move issues across columns (e.g., Backlog → Ready → In progress → In review → Done) in
 `docs/project-board.md` or GitHub Projects.
 - **Meetings**: Discuss progress in weekly syncs, bi-weekly grooming, or sprint retros.
 Report blockers, risks, and adjustments.

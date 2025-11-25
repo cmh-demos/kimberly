@@ -34,6 +34,26 @@ labels:
     description: Triaged issue ready for backlog prioritization
     color: c2e0c6  # Light green
 
+  - name: ready
+    description: Issue prepared and ready for active work
+    color: 0e8a16  # Green
+
+  - name: in-progress
+    description: Work on the issue has started; team is actively working
+    color: fbca04  # Yellow
+
+  - name: in-review
+    description: Issue is under code review or testing
+    color: d93f0b  # Orange
+
+  - name: done
+    description: Issue completed and closed
+    color: 0e8a16  # Green
+
+  - name: blocked
+    description: Issue stalled due to dependencies or external factors
+    color: b60205  # Red
+
   - name: needs-info
     description: Issue requires additional information from reporter
     color: fef2c0  # Light yellow
@@ -85,10 +105,6 @@ labels:
   - name: MVP
     description: Minimum viable product features
     color: 0e8a16  # Green
-
-  - name: feature
-    description: General feature-related work
-    color: a2eeef  # Light blue
 
   - name: P0
     description: Critical priority (highest urgency)

@@ -308,18 +308,18 @@ steps:
       backlog_to_triaged:added_triaged
 
   # when issues are moved (labels added) showing the item is now being
-  # worked on, convert Backlog -> Ready To Work
+  # worked on, convert Backlog -> ready
   - backlog_to_inprogress:
     description: |-
-      When an issue receives 'In Progress' while also in 'Backlog',
-      remove 'Backlog' and add 'Ready To Work' to reflect readiness for
+      When an issue receives 'in-progress' while also in 'Backlog',
+      remove 'Backlog' and add 'ready' to reflect readiness for
       execution.
     apply_to: "issues"
-    when_label_added: "In Progress"
+    when_label_added: "in-progress"
     requires_existing_label: "Backlog"
     actions:
       - remove_label: "Backlog"
-      - add_label: "Ready To Work"
+      - add_label: "ready"
     post_comment_template: "backlog_to_ready_notice"
 
   # deterministic triage completion conditions
@@ -343,17 +343,19 @@ rules:
     triaged_labels: ["Triaged", "Backlog"]
     preferred_case: true
     label_normalization:
-      "needs triage": "Needs Triage"
-      "Needs triage": "Needs Triage"
+      "needs triage": "needs-triage"
+      "Needs triage": "needs-triage"
       "triaged": "Triaged"
       "backlog": "Backlog"
-      "ready to work": "Ready To Work"
-      "Ready to work": "Ready To Work"
-      "in progress": "In Progress"
-      "In Progress": "In Progress"
-      "in review": "In Review"
-      "In review": "In Review"
-      "done": "Done"
+      "ready": "ready"
+      "ready to work": "ready"
+      "Ready to work": "ready"
+      "in progress": "in-progress"
+      "In progress": "in-progress"
+      "in review": "in-review"
+      "In review": "in-review"
+      "done": "done"
+      "blocked": "blocked"
     scan_frequency: "daily"
     # labels to skip for auto-labeling / reconciliation — these often
     # require special handling
@@ -481,7 +483,7 @@ rules:
   - triage_bot_settings:
     skip_processing_if_label_present: ["Triaged"]
     skip_if_triaged_and_later_stage_present:
-      ["Ready To Work", "In Progress", "In Review", "Done"]
+      ["ready", "in-progress", "in-review", "done"]
     reason_for_skip: >
       Triaged prevents triage bot from reworking the issue;
       when Triaged appears alongside downstream workflow labels the issue is
@@ -798,9 +800,9 @@ rules:
       can be reprocessed.
 
     backlog_to_ready_notice: |
-      The `Backlog` label was removed and replaced with `Ready To Work`
-      because this issue moved into work (In Progress).
-      Reason: `Ready To Work` indicates the issue is prepared for active
+      The `Backlog` label was removed and replaced with `ready`
+      because this issue moved into work (in-progress).
+      Reason: `ready` indicates the issue is prepared for active
       execution by the team.
 
     escalation_notice: |
@@ -1058,18 +1060,21 @@ rules:
     - name: "needs_work"
       definition: "Issue does not meet Backlog gating; needs fixes before inclusion."
       gating_criteria: "Added if gating fails (e.g., missing size_estimate); removed after fixes."
-    - name: "Ready To Work"
+    - name: "ready"
       definition: "Issue is in Backlog and has been picked up for active work."
-      gating_criteria: "Added when In Progress applied to Backlog issue; replaces Backlog label."
-    - name: "In Progress"
+      gating_criteria: "Added when in-progress applied to Backlog issue; replaces Backlog label."
+    - name: "in-progress"
       definition: "Work on the issue has started; team is actively working on it."
-      gating_criteria: "User-applied; triggers Ready To Work if Backlog present."
-    - name: "In Review"
+      gating_criteria: "User-applied; triggers ready if Backlog present."
+    - name: "in-review"
       definition: "Issue is under review (e.g., code review, testing)."
       gating_criteria: "User-applied; indicates post-work phase."
-    - name: "Done"
+    - name: "done"
       definition: "Issue has been completed and resolved."
       gating_criteria: "User-applied; final state in workflow."
+    - name: "blocked"
+      definition: "Issue is stalled due to dependencies or external factors."
+      gating_criteria: "User-applied; prevents progress until resolved."
     - name: "duplicate"
       definition: "Issue is a duplicate of another; should be closed and linked to canonical issue."
       gating_criteria: "Detected via fuzzy matching; added manually or auto if high similarity."
