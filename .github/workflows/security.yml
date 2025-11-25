@@ -8,12 +8,20 @@ on:
   schedule:
     - cron: '0 0 * * 1'  # Weekly on Mondays
 
+permissions:
+  pull-requests: write
+  issues: write
+
+
 jobs:
   security-scan:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+
+    - name: Fetch full git history
+      run: git fetch --unshallow || true
 
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -25,6 +33,18 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install bandit safety
+
+    - name: Check for secrets
+      uses: zricethezav/gitleaks-action@v2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Check for paid API usage (free-mode)
+      run: |
+        if grep -r "openai\|anthropic\|claude" --include="*.py" .; then
+          echo "Paid API usage detected! Failing CI."
+          exit 1
+        fi
 
     - name: Run Bandit (security linting)
       run: bandit -r . -f json -o bandit-report.json || true
