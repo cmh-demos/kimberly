@@ -11,6 +11,7 @@ force_grid_wrap = 0
 include_trailing_comma = true
 
 [tool.flake8]
-max-line-length = 88
+max-line-length = 80
 # Recommended to avoid conflicts with black (E203 and W503)
 extend-ignore = ["E203", "W503"]
+exclude = ["venv", ".venv"]
