@@ -4,7 +4,7 @@ transformers==4.36.2
 torch==2.1.2
 accelerate==0.25.0
 pydantic==2.5.0
-python-dotenv==1.0.0
+python-dotenv==1.2.1
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 redis==3.5.3
