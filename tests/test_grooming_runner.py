@@ -114,7 +114,9 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
     @patch("scripts.grooming_runner.get_column_cards")
     @patch("scripts.grooming_runner.find_card_for_issue")
     @patch("scripts.grooming_runner.move_card")
-    def test_move_issue_to_backlog_column(self, mock_move, mock_find, mock_cards, mock_columns):
+    def test_move_issue_to_backlog_column(
+        self, mock_move, mock_find, mock_cards, mock_columns
+    ):
         mock_columns.return_value = [{"id": 1}]
         mock_cards.return_value = [{"id": 1}]
         mock_find.return_value = {"id": 1}
@@ -125,7 +127,9 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
     @patch("scripts.grooming_runner.get_project_columns")
     @patch("scripts.grooming_runner.get_column_cards")
     @patch("scripts.grooming_runner.find_card_for_issue")
-    def test_move_issue_to_backlog_column_no_card(self, mock_find, mock_cards, mock_columns):
+    def test_move_issue_to_backlog_column_no_card(
+        self, mock_find, mock_cards, mock_columns
+    ):
         mock_columns.return_value = [{"id": 1}]
         mock_cards.return_value = []
         mock_find.return_value = None
@@ -133,11 +137,16 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
         gr.move_issue_to_backlog_column("owner", "repo", 1, "url", 1, 2, "token")
         # Should not call move_card
 
-    @patch.dict(os.environ, {"GITHUB_REPOSITORY": "owner/repo", "GITHUB_TOKEN": "token"})
+    @patch.dict(
+        os.environ, {"GITHUB_REPOSITORY": "owner/repo", "GITHUB_TOKEN": "token"}
+    )
     @patch("scripts.grooming_runner.load_rules")
     @patch("scripts.grooming_runner.github_search_issues")
     def test_main_dry_run_no_token(self, mock_search, mock_load):
-        mock_load.return_value = {"project_management": {"enabled": False}, "grooming_bot_settings": {}}
+        mock_load.return_value = {
+            "project_management": {"enabled": False},
+            "grooming_bot_settings": {},
+        }
         mock_search.return_value = []
 
         with patch.dict(os.environ, {"GITHUB_TOKEN": ""}):
@@ -174,61 +183,109 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
         result = gr.main()
         self.assertEqual(result, 0)
 
-    @patch.dict(os.environ, {"GITHUB_REPOSITORY": "owner/repo", "GITHUB_TOKEN": "token", "DRY_RUN": "true"})
+    @patch.dict(
+        os.environ,
+        {"GITHUB_REPOSITORY": "owner/repo", "GITHUB_TOKEN": "token", "DRY_RUN": "true"},
+    )
     @patch("scripts.grooming_runner.load_rules")
     @patch("scripts.grooming_runner.github_search_issues")
     @patch("builtins.open", new_callable=mock_open)
     @patch("json.dump")
-    def test_main_dry_run_with_issues(self, mock_json_dump, mock_open_file, mock_search, mock_load):
+    def test_main_dry_run_with_issues(
+        self, mock_json_dump, mock_open_file, mock_search, mock_load
+    ):
         mock_load.side_effect = [
-            {"project_management": {"enabled": True, "project_id": 1, "columns": {"Backlog": 2}}},
-            {"grooming_bot_settings": {"needs_info_variants": ["needs-info"]}}
+            {
+                "project_management": {
+                    "enabled": True,
+                    "project_id": 1,
+                    "columns": {"Backlog": 2},
+                }
+            },
+            {"grooming_bot_settings": {"needs_info_variants": ["needs-info"]}},
         ]
         mock_search.return_value = [
-            {"number": 1, "title": "Test", "labels": [{"name": "needs-info"}], "url": "url1"}
+            {
+                "number": 1,
+                "title": "Test",
+                "labels": [{"name": "needs-info"}],
+                "url": "url1",
+            }
         ]
         result = gr.main()
         self.assertEqual(result, 0)
         mock_json_dump.assert_called()
 
-    @patch.dict(os.environ, {"GITHUB_REPOSITORY": "owner/repo", "GITHUB_TOKEN": "token"})
+    @patch.dict(
+        os.environ, {"GITHUB_REPOSITORY": "owner/repo", "GITHUB_TOKEN": "token"}
+    )
     @patch("scripts.grooming_runner.load_rules")
     @patch("scripts.grooming_runner.github_search_issues")
     @patch("scripts.grooming_runner.assign_issue")
     @patch("scripts.grooming_runner.remove_label")
     @patch("builtins.open", new_callable=mock_open)
     @patch("json.dump")
-    def test_main_assign_exception(self, mock_json_dump, mock_open_file, mock_remove, mock_assign, mock_search, mock_load):
+    def test_main_assign_exception(
+        self,
+        mock_json_dump,
+        mock_open_file,
+        mock_remove,
+        mock_assign,
+        mock_search,
+        mock_load,
+    ):
         mock_load.side_effect = [
             {"project_management": {}},
-            {"grooming_bot_settings": {"needs_info_variants": ["needs-info"]}}
+            {"grooming_bot_settings": {"needs_info_variants": ["needs-info"]}},
         ]
         mock_search.return_value = [
-            {"number": 1, "title": "Test", "labels": [{"name": "needs-info"}], "url": "url1"}
+            {
+                "number": 1,
+                "title": "Test",
+                "labels": [{"name": "needs-info"}],
+                "url": "url1",
+            }
         ]
         mock_assign.side_effect = Exception("error")
         result = gr.main()
         self.assertEqual(result, 0)
 
-    @patch.dict(os.environ, {"GITHUB_REPOSITORY": "owner/repo", "GITHUB_TOKEN": "token"})
+    @patch.dict(
+        os.environ, {"GITHUB_REPOSITORY": "owner/repo", "GITHUB_TOKEN": "token"}
+    )
     @patch("scripts.grooming_runner.load_rules")
     @patch("scripts.grooming_runner.github_search_issues")
     @patch("scripts.grooming_runner.move_issue_to_backlog_column")
     @patch("builtins.open", new_callable=mock_open)
     @patch("json.dump")
-    def test_main_move_exception(self, mock_json_dump, mock_open_file, mock_move, mock_search, mock_load):
+    def test_main_move_exception(
+        self, mock_json_dump, mock_open_file, mock_move, mock_search, mock_load
+    ):
         mock_load.side_effect = [
-            {"project_management": {"enabled": True, "project_id": 1, "columns": {"Backlog": 2}}},
-            {"grooming_bot_settings": {}}
+            {
+                "project_management": {
+                    "enabled": True,
+                    "project_id": 1,
+                    "columns": {"Backlog": 2},
+                }
+            },
+            {"grooming_bot_settings": {}},
         ]
         mock_search.return_value = [
-            {"number": 1, "title": "Test", "labels": [{"name": "Triaged"}, {"name": "Backlog"}], "url": "url1"}
+            {
+                "number": 1,
+                "title": "Test",
+                "labels": [{"name": "Triaged"}, {"name": "Backlog"}],
+                "url": "url1",
+            }
         ]
         mock_move.side_effect = Exception("error")
         result = gr.main()
         self.assertEqual(result, 0)
 
-    @patch.dict(os.environ, {"GITHUB_REPOSITORY": "owner/repo", "GITHUB_TOKEN": "token"})
+    @patch.dict(
+        os.environ, {"GITHUB_REPOSITORY": "owner/repo", "GITHUB_TOKEN": "token"}
+    )
     @patch("scripts.grooming_runner.load_rules")
     @patch("scripts.grooming_runner.github_search_issues")
     def test_main_search_exception(self, mock_search, mock_load):

@@ -15,12 +15,12 @@ This repository uses GitHub Projects for issue tracking and sprint planning.
 
 - **Card: Implement basic chat** - Backlog
   - Description: Add conversational interface.
-  - Labels: feature, MVP
+  - Labels: feature, MVP (see .github/labels.yml for full list of standard labels)
   - Assignee: @developer
 
 - **Card: Memory management** - In Progress
   - Description: Implement short-term memory.
-  - Labels: core, memory
+  - Labels: core, memory (see .github/labels.yml for full list of standard labels)
 
 ## Automation
 
@@ -53,7 +53,7 @@ next-3-sprints.md` or `docs/project-board.md`.
   - Estimation (rough time in days or story points).
   - Related Documents/Links (e.g., link to relevant docs or PRDs).
 - **Add Labels**: Apply appropriate labels (e.g., "backend", "frontend", "bug") in
-addition to "work-tracking".
+addition to "work-tracking" (see .github/labels.yml for full list of standard labels).
 - **Initial Triage**: If not immediately assignable, leave assignee blank for review in
 the next meeting.
 

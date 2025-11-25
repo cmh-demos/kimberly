@@ -20,6 +20,7 @@ import requests
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
+
 # Load rules
 def load_rules(path: str) -> dict | None:
     try:
@@ -29,10 +30,11 @@ def load_rules(path: str) -> dict | None:
     except FileNotFoundError:
         return None
 
+
 def github_search_issues(
     owner: str, repo: str, token: str | None, per_page: int = 100
 ) -> List[dict]:
-    query = f'repo:{owner}/{repo} is:issue is:open'
+    query = f"repo:{owner}/{repo} is:issue is:open"
     url = "https://api.github.com/search/issues"
     headers = {"Accept": "application/vnd.github+json"}
     if token:
@@ -48,6 +50,7 @@ def github_search_issues(
     data = resp.json()
     return data.get("items", [])
 
+
 def github_get_issue(
     owner: str, repo: str, issue_number: int, token: str | None
 ) -> dict | None:
@@ -62,6 +65,7 @@ def github_get_issue(
     resp.raise_for_status()
     return resp.json()
 
+
 def assign_issue(
     owner: str, repo: str, issue_number: int, assignee: str, token: str
 ) -> None:
@@ -73,6 +77,7 @@ def assign_issue(
     resp = requests.patch(url, headers=headers, json={"assignees": [assignee]})
     resp.raise_for_status()
 
+
 def remove_label(
     owner: str, repo: str, issue_number: int, label: str, token: str
 ) -> None:
@@ -83,6 +88,7 @@ def remove_label(
     }
     resp = requests.delete(url, headers=headers)
     resp.raise_for_status()
+
 
 def get_project_columns(
     owner: str, repo: str, project_id: int, token: str
@@ -96,6 +102,7 @@ def get_project_columns(
     resp.raise_for_status()
     return resp.json()
 
+
 def get_column_cards(column_id: int, token: str) -> List[dict]:
     url = f"https://api.github.com/projects/columns/{column_id}/cards"
     headers = {
@@ -106,11 +113,13 @@ def get_column_cards(column_id: int, token: str) -> List[dict]:
     resp.raise_for_status()
     return resp.json()
 
+
 def find_card_for_issue(cards: List[dict], issue_url: str) -> dict | None:
     for card in cards:
         if card.get("content_url") == issue_url:
             return card
     return None
+
 
 def move_card(card_id: int, to_column_id: int, token: str) -> None:
     url = f"https://api.github.com/projects/columns/{to_column_id}/moves"
@@ -121,6 +130,7 @@ def move_card(card_id: int, to_column_id: int, token: str) -> None:
     data = {"card_id": card_id, "position": "top"}
     resp = requests.post(url, headers=headers, json=data)
     resp.raise_for_status()
+
 
 def move_issue_to_backlog_column(
     owner: str,
@@ -146,16 +156,25 @@ def move_issue_to_backlog_column(
         # Move existing card to Backlog column
         move_card(card["id"], backlog_column_id, token)
 
+
 def main() -> int:
     triage_rules_path = os.environ.get("TRIAGE_RULES_PATH", "copilot_triage_rules.yml")
-    grooming_rules_path = os.environ.get("GROOMING_RULES_PATH", "copilot_grooming_rules.yml")
+    grooming_rules_path = os.environ.get(
+        "GROOMING_RULES_PATH", "copilot_grooming_rules.yml"
+    )
     triage_rules = load_rules(triage_rules_path)
     grooming_rules = load_rules(grooming_rules_path)
     if triage_rules is None:
-        print(f"ERROR: triage rules file not found at {triage_rules_path}", file=sys.stderr)
+        print(
+            f"ERROR: triage rules file not found at {triage_rules_path}",
+            file=sys.stderr,
+        )
         return 1
     if grooming_rules is None:
-        print(f"ERROR: grooming rules file not found at {grooming_rules_path}", file=sys.stderr)
+        print(
+            f"ERROR: grooming rules file not found at {grooming_rules_path}",
+            file=sys.stderr,
+        )
         return 1
 
     # Get project management config from triage rules
@@ -167,9 +186,15 @@ def main() -> int:
     # Get grooming settings
     grooming_settings = grooming_rules.get("grooming_bot_settings", {})
     needs_info_variants = grooming_settings.get("needs_info_variants", ["needs-info"])
-    assignee_for_needs_info = grooming_settings.get("assignee_for_needs_info", "copilot-bot")
-    remove_triaged_on_needs_info = grooming_settings.get("remove_triaged_on_needs_info", True)
-    move_to_backlog_if_triaged_and_backlog = grooming_settings.get("move_to_backlog_if_triaged_and_backlog", True)
+    assignee_for_needs_info = grooming_settings.get(
+        "assignee_for_needs_info", "copilot-bot"
+    )
+    remove_triaged_on_needs_info = grooming_settings.get(
+        "remove_triaged_on_needs_info", True
+    )
+    move_to_backlog_if_triaged_and_backlog = grooming_settings.get(
+        "move_to_backlog_if_triaged_and_backlog", True
+    )
     audit_event_type = grooming_settings.get("audit_event_type", "grooming")
 
     dry_run_env = os.environ.get("DRY_RUN", "").lower()
@@ -197,7 +222,7 @@ def main() -> int:
         return 1
 
     if not items:
-        print('No open issues found.')
+        print("No open issues found.")
         return 0
 
     print(f"Found {len(items)} open issues")
@@ -205,7 +230,9 @@ def main() -> int:
     for issue in items:
         number = issue.get("number")
         title = issue.get("title")
-        labels = [lbl.get("name") for lbl in issue.get("labels", []) if isinstance(lbl, dict)]
+        labels = [
+            lbl.get("name") for lbl in issue.get("labels", []) if isinstance(lbl, dict)
+        ]
         issue_url = issue.get("url")
 
         print(f"---\nIssue #{number}: {title}")
@@ -238,18 +265,36 @@ def main() -> int:
                 except Exception as e:
                     print(f"Failed to update issue #{number}: {e}", file=sys.stderr)
             else:
-                changed_fields.append(f"would assign to {assignee_for_needs_info} and remove Triaged")
+                changed_fields.append(
+                    f"would assign to {assignee_for_needs_info} and remove Triaged"
+                )
 
         # Check for Triaged and Backlog
-        if "Triaged" in labels and "Backlog" in labels and project_enabled and backlog_column_id and move_to_backlog_if_triaged_and_backlog:
+        if (
+            "Triaged" in labels
+            and "Backlog" in labels
+            and project_enabled
+            and backlog_column_id
+            and move_to_backlog_if_triaged_and_backlog
+        ):
             actions.append("move to Backlog column on board")
             audit_entry["notes"] += "Triaged+Backlog detected; "
             if not dry_run:
                 try:
-                    move_issue_to_backlog_column(owner, repo, number, issue_url, project_id, backlog_column_id, gh_token)
+                    move_issue_to_backlog_column(
+                        owner,
+                        repo,
+                        number,
+                        issue_url,
+                        project_id,
+                        backlog_column_id,
+                        gh_token,
+                    )
                     changed_fields.append("moved to Backlog column")
                 except Exception as e:
-                    print(f"Failed to move issue #{number} on board: {e}", file=sys.stderr)
+                    print(
+                        f"Failed to move issue #{number} on board: {e}", file=sys.stderr
+                    )
             else:
                 changed_fields.append("would move to Backlog column")
 
@@ -281,6 +326,7 @@ def main() -> int:
             print("Failed to append to grooming log:", e, file=sys.stderr)
 
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())

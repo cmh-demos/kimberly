@@ -2,6 +2,7 @@
 # version: 1.2
 # maintained_by: team-triage
 # last_updated: 2025-11-24
+# Labels used: see .github/labels.yml for full list of standard labels
 
 ---
 # JSON Schema for validation
@@ -215,17 +216,13 @@ steps:
   - move_to_backlog_gated:
     description: |-
       Add 'Backlog' label only when gating rules pass. Gates include:
-      has size_estimate; feature-requests also require 'product-approved'.
+      has size_estimate.
       Respects dry-run and manual overrides.
     respect_execution_policy: true
     simulate_on_dry_run: true
     gate:
       # must have a quick size estimate for all issues before backlog
       - required_field: size_estimate
-      # for feature requests require explicit product approval label
-      - conditional:
-          when_label_present: "feature-request"
-          then_require_label: "product-approved"
     skip_if_label_present: ["manual-triage", "no-triage", "security"]
     allow_human_override_label: "manual-triage"
     actions:
@@ -236,7 +233,6 @@ steps:
       - on_fail:
           # When the backlog gate fails we add an actionable flag
           # so maintainers can find and work items that need more info.
-          - add_label: "needs-product-review"
           - add_label: "needs_work"
           - post_comment_template: "backlog_gate_blocked_notice"
           - add_audit_fields: ["backlog_gate_passed", "backlog_gate_reasons"]
@@ -760,10 +756,8 @@ rules:
     backlog_gate_blocked_notice: |
       This issue cannot be moved into `Backlog` yet because it did not meet
       our gating requirements.
-      Requirements: a quick `size_estimate`, and for feature requests the
-      `product-approved` label.
-      Next steps: add the missing information or contact the product owner to
-      approve (label `product-approved`).
+      Requirements: a quick `size_estimate`.
+      Next steps: add the missing information.
       The automation has added the `needs_work` label so this item will be
       included in the grooming queue for follow-up.
 
@@ -1039,7 +1033,7 @@ rules:
     # List of all labels with definitions and gating criteria
     - name: "Backlog"
       definition: "Issues that have been triaged and meet gating criteria for inclusion in the backlog queue."
-      gating_criteria: "Must have size_estimate; if feature-request, must have product-approved; not security or no-triage; respects execution policy and dry-run."
+      gating_criteria: "Must have size_estimate; not security or no-triage; respects execution policy and dry-run."
     - name: "Triaged"
       definition: "Issue has undergone initial triage, including severity/priority assignment and required field checks."
       gating_criteria: "Applied after triage steps complete; removed if pair mismatch with Backlog."
@@ -1054,19 +1048,13 @@ rules:
       gating_criteria: "Added automatically on branches not in protected_branches (e.g., not main); removed on real runs."
     - name: "feature-request"
       definition: "Request for new features or enhancements, subject to product approval gating."
-      gating_criteria: "User-applied or detected; requires product-approved for Backlog; no auto-add."
-    - name: "product-approved"
-      definition: "Feature request has been approved by product team for inclusion in backlog."
-      gating_criteria: "Must be present for feature-request to enter Backlog; added manually by product owners."
+      gating_criteria: "User-applied or detected; no auto-add."
     - name: "manual-triage"
       definition: "Human override to skip or modify automated triage for this issue."
       gating_criteria: "Respects human actions; prevents auto-changes within grace_period_hours (24 hours)."
     - name: "no-triage"
       definition: "Issue should not be triaged; exempt from automation."
       gating_criteria: "Exempts from all triage steps; added manually or for bots/automation issues."
-    - name: "needs-product-review"
-      definition: "Feature request lacks product approval; requires review before Backlog."
-      gating_criteria: "Added if feature-request without product-approved; removed after approval."
     - name: "needs_work"
       definition: "Issue does not meet Backlog gating; needs fixes before inclusion."
       gating_criteria: "Added if gating fails (e.g., missing size_estimate); removed after fixes."

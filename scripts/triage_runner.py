@@ -534,14 +534,8 @@ def main() -> int:
         audit_entry["severity"] = severity
         audit_entry["priority"] = priority
 
-        # 6) Backlog gating logic: check required 'size_estimate' and product-approved for features
+        # 6) Backlog gating logic: check required 'size_estimate'
         backlog_actions: List[str] = []
-        # detect feature-request label
-        if "feature-request" in labels_list:
-            product_ok = "product-approved" in labels_list
-        else:
-            product_ok = True
-
         # check if size_estimate found in body and allowed values
         size_est_match = re.search(r"size_estimate\s*[:=]\s*(\w+)", body, re.I)
         size_est_value: Optional[str] = (
@@ -615,8 +609,6 @@ def main() -> int:
                     can_add_backlog = False
                 if "invalid_size_estimate" in backlog_actions:
                     can_add_backlog = False
-                if "feature-request" in labels_list and not product_ok:
-                    can_add_backlog = False
 
                 if can_add_backlog:
                     # add Triaged label and short comment if triaging complete
@@ -648,11 +640,6 @@ def main() -> int:
                         changed_fields.append("Backlog")
                 else:
                     # gate failed
-                    if "needs-product-review" not in labels_list:
-                        post_label(
-                            owner, repo, number, "needs-product-review", gh_token
-                        )
-                        changed_fields.append("needs-product-review")
                     if "needs_work" not in labels_list:
                         post_label(owner, repo, number, "needs_work", gh_token)
                         changed_fields.append("needs_work")

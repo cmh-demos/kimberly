@@ -2,6 +2,7 @@
 name: Bug report
 about: Report a reproducible bug or unexpected behavior
 title: 'bug: '
+# Default labels: see .github/labels.yml for full list of standard labels
 labels: bug, needs-triage
 assignees: ''
 ---
