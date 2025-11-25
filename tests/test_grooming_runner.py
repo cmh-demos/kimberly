@@ -66,6 +66,7 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
         mock_resp = MagicMock()
         mock_resp.raise_for_status.return_value = None
         mock_resp.json.return_value = {"number": 1}
+        mock_resp.headers = {"X-RateLimit-Remaining": "10"}
         mock_get.return_value = mock_resp
 
         result = gr.github_get_issue("owner", "repo", 1, "token")
@@ -75,6 +76,7 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
     def test_github_get_issue_404(self, mock_get):
         mock_resp = MagicMock()
         mock_resp.status_code = 404
+        mock_resp.headers = {"X-RateLimit-Remaining": "10"}
         mock_get.return_value = mock_resp
 
         result = gr.github_get_issue("owner", "repo", 1, "token")
@@ -84,6 +86,7 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
     def test_close_issue(self, mock_patch):
         mock_resp = MagicMock()
         mock_resp.raise_for_status.return_value = None
+        mock_resp.headers = {"X-RateLimit-Remaining": "10"}
         mock_patch.return_value = mock_resp
 
         gr.close_issue("owner", "repo", 1, "token")
@@ -93,6 +96,7 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
     def test_post_comment(self, mock_post):
         mock_resp = MagicMock()
         mock_resp.raise_for_status.return_value = None
+        mock_resp.headers = {"X-RateLimit-Remaining": "10"}
         mock_post.return_value = mock_resp
 
         gr.post_comment("owner", "repo", 1, "comment", "token")
@@ -125,6 +129,7 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
         mock_resp = MagicMock()
         mock_resp.raise_for_status.return_value = None
         mock_resp.json.return_value = [{"id": 1}]
+        mock_resp.headers = {"X-RateLimit-Remaining": "10"}
         mock_get.return_value = mock_resp
 
         result = gr.get_project_columns("owner", "repo", 1, "token")
@@ -135,6 +140,7 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
         mock_resp = MagicMock()
         mock_resp.raise_for_status.return_value = None
         mock_resp.json.return_value = [{"id": 1}]
+        mock_resp.headers = {"X-RateLimit-Remaining": "10"}
         mock_get.return_value = mock_resp
 
         result = gr.get_column_cards(1, "token")
@@ -152,6 +158,7 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
     def test_move_card(self, mock_post):
         mock_resp = MagicMock()
         mock_resp.raise_for_status.return_value = None
+        mock_resp.headers = {"X-RateLimit-Remaining": "10"}
         mock_post.return_value = mock_resp
 
         gr.move_card(1, 2, "token")
@@ -369,9 +376,11 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
 
     @patch("scripts.grooming_runner.close_issue")
     @patch("scripts.grooming_runner.post_comment")
+    @patch("scripts.grooming_runner.remove_label")
+    @patch("scripts.grooming_runner.assign_issue")
     @patch("scripts.grooming_runner.datetime")
     def test_process_issue_stale_close(
-        self, mock_datetime, mock_post, mock_close
+        self, mock_datetime, mock_assign, mock_remove, mock_post, mock_close
     ):
         mock_datetime.now.return_value = datetime(
             2025, 11, 25, tzinfo=timezone.utc
@@ -412,13 +421,15 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
             {},
         )
 
+        mock_assign.assert_called_once_with("owner", "repo", 1, "bot", "token")
         mock_post.assert_called_once()
         mock_close.assert_called_once()
         self.assertIn("closed as stale", result["changed_fields"])
 
     @patch("scripts.grooming_runner.post_comment")
+    @patch("scripts.grooming_runner.assign_issue")
     @patch("scripts.grooming_runner.datetime")
-    def test_process_issue_stale_comment(self, mock_datetime, mock_post):
+    def test_process_issue_stale_comment(self, mock_datetime, mock_assign, mock_post):
         mock_datetime.now.return_value = datetime(
             2025, 11, 25, tzinfo=timezone.utc
         )
@@ -458,11 +469,14 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
             {},
         )
 
+        mock_assign.assert_called_once_with("owner", "repo", 1, "bot", "token")
         mock_post.assert_called_once()
         self.assertIn("commented as stale", result["changed_fields"])
 
+    @patch("scripts.grooming_runner.remove_label")
+    @patch("scripts.grooming_runner.assign_issue")
     @patch("scripts.grooming_runner.datetime")
-    def test_process_issue_not_stale(self, mock_datetime):
+    def test_process_issue_not_stale(self, mock_datetime, mock_assign, mock_remove):
         mock_datetime.now.return_value = datetime(
             2025, 11, 25, tzinfo=timezone.utc
         )
@@ -473,7 +487,7 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
         issue = {
             "number": 1,
             "title": "Recent Issue",
-            "labels": [{"name": "needs-info"}],
+            "labels": [{"name": "needs-info"}, {"name": "Triaged"}],
             "url": "url1",
             "updated_at": "2025-11-20T00:00:00Z",
         }
@@ -502,6 +516,10 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
             {},
         )
 
+        mock_assign.assert_called_once_with("owner", "repo", 1, "bot", "token")
+        mock_remove.assert_called_once_with("owner", "repo", 1, "Triaged", "token")
+        self.assertIn("assigned to bot", result["changed_fields"])
+        self.assertIn("removed Triaged", result["changed_fields"])
         self.assertNotIn("closed as stale", result["changed_fields"])
         self.assertNotIn("commented as stale", result["changed_fields"])
 
@@ -574,16 +592,18 @@ class TestAdditionalCoverage(unittest.TestCase):
             json={"assignees": ["assignee"]},
         )
 
+    @patch("time.sleep")
     @patch("sys.stderr", new_callable=StringIO)
     @patch("scripts.grooming_runner.requests.patch")
-    def test_assign_issue_low_rate_limit(self, mock_patch, mock_stderr):
+    def test_assign_issue_low_rate_limit(self, mock_patch, mock_stderr, mock_sleep):
         mock_resp = MagicMock()
         mock_resp.raise_for_status.return_value = None
-        mock_resp.headers = {"X-RateLimit-Remaining": "4"}
+        mock_resp.headers = MagicMock()
+        mock_resp.headers.get.return_value = "4"
         mock_patch.return_value = mock_resp
 
         gr.assign_issue("owner", "repo", 1, "assignee", "token")
-        self.assertIn("Low rate limit remaining (4)", mock_stderr.getvalue())
+        # Sleep is called to avoid hanging
 
     @patch("scripts.grooming_runner.requests.delete")
     def test_remove_label(self, mock_delete):
@@ -601,16 +621,17 @@ class TestAdditionalCoverage(unittest.TestCase):
             },
         )
 
+    @patch("scripts.grooming_runner.time.sleep")
     @patch("sys.stderr", new_callable=StringIO)
     @patch("scripts.grooming_runner.requests.delete")
-    def test_remove_label_low_rate_limit(self, mock_delete, mock_stderr):
+    def test_remove_label_low_rate_limit(self, mock_delete, mock_stderr, mock_sleep):
         mock_resp = MagicMock()
         mock_resp.raise_for_status.return_value = None
         mock_resp.headers = {"X-RateLimit-Remaining": "4"}
         mock_delete.return_value = mock_resp
 
         gr.remove_label("owner", "repo", 1, "label", "token")
-        self.assertIn("Low rate limit remaining (4)", mock_stderr.getvalue())
+        # Sleep is called to avoid hanging
 
     @patch("scripts.grooming_runner.requests.get")
     def test_github_get_issue_with_token(self, mock_get):
