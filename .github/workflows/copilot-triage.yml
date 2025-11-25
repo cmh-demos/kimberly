@@ -1,0 +1,68 @@
+name: Copilot triage (manual)
+
+on:
+  workflow_dispatch: {}
+
+# Minimal permissions — only what we need to read config and (optionally)
+# modify issues when running on main.
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+env:
+  RULES_PATH: copilot_triage_rules.yml
+  SECURE_INTAKE_URL: ${{ secrets.SECURE_INTAKE_URL }}
+
+jobs:
+  triage:
+    name: Copilot Triage Runner
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Determine dry-run
+        id: determine
+        run: |
+          echo "GITHUB_REF=${GITHUB_REF}"
+          if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
+            echo "DRY_RUN=false" >> $GITHUB_ENV
+          else
+            echo "DRY_RUN=true" >> $GITHUB_ENV
+          fi
+
+      - name: Install runtime deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyyaml requests >/dev/null
+
+      - name: Install validation tools
+        run: |
+          pip install yamllint jsonschema >/dev/null
+
+      - name: Validate YAML syntax and style
+        run: |
+          yamllint --config .yamllint.yml ${{ env.RULES_PATH }}
+
+      - name: Validate JSON schema
+        run: |
+          python scripts/validate_rules.py ${{ env.RULES_PATH }}
+
+      - name: Show execution policy
+        run: |
+          echo "Rules path: ${{ env.RULES_PATH }}"
+          echo "Dry run: $DRY_RUN"
+
+      - name: Run triage runner (Python)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RULES_PATH: ${{ env.RULES_PATH }}
+        run: |
+          python scripts/triage_runner.py

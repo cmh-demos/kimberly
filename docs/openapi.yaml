@@ -1,0 +1,763 @@
+openapi: 3.0.3
+info:
+  title: Kimberly API
+  version: 0.1.0
+  description: OpenAPI spec for Kimberly personal AI assistant (MVP surface).
+servers:
+  - url: https://api.kimberly.local/v1
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    SignupRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+      required: [email, password]
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+    TokenResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        expires_in:
+          type: integer
+          description: seconds until token expires
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          format: email
+        created_at:
+          type: string
+          format: date-time
+    UserSettings:
+      type: object
+      properties:
+        embedding_enabled:
+          type: boolean
+          description: Whether self-hosted embeddings are enabled
+        quotas:
+          type: object
+          properties:
+            short_term:
+              type: integer
+            long_term:
+              type: integer
+            permanent:
+              type: integer
+        consent_telemetry:
+          type: boolean
+    ExportResponse:
+      type: object
+      properties:
+        download_url:
+          type: string
+          description: URL to download exported data
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        code:
+          type: integer
+    ChatMessage:
+      type: object
+      properties:
+        id:
+          type: string
+        role:
+          type: string
+          enum: [user, assistant, system]
+        content:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+    ChatResponse:
+      type: object
+      properties:
+        conversation_id:
+          type: string
+        message:
+          $ref: '#/components/schemas/ChatMessage'
+        usage:
+          type: object
+          properties:
+            prompt_tokens:
+              type: integer
+            completion_tokens:
+              type: integer
+            total_tokens:
+              type: integer
+    MemoryItem:
+      type: object
+      properties:
+        id:
+          type: string
+        user_id:
+          type: string
+        type:
+          type: string
+          enum: [short-term, long-term, permanent]
+        content:
+          type: string
+        size_bytes:
+          type: integer
+        metadata:
+          type: object
+          properties:
+            tags:
+              type: array
+              items:
+                type: string
+            source:
+              type: string
+              enum: [chat, agent, import, upload]
+            channels:
+              type: array
+              items:
+                type: string
+            sensitive:
+              type: boolean
+            scope:
+              type: string
+              enum: [private, shared, public]
+            user_feedback:
+              type: string
+            version:
+              type: string
+        score:
+          type: number
+          format: float
+        embedding_ref:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        last_seen_at:
+          type: string
+          format: date-time
+        audit:
+          type: object
+          properties:
+            created_by:
+              type: string
+              enum: [system, user, agent]
+            consent:
+              type: boolean
+    MemoryListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/MemoryItem'
+        page:
+          type: integer
+        per_page:
+          type: integer
+        total:
+          type: integer
+    Agent:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [idle, running, failed, completed]
+        last_run:
+          type: string
+          format: date-time
+    AgentTaskResponse:
+      type: object
+      properties:
+        task_id:
+          type: string
+        status:
+          type: string
+        result:
+          type: object
+    ChatRequest:
+      type: object
+      properties:
+        message:
+          type: string
+        context_id:
+          type: string
+      required: [message]
+    MemoryQueryRequest:
+      type: object
+      properties:
+        query:
+          type: string
+        type:
+          type: string
+          enum: [short-term, long-term, permanent, any]
+        top_k:
+          type: integer
+          default: 5
+        filters:
+          type: object
+      required: [query]
+    MemoryQueryResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/MemoryItem'
+    MeditateResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        processed:
+          type: integer
+        pruned:
+          type: integer
+        archived:
+          type: integer
+    MemoryMetrics:
+      type: object
+      properties:
+        quota:
+          type: object
+          properties:
+            short_term:
+              type: integer
+            long_term:
+              type: integer
+            permanent:
+              type: integer
+        usage:
+          type: object
+          properties:
+            short_term:
+              type: integer
+            long_term:
+              type: integer
+            permanent:
+              type: integer
+        last_meditation:
+          type: string
+          format: date-time
+paths:
+  /signup:
+    post:
+      summary: Create a user account
+      requestBody:
+        description: User sign-up payload
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignupRequest'
+            examples:
+              signup-example:
+                value:
+                  email: "alice@example.com"
+                  password: "s3curePass!"
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /login:
+    post:
+      summary: Authenticate user
+      requestBody:
+        description: User login
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignupRequest'
+            examples:
+              login-example:
+                value:
+                  email: "alice@example.com"
+                  password: "s3curePass!"
+      responses:
+        '200':
+          description: Authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /user:
+    get:
+      summary: Get user profile and settings
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+    put:
+      summary: Update user settings
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserSettings'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /user/export:
+    post:
+      summary: Export user data
+      security:
+        - bearerAuth: []
+      responses:
+        '202':
+          description: Export initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportResponse'
+  /user/delete:
+    post:
+      summary: Delete user account and data
+      security:
+        - bearerAuth: []
+      responses:
+        '202':
+          description: Deletion initiated
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  uptime_seconds:
+                    type: integer
+  /chat:
+    post:
+      summary: Send a chat message to Kimberly
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: Chat message
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+            examples:
+              simple-chat:
+                value:
+                  message: "What's on my schedule today?"
+      responses:
+        '200':
+          description: Chat response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+              examples:
+                simple:
+                  value:
+                    conversation_id: "conv_123"
+                    message:
+                      id: "msg_456"
+                      role: assistant
+                      content: "Hello — how can I help today?"
+                      created_at: "2025-11-22T19:00:00Z"
+                    usage:
+                      prompt_tokens: 4
+                      completion_tokens: 12
+                      total_tokens: 16
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /memory:
+    get:
+      summary: List memory items
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [short-term, long-term, permanent]
+        - name: tags
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Memory list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemoryListResponse'
+              examples:
+                sample-memory-list:
+                  value:
+                    items:
+                      - id: "mem_1"
+                        user_id: "user_123"
+                        type: short-term
+                        content: "Met Mike at the cafe"
+                        size_bytes: 120
+                        metadata:
+                          tags: ["meeting"]
+                          source: "chat"
+                          sensitive: false
+                        score: 0.8
+                        created_at: "2025-11-22T10:00:00Z"
+                        last_seen_at: "2025-11-22T10:30:00Z"
+                        audit:
+                          created_by: "user"
+                          consent: true
+                    page: 1
+                    per_page: 20
+                    total: 1
+    post:
+      summary: Add a memory item
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: Memory item to store
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                type:
+                  type: string
+                  enum: [short-term, long-term, permanent]
+                content:
+                  type: string
+                metadata:
+                  $ref: '#/components/schemas/MemoryItem/properties/metadata'
+              required: [type, content]
+            examples:
+              mem-create:
+                value:
+                  type: long-term
+                  content: "Reminder: buy batteries"
+                  metadata:
+                    tags: ["reminder"]
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemoryItem'
+              examples:
+                created-memory:
+                  value:
+                    id: "mem_2"
+                    user_id: "user_123"
+                    type: long-term
+                    content: "Reminder: buy batteries"
+                    size_bytes: 23
+                    metadata:
+                      tags: ["reminder"]
+                    score: 0.0
+                    created_at: "2025-11-22T19:20:00Z"
+                    last_seen_at: "2025-11-22T19:20:00Z"
+                    audit:
+                      created_by: "user"
+                      consent: true
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /memory/{id}:
+    delete:
+      summary: Delete memory by id
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Deleted
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /memory/query:
+    post:
+      summary: Semantic+filter query against memory
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemoryQueryRequest'
+            examples:
+              query-example:
+                value:
+                  query: "What are my coffee preferences?"
+                  type: any
+                  top_k: 3
+      responses:
+        '200':
+          description: Query results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemoryQueryResponse'
+  /memory/meditate:
+    post:
+      summary: Trigger a meditation (scoring + pruning) run
+      security:
+        - bearerAuth: []
+      responses:
+        '202':
+          description: Meditation scheduled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MeditateResponse'
+              examples:
+                mediate-example:
+                  value:
+                    status: "scheduled"
+                    processed: 0
+                    pruned: 0
+                    archived: 0
+  /memory/embed:
+    post:
+      summary: Upload self-hosted embeddings for memory items (optional, free-mode only)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                embeddings:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      memory_id:
+                        type: string
+                      embedding:
+                        type: array
+                        items:
+                          type: number
+                          format: float
+                    required: [memory_id, embedding]
+              required: [embeddings]
+      responses:
+        '200':
+          description: Embeddings uploaded
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /agents:
+    get:
+      summary: List available agents
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: agents list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Agent'
+              examples:
+                agents-sample:
+                  value:
+                    - id: scheduler
+                      name: Scheduler
+                      description: Manages calendar and reminders
+                      status: idle
+                    - id: researcher
+                      name: Researcher
+                      description: Fetches and summarizes web data
+                      status: idle
+                    - id: coder
+                      name: Coder
+                      description: Assists with code writing, debugging, and automation
+                      status: idle
+    post:
+      summary: Create/invoke a new agent task
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: Invoke an agent task
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentInvocation'
+            examples:
+              run-research:
+                value:
+                  task: "search"
+                  params:
+                    query: "best open-source LLMs"
+      responses:
+        '202':
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentTaskResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /agents/tasks/{task_id}:
+    get:
+      summary: Get status of an agent task
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Task status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentTaskResponse'
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /billing/subscribe:
+    post:
+      summary: Subscribe to a billing plan (future feature, currently free)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                plan:
+                  type: string
+                  enum: [free, premium]
+              required: [plan]
+      responses:
+        '202':
+          description: Subscription initiated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'

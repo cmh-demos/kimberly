@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="420" height="800" viewBox="0 0 420 800" xmlns="http://www.w3.org/2000/svg">
+  <style> .bg{fill:#fafbff} .muted{fill:#8b93a3;font-family:Arial, Helvetica, sans-serif;font-size:12px} .title{font-weight:700;font-family:Arial, Helvetica, sans-serif;font-size:16px;fill:#121521}</style>
+  <rect class="bg" width="420" height="800"/>
+  <rect x="12" y="12" width="396" height="44" rx="8" fill="#fff" stroke="#e3e7f0"/>
+  <text x="24" y="40" class="title">Kimberly • Chat</text>
+
+  <rect x="12" y="68" width="396" height="620" rx="8" fill="#fff" stroke="#e3e7f0"/>
+  <text x="24" y="96" class="muted">Conversation</text>
+  <rect x="24" y="120" width="352" height="68" rx="8" fill="#f2f7ff" stroke="#dfeeff"/>
+  <text x="36" y="152" class="muted">Assistant: Here's context from your memory (score 0.8)</text>
+
+  <rect x="12" y="700" width="396" height="56" rx="8" fill="#fff" stroke="#e3e7f0"/>
+  <text x="24" y="732" class="muted">[Message input] • Save toggle • attach</text>
+
+  <rect x="12" y="526" width="396" height="60" rx="8" fill="#fbfdff" stroke="#eef7ff"/>
+  <text x="24" y="558" class="muted">Context preview (tap to expand) • Memory: Project notes — why included</text>
+
+</svg>
