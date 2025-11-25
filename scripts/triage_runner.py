@@ -613,7 +613,7 @@ def main() -> int:
                         if (
                             "Triaged" in latest_labels
                             and "Backlog" not in latest_labels
-                            and not (set(latest_labels) & set(skip_labels))
+                            and not (set(latest_labels) & skip_labels)
                         ):
                             # respect grace_period_hours: if recently modified by a human, skip
                             # (not implemented full recent human action detection here)
@@ -633,7 +633,7 @@ def main() -> int:
                         if (
                             "Backlog" in latest_labels
                             and "Triaged" not in latest_labels
-                            and not (set(latest_labels) & set(skip_labels))
+                            and not (set(latest_labels) & skip_labels)
                         ):
                             post_label(owner, repo, number, "Triaged", gh_token)
                             post_comment(
