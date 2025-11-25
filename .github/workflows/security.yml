@@ -8,6 +8,11 @@ on:
   schedule:
     - cron: '0 0 * * 1'  # Weekly on Mondays
 
+permissions:
+  pull-requests: write
+  issues: write
+
+
 jobs:
   security-scan:
     runs-on: ubuntu-latest
