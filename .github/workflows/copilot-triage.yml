@@ -49,7 +49,7 @@ jobs:
 
       - name: Validate YAML syntax and style
         run: |
-          yamllint --config .yamllint.yml ${{ env.RULES_PATH }}
+          yamllint -c .yamllint.yml ${{ env.RULES_PATH }}
 
       - name: Validate JSON schema
         run: |
