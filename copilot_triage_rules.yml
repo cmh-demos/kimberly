@@ -579,8 +579,10 @@ rules:
 
   # helpful conventions
   - triage_checklist:
-      - "Verify reproducibility / request reproduction info if missing"
-      - "Record a quick size estimate (xsmall|small|medium|large|epic)"
+      - >-
+        Verify reproducibility / request reproduction info if missing
+      - >-
+        Record a quick size estimate (xsmall|small|medium|large|epic)
       - "Link any relevant docs or design decisions"
       - "Classify severity & priority and explain why"
       - "If duplicate, close as duplicate and link canonical issue"
@@ -707,7 +709,7 @@ rules:
         "title_sanitized": true,
         "original_title": "[Top Priority] README placeholders.",
         "changed_fields": ["severity","triage_owner","labels"],
-        "notes": "Confirmed reproducible, linked doc: docs/memory-model.md",
+        "notes": "Confirmed reproducible",
         "references": ["docs/memory-model.md","PR#456"]
       }
 
