@@ -429,7 +429,9 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
     @patch("scripts.grooming_runner.post_comment")
     @patch("scripts.grooming_runner.assign_issue")
     @patch("scripts.grooming_runner.datetime")
-    def test_process_issue_stale_comment(self, mock_datetime, mock_assign, mock_post):
+    def test_process_issue_stale_comment(
+        self, mock_datetime, mock_assign, mock_post
+    ):
         mock_datetime.now.return_value = datetime(
             2025, 11, 25, tzinfo=timezone.utc
         )
@@ -476,7 +478,9 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
     @patch("scripts.grooming_runner.remove_label")
     @patch("scripts.grooming_runner.assign_issue")
     @patch("scripts.grooming_runner.datetime")
-    def test_process_issue_not_stale(self, mock_datetime, mock_assign, mock_remove):
+    def test_process_issue_not_stale(
+        self, mock_datetime, mock_assign, mock_remove
+    ):
         mock_datetime.now.return_value = datetime(
             2025, 11, 25, tzinfo=timezone.utc
         )
@@ -517,7 +521,9 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
         )
 
         mock_assign.assert_called_once_with("owner", "repo", 1, "bot", "token")
-        mock_remove.assert_called_once_with("owner", "repo", 1, "Triaged", "token")
+        mock_remove.assert_called_once_with(
+            "owner", "repo", 1, "Triaged", "token"
+        )
         self.assertIn("assigned to bot", result["changed_fields"])
         self.assertIn("removed Triaged", result["changed_fields"])
         self.assertNotIn("closed as stale", result["changed_fields"])
@@ -595,7 +601,9 @@ class TestAdditionalCoverage(unittest.TestCase):
     @patch("time.sleep")
     @patch("sys.stderr", new_callable=StringIO)
     @patch("scripts.grooming_runner.requests.patch")
-    def test_assign_issue_low_rate_limit(self, mock_patch, mock_stderr, mock_sleep):
+    def test_assign_issue_low_rate_limit(
+        self, mock_patch, mock_stderr, mock_sleep
+    ):
         mock_resp = MagicMock()
         mock_resp.raise_for_status.return_value = None
         mock_resp.headers = MagicMock()
@@ -624,7 +632,9 @@ class TestAdditionalCoverage(unittest.TestCase):
     @patch("scripts.grooming_runner.time.sleep")
     @patch("sys.stderr", new_callable=StringIO)
     @patch("scripts.grooming_runner.requests.delete")
-    def test_remove_label_low_rate_limit(self, mock_delete, mock_stderr, mock_sleep):
+    def test_remove_label_low_rate_limit(
+        self, mock_delete, mock_stderr, mock_sleep
+    ):
         mock_resp = MagicMock()
         mock_resp.raise_for_status.return_value = None
         mock_resp.headers = {"X-RateLimit-Remaining": "4"}
