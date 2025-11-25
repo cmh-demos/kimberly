@@ -35,7 +35,7 @@ jobs:
     - name: Check imports with isort
       run: isort --check-only . --filter-files --skip node_modules --skip .venv
     - name: Lint Markdown
-      uses: DavidAnson/markdownlint-cli2-action@v16
+      uses: DavidAnson/markdownlint-cli2-action@v21
 
   test:
     runs-on: ubuntu-latest
