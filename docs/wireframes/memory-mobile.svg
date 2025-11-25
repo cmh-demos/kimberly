@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="420" height="800" viewBox="0 0 420 800" xmlns="http://www.w3.org/2000/svg">
+  <style> .bg{fill:#fafbff} .muted{fill:#8b93a3;font-family:Arial, Helvetica, sans-serif;font-size:12px} .title{font-weight:700;font-family:Arial, Helvetica, sans-serif;font-size:16px;fill:#121521}</style>
+  <rect class="bg" width="420" height="800"/>
+  <rect x="12" y="12" width="396" height="44" rx="8" fill="#fff" stroke="#e3e7f0"/>
+  <text x="24" y="40" class="title">Kimberly • Memory</text>
+
+  <rect x="12" y="68" width="396" height="550" rx="8" fill="#fff" stroke="#e3e7f0"/>
+  <text x="24" y="96" class="muted">Filters: Tier • Tags • Search</text>
+
+  <rect x="24" y="120" width="364" height="76" rx="8" fill="#fbfdff" stroke="#eef6ff"/>
+  <text x="36" y="152" class="muted">Project review notes — long — score 0.83 — tags: project</text>
+
+  <rect x="24" y="208" width="364" height="76" rx="8" fill="#fff" stroke="#f0f2f5"/>
+  <text x="36" y="240" class="muted">Credit card info — permanent (sensitive) — protected</text>
+
+  <rect x="12" y="640" width="396" height="92" rx="8" fill="#fff" stroke="#e3e7f0"/>
+  <text x="24" y="674" class="muted">Selected memory detail (tap to open) — Protect / Archive / Delete / Export</text>
+
+</svg>
