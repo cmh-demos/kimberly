@@ -1,0 +1,18 @@
+---
+# Grooming rules for Copilot
+# Configuration for the manual grooming stage in CI workflows.
+
+grooming_bot_settings:
+  description: >
+    Settings for the grooming runner, which is a manual CI stage.
+    Grooming handles post-triage actions: assigning needs-info issues to copilot
+    for info gathering, and moving Triaged+Backlog issues to the Backlog board column.
+  script_path: "scripts/grooming_runner.py"
+  activation: "manual"  # Activated on demand in CI workflow
+  needs_info_variants: ["needs-info"]  # Labels that trigger assignment to copilot-bot
+  assignee_for_needs_info: "copilot-bot"
+  remove_triaged_on_needs_info: true
+  move_to_backlog_if_triaged_and_backlog: true
+  project_board_integration: true  # Use project_management config for board moves
+  audit_event_type: "grooming"
+  dry_run_support: true  # Respects DRY_RUN env var
