@@ -78,7 +78,8 @@ def handle_rate_limit(resp: requests.Response) -> None:
     if remaining < 5:
         sleep_time = max(reset_time - int(time.time()), 60)  # At least 60s
         logger.warning(
-            f"Rate limit low ({remaining} remaining). Sleeping {sleep_time}s."
+            f"Rate limit low ({remaining} remaining). "
+            f"Sleeping {sleep_time}s."
         )
         time.sleep(sleep_time)
 
@@ -134,7 +135,9 @@ def retry_on_failure(max_retries: int = 3, backoff_factor: float = 2.0):
 
 @retry_on_failure()
 def close_issue(owner: str, repo: str, issue_number: int, token: str) -> None:
-    url = f"https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}"
+    url = (
+        f"https://api.github.com/repos/{owner}/{repo}/" f"issues/{issue_number}"
+    )
     headers = {
         "Accept": "application/vnd.github+json",
         "Authorization": f"Bearer {token}",
@@ -227,7 +230,9 @@ def github_search_issues(
 def github_get_issue(
     owner: str, repo: str, issue_number: int, token: str | None
 ) -> dict | None:
-    url = f"https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}"
+    url = (
+        f"https://api.github.com/repos/{owner}/{repo}/" f"issues/{issue_number}"
+    )
     headers = {"Accept": "application/vnd.github+json"}
     if token:
         headers["Authorization"] = f"Bearer {token}"
@@ -253,7 +258,9 @@ def github_get_issue(
 def assign_issue(
     owner: str, repo: str, issue_number: int, assignee: str, token: str
 ) -> None:
-    url = f"https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}"
+    url = (
+        f"https://api.github.com/repos/{owner}/{repo}/" f"issues/{issue_number}"
+    )
     headers = {
         "Accept": "application/vnd.github+json",
         "Authorization": f"Bearer {token}",
@@ -444,9 +451,10 @@ def process_issue(
     actions: List[str] = []
     changed_fields: List[str] = []
 
+    now_utc = datetime.now(timezone.utc)
     audit_entry: Dict[str, Any] = {
         "issue_number": number,
-        "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "timestamp": now_utc.strftime("%Y-%m-%dT%H:%M:%SZ"),
         "event_type": audit_event_type,
         "dry_run": dry_run,
         "execution_branch": os.environ.get("GITHUB_REF", "unknown"),
@@ -759,6 +767,8 @@ def main() -> int:
 
     # Record audits in triage_log.json
     log_file = "triage_log.json"
+    max_log_entries = 1000  # Maximum entries before rotation
+    archive_dir = "logs/archive"
     try:
         import tempfile
 
@@ -774,6 +784,26 @@ def main() -> int:
             sanitize_log_entry(entry) for entry in audit_entries
         ]
         logs.extend(sanitized_entries)
+
+        # Log rotation: archive old entries if exceeding max
+        if len(logs) > max_log_entries:
+            os.makedirs(archive_dir, exist_ok=True)
+            archive_timestamp = datetime.now(timezone.utc).strftime(
+                "%Y%m%d_%H%M%S"
+            )
+            archive_file = os.path.join(
+                archive_dir, f"triage_log_{archive_timestamp}.json"
+            )
+            # Archive older entries (keep only most recent)
+            entries_to_archive = logs[:-max_log_entries]
+            logs = logs[-max_log_entries:]
+            with open(archive_file, "w", encoding="utf-8") as af:
+                json.dump(entries_to_archive, af, indent=2)
+            logger.info(
+                f"Archived {len(entries_to_archive)} entries to "
+                f"{archive_file}"
+            )
+
         with tempfile.NamedTemporaryFile(
             mode="w", encoding="utf-8", delete=False, suffix=".json"
         ) as tmp:
