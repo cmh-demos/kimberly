@@ -76,8 +76,8 @@ class MemoryScorer:
         # Predictive value: Based on access frequency
         days_since_created = (now - created_at).days
         days_since_seen = (now - last_seen).days
-        access_freq = 1.0 / (days_since_seen + 1)  # Higher if recently accessed
-        predictive = min(access_freq, 1.0)
+        recency_score = 1.0 / (days_since_seen + 1)  # Higher if recently accessed
+        predictive = min(recency_score, 1.0)
 
         # Recency and frequency: Combined metric
         recency = math.exp(-days_since_seen / 30.0)  # Decay over 30 days
