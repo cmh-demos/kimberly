@@ -501,6 +501,22 @@ rules:
     dry_run_label: "dry-run"
     dry_run_comment_template: "dry_run_notice"
 
+  # grooming bot settings — for manual grooming stage
+  - grooming_bot_settings:
+    description: >
+      Settings for the grooming runner, which is a manual CI stage.
+      Grooming handles post-triage actions: assigning needs-info issues to copilot
+      for info gathering, and moving Triaged+Backlog issues to the Backlog board column.
+    script_path: "scripts/grooming_runner.py"
+    activation: "manual"  # Activated on demand in CI workflow
+    needs_info_variants: ["needs-info"]  # Labels that trigger assignment to copilot-bot
+    assignee_for_needs_info: "copilot-bot"
+    remove_triaged_on_needs_info: true
+    move_to_backlog_if_triaged_and_backlog: true
+    project_board_integration: true  # Use project_management config for board moves
+    audit_event_type: "grooming"
+    dry_run_support: true  # Respects DRY_RUN env var
+
   # automation & enforcement
   - automation_recommendations:
       # use existing templates in `.github/ISSUE_TEMPLATE/`
