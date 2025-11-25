@@ -25,6 +25,10 @@ from typing import Any, Dict, List, Optional
 import requests
 import yaml
 
+# Default duplicate detection similarity threshold (0.0-1.0)
+# Can be overridden via detect_duplicates.similarity_threshold in rules file
+DEFAULT_DUPLICATE_SIMILARITY_THRESHOLD = 0.78
+
 
 def load_rules(path: str) -> dict | None:
     try:
@@ -194,6 +198,8 @@ def main() -> int:
         required_fields = list(req.keys())
 
     detect_pii_patterns = []
+    # extract duplicate detection similarity threshold from rules
+    duplicate_similarity_threshold = DEFAULT_DUPLICATE_SIMILARITY_THRESHOLD
     # collect patterns if present
     if isinstance(rules, dict):
         steps = rules.get("steps") or []
@@ -202,6 +208,12 @@ def main() -> int:
                 pii_cfg = s["scan_for_pii"]
                 if isinstance(pii_cfg, dict):
                     detect_pii_patterns = pii_cfg.get("patterns", [])
+            if isinstance(s, dict) and "detect_duplicates" in s:
+                dup_cfg = s["detect_duplicates"]
+                if isinstance(dup_cfg, dict):
+                    duplicate_similarity_threshold = dup_cfg.get(
+                        "similarity_threshold", DEFAULT_DUPLICATE_SIMILARITY_THRESHOLD
+                    )
             # fallback older style keys
         # also check for pii_handling.detect_patterns
         pii_handling = rules.get("pii_handling") or {}
@@ -363,8 +375,7 @@ def main() -> int:
                         continue
                     s = SequenceMatcher(None, title.lower(), c.get("title", "").lower())
                     ratio = s.ratio()
-                    # use heuristic threshold: 0.78 (from rules)
-                    if ratio >= 0.78:
+                    if ratio >= duplicate_similarity_threshold:
                         duplicates.append(
                             {
                                 "number": c.get("number"),
