@@ -90,8 +90,10 @@ def github_get_issue(
 def post_label(
     owner: str, repo: str, issue_number: int, label: str, token: str
 ) -> None:
-    url = "https://api.github.com/repos/" \
-           f"{owner}/{repo}/issues/{issue_number}/labels"
+    url = (
+        "https://api.github.com/repos/"
+        f"{owner}/{repo}/issues/{issue_number}/labels"
+    )
     headers = {
         "Accept": "application/vnd.github+json",
         "Authorization": f"Bearer {token}",
@@ -103,8 +105,10 @@ def post_label(
 def post_comment(
     owner: str, repo: str, issue_number: int, comment_text: str, token: str
 ) -> None:
-    url = "https://api.github.com/repos/" \
-           f"{owner}/{repo}/issues/{issue_number}/comments"
+    url = (
+        "https://api.github.com/repos/"
+        f"{owner}/{repo}/issues/{issue_number}/comments"
+    )
     headers = {
         "Accept": "application/vnd.github+json",
         "Authorization": f"Bearer {token}",
@@ -116,8 +120,10 @@ def post_comment(
 def get_project_columns(
     owner: str, repo: str, project_id: int, token: str
 ) -> List[dict]:
-    url = "https://api.github.com/repos/" \
-           f"{owner}/{repo}/projects/{project_id}/columns"
+    url = (
+        "https://api.github.com/repos/"
+        f"{owner}/{repo}/projects/{project_id}/columns"
+    )
     headers = {
         "Authorization": f"Bearer {token}",
         "Accept": "application/vnd.github+json",
@@ -619,8 +625,8 @@ def main() -> int:
                     # update title via issue edit
                     new_title = sanitized_title.strip()
                     resp = requests.patch(
-                        "https://api.github.com/repos/" +
-                        f"{owner}/{repo}/issues/{number}",
+                        "https://api.github.com/repos/"
+                        + f"{owner}/{repo}/issues/{number}",
                         headers={
                             "Authorization": f"Bearer {gh_token}",
                             "Accept": "application/vnd.github+json",
@@ -723,8 +729,8 @@ def main() -> int:
                         )
                         # refresh labels_list from API
                         lbls_resp = requests.get(
-                            "https://api.github.com/repos/" +
-                            f"{owner}/{repo}/issues/{number}",
+                            "https://api.github.com/repos/"
+                            + f"{owner}/{repo}/issues/{number}",
                             headers={
                                 "Accept": "application/vnd.github+json",
                                 "Authorization": f"Bearer {gh_token}",
@@ -774,8 +780,8 @@ def main() -> int:
                                 and backlog_column_id
                             ):
                                 issue_url = (
-                                    "https://api.github.com/repos/" +
-                                    f"{owner}/{repo}/issues/{number}"
+                                    "https://api.github.com/repos/"
+                                    + f"{owner}/{repo}/issues/{number}"
                                 )
                                 try:
                                     move_issue_to_backlog_column(
@@ -848,8 +854,8 @@ def main() -> int:
                     if "Needs Triage" in latest_labels:
                         # remove label via issues API
                         requests.delete(
-                            "https://api.github.com/repos/" +
-                            f"{owner}/{repo}/issues/{number}/"
+                            "https://api.github.com/repos/"
+                            + f"{owner}/{repo}/issues/{number}/"
                             "labels/Needs%20Triage",
                             headers={
                                 "Authorization": f"Bearer {gh_token}",

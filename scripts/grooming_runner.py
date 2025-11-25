@@ -145,8 +145,10 @@ def close_issue(owner: str, repo: str, issue_number: int, token: str) -> None:
 def post_comment(
     owner: str, repo: str, issue_number: int, comment: str, token: str
 ) -> None:
-    url = "https://api.github.com/repos/" \
-           f"{owner}/{repo}/issues/{issue_number}/comments"
+    url = (
+        "https://api.github.com/repos/"
+        f"{owner}/{repo}/issues/{issue_number}/comments"
+    )
     headers = {
         "Accept": "application/vnd.github+json",
         "Authorization": f"Bearer {token}",
@@ -267,8 +269,10 @@ def assign_issue(
 def add_label(
     owner: str, repo: str, issue_number: int, label: str, token: str
 ) -> None:
-    url = "https://api.github.com/repos/" \
-           f"{owner}/{repo}/issues/{issue_number}/labels"
+    url = (
+        "https://api.github.com/repos/"
+        f"{owner}/{repo}/issues/{issue_number}/labels"
+    )
     headers = {
         "Accept": "application/vnd.github+json",
         "Authorization": f"Bearer {token}",
@@ -304,8 +308,10 @@ def remove_label(
 def get_project_columns(
     owner: str, repo: str, project_id: int, token: str
 ) -> List[dict]:
-    url = "https://api.github.com/repos/" \
-           f"{owner}/{repo}/projects/{project_id}/columns"
+    url = (
+        "https://api.github.com/repos/"
+        f"{owner}/{repo}/projects/{project_id}/columns"
+    )
     headers = {
         "Authorization": f"Bearer {token}",
         "Accept": "application/vnd.github+json",
