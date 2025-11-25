@@ -5,6 +5,7 @@ import json
 import yaml
 import requests
 from datetime import datetime, timezone
+from io import StringIO
 
 import scripts.grooming_runner as gr
 
@@ -432,6 +433,196 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
         self.assertEqual(result, 0)
         mock_post.assert_called_once()
         mock_close.assert_called_once()
+
+
+class TestAdditionalCoverage(unittest.TestCase):
+    @patch("scripts.grooming_runner.requests.patch")
+    def test_assign_issue(self, mock_patch):
+        mock_resp = MagicMock()
+        mock_resp.raise_for_status.return_value = None
+        mock_resp.headers = {"X-RateLimit-Remaining": "10"}
+        mock_patch.return_value = mock_resp
+
+        gr.assign_issue("owner", "repo", 1, "assignee", "token")
+        mock_patch.assert_called_once_with(
+            "https://api.github.com/repos/owner/repo/issues/1",
+            headers={
+                "Accept": "application/vnd.github+json",
+                "Authorization": "Bearer token",
+            },
+            json={"assignees": ["assignee"]},
+        )
+
+    @patch("sys.stderr", new_callable=StringIO)
+    @patch("scripts.grooming_runner.requests.patch")
+    def test_assign_issue_low_rate_limit(self, mock_patch, mock_stderr):
+        mock_resp = MagicMock()
+        mock_resp.raise_for_status.return_value = None
+        mock_resp.headers = {"X-RateLimit-Remaining": "4"}
+        mock_patch.return_value = mock_resp
+
+        gr.assign_issue("owner", "repo", 1, "assignee", "token")
+        self.assertIn("Low rate limit remaining (4)", mock_stderr.getvalue())
+
+    @patch("scripts.grooming_runner.requests.delete")
+    def test_remove_label(self, mock_delete):
+        mock_resp = MagicMock()
+        mock_resp.raise_for_status.return_value = None
+        mock_resp.headers = {"X-RateLimit-Remaining": "10"}
+        mock_delete.return_value = mock_resp
+
+        gr.remove_label("owner", "repo", 1, "label", "token")
+        mock_delete.assert_called_once_with(
+            "https://api.github.com/repos/owner/repo/issues/1/labels/label",
+            headers={
+                "Accept": "application/vnd.github+json",
+                "Authorization": "Bearer token",
+            },
+        )
+
+    @patch("sys.stderr", new_callable=StringIO)
+    @patch("scripts.grooming_runner.requests.delete")
+    def test_remove_label_low_rate_limit(self, mock_delete, mock_stderr):
+        mock_resp = MagicMock()
+        mock_resp.raise_for_status.return_value = None
+        mock_resp.headers = {"X-RateLimit-Remaining": "4"}
+        mock_delete.return_value = mock_resp
+
+        gr.remove_label("owner", "repo", 1, "label", "token")
+        self.assertIn("Low rate limit remaining (4)", mock_stderr.getvalue())
+
+    @patch("scripts.grooming_runner.requests.get")
+    def test_github_get_issue_with_token(self, mock_get):
+        mock_resp = MagicMock()
+        mock_resp.raise_for_status.return_value = None
+        mock_resp.json.return_value = {"number": 1}
+        mock_resp.headers = {"X-RateLimit-Remaining": "10"}
+        mock_get.return_value = mock_resp
+
+        result = gr.github_get_issue("owner", "repo", 1, "token")
+        self.assertEqual(result, {"number": 1})
+        mock_get.assert_called_once_with(
+            "https://api.github.com/repos/owner/repo/issues/1",
+            headers={
+                "Accept": "application/vnd.github+json",
+                "Authorization": "Bearer token",
+            },
+        )
+
+    @patch("scripts.grooming_runner.requests.get")
+    def test_github_get_issue_without_token(self, mock_get):
+        mock_resp = MagicMock()
+        mock_resp.raise_for_status.return_value = None
+        mock_resp.json.return_value = {"number": 1}
+        mock_resp.headers = {"X-RateLimit-Remaining": "10"}
+        mock_get.return_value = mock_resp
+
+        result = gr.github_get_issue("owner", "repo", 1, None)
+        self.assertEqual(result, {"number": 1})
+        mock_get.assert_called_once_with(
+            "https://api.github.com/repos/owner/repo/issues/1",
+            headers={"Accept": "application/vnd.github+json"},
+        )
+
+    @patch("scripts.grooming_runner.assign_issue")
+    @patch("scripts.grooming_runner.remove_label")
+    def test_process_issue_needs_info_exception(self, mock_remove, mock_assign):
+        mock_assign.side_effect = Exception("fail")
+        issue = {
+            "number": 1,
+            "labels": [{"name": "needs-info"}, {"name": "Triaged"}],
+            "url": "url1",
+            "updated_at": "2025-01-01T00:00:00Z",
+        }
+        with patch("scripts.grooming_runner.logger") as mock_logger:
+            result = gr.process_issue(
+                issue, "owner", "repo", "token", False,
+                ["needs-info"], "bot", True, False, 0, 0, False,
+                False, [], 0, "", "", "grooming"
+            )
+            mock_assign.assert_called_once()
+            mock_logger.error.assert_called_once()
+
+    @patch("scripts.grooming_runner.post_comment")
+    @patch("scripts.grooming_runner.close_issue")
+    def test_process_issue_stale_close(self, mock_close, mock_post):
+        issue = {
+            "number": 1,
+            "labels": [{"name": "needs-info"}],
+            "url": "url1",
+            "updated_at": "2025-11-01T00:00:00Z",  # Old
+        }
+        result = gr.process_issue(
+            issue, "owner", "repo", "token", False,
+            [], "", False, False, 0, 0, False,
+            True, ["needs-info"], 14, "close", "Stale", "grooming"
+        )
+        mock_post.assert_called_once()
+        mock_close.assert_called_once()
+        self.assertIn("closed as stale", result["changed_fields"])
+
+    @patch("scripts.grooming_runner.post_comment")
+    def test_process_issue_stale_comment(self, mock_post):
+        issue = {
+            "number": 1,
+            "labels": [{"name": "needs-info"}],
+            "url": "url1",
+            "updated_at": "2025-11-01T00:00:00Z",  # Old
+        }
+        result = gr.process_issue(
+            issue, "owner", "repo", "token", False,
+            [], "", False, False, 0, 0, False,
+            True, ["needs-info"], 14, "comment", "Stale", "grooming"
+        )
+        mock_post.assert_called_once()
+        self.assertIn("commented as stale", result["changed_fields"])
+
+    @patch("scripts.grooming_runner.requests.get")
+    def test_get_project_columns(self, mock_get):
+        mock_resp = MagicMock()
+        mock_resp.raise_for_status.return_value = None
+        mock_resp.json.return_value = [{"id": 1}]
+        mock_resp.headers = {"X-RateLimit-Remaining": "10"}
+        mock_get.return_value = mock_resp
+
+        result = gr.get_project_columns("owner", "repo", 1, "token")
+        self.assertEqual(result, [{"id": 1}])
+        mock_get.assert_called_once()
+
+    @patch("scripts.grooming_runner.requests.get")
+    @patch("scripts.grooming_runner.time.sleep")
+    def test_retry_on_failure_exhaust_retries(self, mock_sleep, mock_get):
+        mock_resp = MagicMock()
+        mock_resp.raise_for_status.side_effect = requests.ConnectionError("fail")
+        mock_get.return_value = mock_resp
+
+        with patch("scripts.grooming_runner.logger") as mock_logger:
+            with self.assertRaises(requests.ConnectionError):
+                gr.github_search_issues("owner", "repo", "token")
+            mock_logger.error.assert_called_with("All 4 attempts failed.")
+
+    @patch.dict(os.environ, {}, clear=True)
+    @patch("scripts.grooming_runner.load_rules")
+    def test_main_no_github_repo(self, mock_load):
+        mock_load.return_value = {}
+        result = gr.main()
+        self.assertEqual(result, 0)
+
+    @patch.dict(
+        os.environ, {"GITHUB_REPOSITORY": "owner/repo", "GITHUB_TOKEN": "gh_1234567890abcdef"}
+    )
+    @patch("scripts.grooming_runner.load_rules")
+    @patch("scripts.grooming_runner.github_search_issues")
+    @patch("builtins.open", new_callable=mock_open)
+    @patch("json.dump")
+    def test_main_log_writing(self, mock_json_dump, mock_open_file, mock_search, mock_load):
+        mock_load.side_effect = [{"project_management": {}}, {"grooming_bot_settings": {}}]
+        mock_search.return_value = [{"number": 1, "labels": [], "url": "url1", "updated_at": "2025-01-01T00:00:00Z"}]
+        with patch("scripts.grooming_runner.sanitize_log_entry") as mock_sanitize:
+            mock_sanitize.return_value = {"test": "entry"}
+            result = gr.main()
+            self.assertEqual(result, 0)
+            mock_json_dump.assert_called_once()
 
 
 if __name__ == "__main__":
