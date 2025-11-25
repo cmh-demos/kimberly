@@ -404,11 +404,6 @@ def process_issue(
     print(f"---\nIssue #{number}: {title}")
     print(f"Labels: {labels}")
 
-    # Skip if issue is closed
-    if issue.get("state") == "closed":
-        print("Issue is closed, skipping.")
-        return audit_entry
-
     actions: List[str] = []
     changed_fields: List[str] = []
 
@@ -421,6 +416,11 @@ def process_issue(
         "changed_fields": [],
         "notes": "",
     }
+
+    # Skip if issue is closed
+    if issue.get("state") == "closed":
+        print("Issue is closed, skipping.")
+        return audit_entry
 
     # Check for stale issues
     if stale_enabled:
@@ -614,17 +614,6 @@ def main() -> int:
     done_column_id = project_columns.get("done")
 
     gh_token = os.environ.get("GITHUB_TOKEN")
-
-    # Validate project and column IDs if token provided
-    if gh_token and project_enabled and project_id:
-        try:
-            columns = get_project_columns(owner, repo, project_id, gh_token)
-            valid_column_ids = {col["id"] for col in columns}
-            for col_name, col_id in project_columns.items():
-                if col_id and col_id not in valid_column_ids:
-                    logger.warning(f"Invalid column ID for {col_name}: {col_id}")
-        except Exception as e:
-            logger.error(f"Failed to validate project columns: {e}")
 
     dry_run_env = os.environ.get("DRY_RUN", "").lower()
     dry_run = dry_run_env in ("1", "true", "yes")
