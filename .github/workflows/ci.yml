@@ -76,7 +76,7 @@ jobs:
     - name: Check for secrets
       uses: zricethezav/gitleaks-action@v2
       with:
-        token: ${{ github.token }}
+        token: ${{ secrets.GITHUB_TOKEN }}
     - name: Check for paid API usage (free-mode)
       run: |
         if grep -r "openai\|anthropic\|claude" --include="*.py" .; then
