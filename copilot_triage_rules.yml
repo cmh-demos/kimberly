@@ -31,7 +31,7 @@ ci_validation:
 
 steps:
   # discovery
-  - query: 'is:issue is:open label="Needs Triage" sort:created'
+  - query: 'is:issue is:open -label:"Triaged" sort:created'
   # fetch candidate issues (issues only)
   - collect: "all fields"
   # capture issue body, labels, comments, project card, assignee, created_at
@@ -203,9 +203,6 @@ steps:
     # and decision
     fields:
       ["severity", "priority", "triage_owner", "triage_notes", "references"]
-  - remove_labels:
-      - "Needs Triage"
-  # remove the intake label when triage completes
   - add_labels:
       - "Triaged"
   # mark triaged issues; move to Backlog is gated
@@ -257,20 +254,6 @@ steps:
     include_execution_context: true
 
   # enforcement & housekeeping
-  - ensure_new_issues_labeled:
-    # ensure new issues get intake label (issues only)
-    label: "Needs Triage"
-    when: "on_issue_opened"
-    apply_to: "issues"
-  - scan_and_add_missing_labels:
-    # periodic job to scan issues and add missing labels (issues only)
-    schedule: "daily"
-    if_none_present:
-      - "Needs Triage"
-      - "Triaged"  # only add if neither present
-    add_label: "Needs Triage"
-    apply_to: "issues"
-
   - reconcile_label_pairs:  # detect & reconcile triaged/backlog mismatch
     schedule: "daily"
     description: |-
@@ -356,11 +339,10 @@ steps:
 rules:
   # primary filters
   - process_only: |-
-      type == issue and label == "Needs Triage" and state == open
+      type == issue and not label == "Triaged" and state == open
 
   # label rules and expectations
   - label_policy:
-    required_intake_label: "Needs Triage"
     triaged_labels: ["Triaged", "Backlog"]
     preferred_case: true
     label_normalization:
