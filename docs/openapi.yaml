@@ -1,3 +1,4 @@
+---
 openapi: 3.0.3
 info:
   title: Kimberly API
@@ -613,7 +614,7 @@ paths:
                     archived: 0
   /memory/embed:
     post:
-      summary: Upload self-hosted embeddings for memory items (optional, free-mode only)
+      summary: Upload self-hosted embeddings (optional, free-mode only)
       security:
         - bearerAuth: []
       requestBody:
@@ -673,7 +674,7 @@ paths:
                       status: idle
                     - id: coder
                       name: Coder
-                      description: Assists with code writing, debugging, and automation
+                      description: Assists with coding, debugging, automation
                       status: idle
     post:
       summary: Create/invoke a new agent task
