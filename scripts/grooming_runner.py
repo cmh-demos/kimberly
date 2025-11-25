@@ -45,12 +45,24 @@ logger = logging.getLogger(__name__)
 
 
 def validate_github_token(token: str | None) -> bool:
-    """Validate GitHub token format (basic check for gh_ or github_ prefix)."""
+    """Validate GitHub token format (supports multiple token types)."""
     if not token:
         return False
+    # Support classic, fine-grained PATs, and other formats
+    valid_prefixes = ("ghp_", "ghs_", "ghu_", "gho_", "github_pat_", "gh_", "github_")
     return (
-        token.startswith(("gh_", "github_")) or len(token) == 40
+        any(token.startswith(prefix) for prefix in valid_prefixes) or len(token) == 40
     )  # Classic token length
+
+
+def handle_rate_limit(resp: requests.Response) -> None:
+    """Handle GitHub API rate limiting by sleeping if necessary."""
+    remaining = int(resp.headers.get("X-RateLimit-Remaining", 0))
+    reset_time = int(resp.headers.get("X-RateLimit-Reset", 0))
+    if remaining < 5:
+        sleep_time = max(reset_time - int(time.time()), 60)  # At least 60s
+        logger.warning(f"Rate limit low ({remaining} remaining). Sleeping {sleep_time}s.")
+        time.sleep(sleep_time)
 
 
 def sanitize_log_entry(entry: dict) -> dict:
@@ -106,13 +118,8 @@ def close_issue(owner: str, repo: str, issue_number: int, token: str) -> None:
     resp = requests.patch(url, headers=headers, json=data)
     resp.raise_for_status()
 
-    # Check rate limit
-    remaining = int(resp.headers.get("X-RateLimit-Remaining", 0))
-    if remaining < 5:
-        print(
-            f"Warning: Low rate limit remaining ({remaining}). Consider pausing.",
-            file=sys.stderr,
-        )
+    # Handle rate limit
+    handle_rate_limit(resp)
 
 
 @retry_on_failure()
@@ -128,13 +135,8 @@ def post_comment(
     resp = requests.post(url, headers=headers, json=data)
     resp.raise_for_status()
 
-    # Check rate limit
-    remaining = int(resp.headers.get("X-RateLimit-Remaining", 0))
-    if remaining < 5:
-        print(
-            f"Warning: Low rate limit remaining ({remaining}). Consider pausing.",
-            file=sys.stderr,
-        )
+    # Handle rate limit
+    handle_rate_limit(resp)
 
 
 def load_rules(path: str) -> dict | None:
@@ -149,7 +151,7 @@ def load_rules(path: str) -> dict | None:
 
 @retry_on_failure()
 def github_search_issues(
-    owner: str, repo: str, token: str | None, per_page: int = 100
+    owner: str, repo: str, token: str | None, per_page: int = 100, max_pages: int = 10
 ) -> List[dict]:
     """Search for open issues in the repo, with pagination support."""
     query = f"repo:{owner}/{repo} is:issue is:open"
@@ -170,17 +172,15 @@ def github_search_issues(
         resp = requests.get(url, headers=headers, params=params)
         resp.raise_for_status()
 
-        # Check rate limit
-        remaining = int(resp.headers.get("X-RateLimit-Remaining", 0))
-        if remaining < 5:
-            logger.warning(f"Low rate limit remaining ({remaining}). Consider pausing.")
+        # Handle rate limit
+        handle_rate_limit(resp)
 
         data = resp.json()
         items = data.get("items", [])
         all_items.extend(items)
 
         total_count = data.get("total_count", 0)
-        if len(all_items) >= total_count or len(items) < per_page:
+        if len(all_items) >= total_count or len(items) < per_page or page >= max_pages:
             break
         page += 1
 
@@ -235,6 +235,36 @@ def assign_issue(
 
 @retry_on_failure()
 @retry_on_failure()
+def add_label(
+    owner: str, repo: str, issue_number: int, label: str, token: str
+) -> None:
+    url = f"https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}/labels"
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "Authorization": f"Bearer {token}",
+    }
+    data = [label]
+    resp = requests.post(url, headers=headers, json=data)
+    resp.raise_for_status()
+
+@retry_on_failure()
+def add_label(
+    owner: str, repo: str, issue_number: int, label: str, token: str
+) -> None:
+    url = f"https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}/labels"
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "Authorization": f"Bearer {token}",
+    }
+    data = [label]
+    resp = requests.post(url, headers=headers, json=data)
+    resp.raise_for_status()
+
+    # Handle rate limit
+    handle_rate_limit(resp)
+
+
+@retry_on_failure()
 def remove_label(
     owner: str, repo: str, issue_number: int, label: str, token: str
 ) -> None:
@@ -246,13 +276,8 @@ def remove_label(
     resp = requests.delete(url, headers=headers)
     resp.raise_for_status()
 
-    # Check rate limit
-    remaining = int(resp.headers.get("X-RateLimit-Remaining", 0))
-    if remaining < 5:
-        print(
-            f"Warning: Low rate limit remaining ({remaining}). Consider pausing.",
-            file=sys.stderr,
-        )
+    # Handle rate limit
+    handle_rate_limit(resp)
 
 
 @retry_on_failure()
@@ -317,13 +342,8 @@ def move_card(card_id: int, to_column_id: int, token: str) -> None:
     resp = requests.post(url, headers=headers, json=data)
     resp.raise_for_status()
 
-    # Check rate limit
-    remaining = int(resp.headers.get("X-RateLimit-Remaining", 0))
-    if remaining < 5:
-        print(
-            f"Warning: Low rate limit remaining ({remaining}). Consider pausing.",
-            file=sys.stderr,
-        )
+    # Handle rate limit
+    handle_rate_limit(resp)
 
 
 def move_issue_to_column(
@@ -384,6 +404,11 @@ def process_issue(
     print(f"---\nIssue #{number}: {title}")
     print(f"Labels: {labels}")
 
+    # Skip if issue is closed
+    if issue.get("state") == "closed":
+        print("Issue is closed, skipping.")
+        return audit_entry
+
     actions: List[str] = []
     changed_fields: List[str] = []
 
@@ -396,6 +421,37 @@ def process_issue(
         "changed_fields": [],
         "notes": "",
     }
+
+    # Check for stale issues
+    if stale_enabled:
+        updated_at_str = issue.get("updated_at")
+        if updated_at_str:
+            updated_at = datetime.fromisoformat(updated_at_str.replace("Z", "+00:00"))
+            now = datetime.now(timezone.utc)
+            if (now - updated_at).days > stale_days and any(
+                label in labels for label in stale_labels
+            ):
+                actions.append(f"{stale_action} stale issue")
+                audit_entry[
+                    "notes"
+                ] += f"stale detected ({(now - updated_at).days} days); "
+                if not dry_run:
+                    try:
+                        if stale_action == "close":
+                            post_comment(owner, repo, number, stale_comment, gh_token)
+                            close_issue(owner, repo, number, gh_token)
+                            changed_fields.append("closed as stale")
+                        elif stale_action == "comment":
+                            post_comment(owner, repo, number, stale_comment, gh_token)
+                            changed_fields.append("commented as stale")
+                        elif stale_action == "label":
+                            # Add a label, e.g., "stale"
+                            add_label(owner, repo, number, "stale", gh_token)
+                            changed_fields.append("labeled as stale")
+                    except Exception as e:
+                        logger.error(f"Failed to handle stale issue #{number}: {e}")
+                else:
+                    changed_fields.append(f"would {stale_action} as stale")
 
     # Check for needs-info variants
     if any(variant in labels for variant in needs_info_variants):
@@ -442,39 +498,10 @@ def process_issue(
         else:
             changed_fields.append("would move to Backlog column")
 
-    # Check for stale issues
-    if stale_enabled:
-        updated_at_str = issue.get("updated_at")
-        if updated_at_str:
-            updated_at = datetime.fromisoformat(updated_at_str.replace("Z", "+00:00"))
-            now = datetime.now(timezone.utc)
-            if (now - updated_at).days > stale_days and any(
-                label in labels for label in stale_labels
-            ):
-                actions.append(f"{stale_action} stale issue")
-                audit_entry[
-                    "notes"
-                ] += f"stale detected ({(now - updated_at).days} days); "
-                if not dry_run:
-                    try:
-                        if stale_action == "close":
-                            post_comment(owner, repo, number, stale_comment, gh_token)
-                            close_issue(owner, repo, number, gh_token)
-                            changed_fields.append("closed as stale")
-                        elif stale_action == "comment":
-                            post_comment(owner, repo, number, stale_comment, gh_token)
-                            changed_fields.append("commented as stale")
-                        # Add more actions if needed
-                    except Exception as e:
-                        logger.error(f"Failed to handle stale issue #{number}: {e}")
-                else:
-                    changed_fields.append(f"would {stale_action} as stale")
-
     # Check for workflow transitions
     if workflow_enabled and project_enabled and project_id:
-        assignee = (
-            issue.get("assignee", {}).get("login") if issue.get("assignee") else None
-        )
+        assignees = issue.get("assignees", [])
+        assignee_logins = [a.get("login") for a in assignees if a]
         for transition in transitions:
             condition = transition.get("condition", {})
             required_labels = condition.get("labels", [])
@@ -486,7 +513,7 @@ def process_issue(
             # Check if all required labels are present
             has_required_labels = all(label in labels for label in required_labels)
             # Check if assignee matches
-            has_assignee = required_assignee is None or assignee == required_assignee
+            has_assignee = required_assignee is None or required_assignee in assignee_logins
             # Check if none of the not_labels are present
             has_no_not_labels = not any(label in labels for label in not_labels)
 
@@ -586,6 +613,19 @@ def main() -> int:
     in_review_column_id = project_columns.get("in_review")
     done_column_id = project_columns.get("done")
 
+    gh_token = os.environ.get("GITHUB_TOKEN")
+
+    # Validate project and column IDs if token provided
+    if gh_token and project_enabled and project_id:
+        try:
+            columns = get_project_columns(owner, repo, project_id, gh_token)
+            valid_column_ids = {col["id"] for col in columns}
+            for col_name, col_id in project_columns.items():
+                if col_id and col_id not in valid_column_ids:
+                    logger.warning(f"Invalid column ID for {col_name}: {col_id}")
+        except Exception as e:
+            logger.error(f"Failed to validate project columns: {e}")
+
     dry_run_env = os.environ.get("DRY_RUN", "").lower()
     dry_run = dry_run_env in ("1", "true", "yes")
 
@@ -602,6 +642,18 @@ def main() -> int:
         return 0
 
     owner, repo = gh_repo.split("/")
+
+    # Validate project and column IDs if token provided
+    if gh_token and project_enabled and project_id:
+        try:
+            columns = get_project_columns(owner, repo, project_id, gh_token)
+            valid_column_ids = {col["id"] for col in columns}
+            for col_name, col_id in project_columns.items():
+                if col_id and col_id not in valid_column_ids:
+                    logger.warning(f"Invalid column ID for {col_name}: {col_id}")
+        except Exception as e:
+            logger.error(f"Failed to validate project columns: {e}")
+
     if not gh_token:
         print("No GITHUB_TOKEN present — will operate in dry-run only", file=sys.stderr)
         dry_run = True
@@ -651,6 +703,7 @@ def main() -> int:
     # Record audits in triage_log.json
     log_file = "triage_log.json"
     try:
+        import tempfile
         logs = []
         if os.path.exists(log_file):
             with open(log_file, "r", encoding="utf-8") as fh:
@@ -661,8 +714,10 @@ def main() -> int:
         # Sanitize entries for compliance
         sanitized_entries = [sanitize_log_entry(entry) for entry in audit_entries]
         logs.extend(sanitized_entries)
-        with open(log_file, "w", encoding="utf-8") as fh:
-            json.dump(logs, fh, indent=2)
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", delete=False, suffix=".json") as tmp:
+            json.dump(logs, tmp, indent=2)
+            tmp.flush()
+            os.replace(tmp.name, log_file)
         print(f"Appended {len(audit_entries)} grooming audits to {log_file}")
     except Exception as e:
         logger.error(f"Failed to append to grooming log: {e}")
