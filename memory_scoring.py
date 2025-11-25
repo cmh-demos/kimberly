@@ -73,7 +73,7 @@ class MemoryScorer:
         else:
             emotion = 0.5
 
-        # Predictive value: Based on access frequency
+        # Predictive value: Based on recency
         days_since_created = (now - created_at).days
         days_since_seen = (now - last_seen).days
         recency_score = 1.0 / (days_since_seen + 1)  # Higher if recently accessed
