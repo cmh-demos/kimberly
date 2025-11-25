@@ -3,6 +3,7 @@ import unittest
 from unittest.mock import mock_open, patch, MagicMock
 import json
 import yaml
+import requests
 
 import scripts.grooming_runner as gr
 
@@ -29,12 +30,29 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
     def test_github_search_issues(self, mock_get):
         mock_resp = MagicMock()
         mock_resp.raise_for_status.return_value = None
-        mock_resp.json.return_value = {"items": [{"number": 1}]}
+        mock_resp.json.return_value = {"items": [{"number": 1}], "total_count": 1}
+        mock_resp.headers = {"X-RateLimit-Remaining": "10"}
         mock_get.return_value = mock_resp
 
         result = gr.github_search_issues("owner", "repo", "token")
         self.assertEqual(result, [{"number": 1}])
         mock_get.assert_called_once()
+
+    @patch("scripts.grooming_runner.requests.get")
+    @patch("scripts.grooming_runner.time.sleep")
+    def test_github_search_issues_retry(self, mock_sleep, mock_get):
+        mock_resp_fail = MagicMock()
+        mock_resp_fail.raise_for_status.side_effect = requests.ConnectionError("fail")
+        mock_resp_success = MagicMock()
+        mock_resp_success.raise_for_status.return_value = None
+        mock_resp_success.json.return_value = {"items": [{"number": 1}]}
+        mock_resp_success.headers = {"X-RateLimit-Remaining": "10"}
+        mock_get.side_effect = [mock_resp_fail, mock_resp_success]
+
+        result = gr.github_search_issues("owner", "repo", "token")
+        self.assertEqual(result, [{"number": 1}])
+        self.assertEqual(mock_get.call_count, 2)
+        mock_sleep.assert_called_once()
 
     @patch("scripts.grooming_runner.requests.get")
     def test_github_get_issue(self, mock_get):
@@ -56,22 +74,22 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
         self.assertIsNone(result)
 
     @patch("scripts.grooming_runner.requests.patch")
-    def test_assign_issue(self, mock_patch):
+    def test_close_issue(self, mock_patch):
         mock_resp = MagicMock()
         mock_resp.raise_for_status.return_value = None
         mock_patch.return_value = mock_resp
 
-        gr.assign_issue("owner", "repo", 1, "assignee", "token")
+        gr.close_issue("owner", "repo", 1, "token")
         mock_patch.assert_called_once()
 
-    @patch("scripts.grooming_runner.requests.delete")
-    def test_remove_label(self, mock_delete):
+    @patch("scripts.grooming_runner.requests.post")
+    def test_post_comment(self, mock_post):
         mock_resp = MagicMock()
         mock_resp.raise_for_status.return_value = None
-        mock_delete.return_value = mock_resp
+        mock_post.return_value = mock_resp
 
-        gr.remove_label("owner", "repo", 1, "label", "token")
-        mock_delete.assert_called_once()
+        gr.post_comment("owner", "repo", 1, "comment", "token")
+        mock_post.assert_called_once()
 
     @patch("scripts.grooming_runner.requests.get")
     def test_get_project_columns(self, mock_get):

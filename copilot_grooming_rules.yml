@@ -16,3 +16,9 @@ grooming_bot_settings:
   project_board_integration: true  # Use project_management config for board moves
   audit_event_type: "grooming"
   dry_run_support: true  # Respects DRY_RUN env var
+  stale_issue_handling:
+    enabled: true
+    labels_to_check: ["needs-info"]
+    days_threshold: 14
+    action: "close"  # or "comment", "label"
+    close_comment: "This issue has been inactive for 14 days with needs-info label. Closing for now. Please reopen if you have more information."

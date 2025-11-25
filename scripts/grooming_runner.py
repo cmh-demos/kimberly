@@ -17,11 +17,71 @@ import sys
 import json
 import yaml
 import requests
+import time
+import logging
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 
-# Load rules
+# Set up logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+
+def retry_on_failure(max_retries: int = 3, backoff_factor: float = 2.0):
+    """Decorator to retry a function on failure with exponential backoff."""
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            last_exception = None
+            for attempt in range(max_retries + 1):
+                try:
+                    return func(*args, **kwargs)
+                except (requests.ConnectionError, requests.Timeout, requests.HTTPError) as e:
+                    last_exception = e
+                    if attempt < max_retries:
+                        wait_time = backoff_factor ** attempt
+                        logger.warning(f"Attempt {attempt + 1} failed: {e}. Retrying in {wait_time:.1f}s...")
+                        time.sleep(wait_time)
+                    else:
+                        logger.error(f"All {max_retries + 1} attempts failed.")
+                        raise last_exception
+            raise last_exception
+        return wrapper
+    return decorator
+
+
+@retry_on_failure()
+def close_issue(owner: str, repo: str, issue_number: int, token: str) -> None:
+    url = f"https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}"
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "Authorization": f"Bearer {token}",
+    }
+    data = {"state": "closed"}
+    resp = requests.patch(url, headers=headers, json=data)
+    resp.raise_for_status()
+    
+    # Check rate limit
+    remaining = int(resp.headers.get("X-RateLimit-Remaining", 0))
+    if remaining < 5:
+        print(f"Warning: Low rate limit remaining ({remaining}). Consider pausing.", file=sys.stderr)
+
+
+@retry_on_failure()
+def post_comment(owner: str, repo: str, issue_number: int, comment: str, token: str) -> None:
+    url = f"https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}/comments"
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "Authorization": f"Bearer {token}",
+    }
+    data = {"body": comment}
+    resp = requests.post(url, headers=headers, json=data)
+    resp.raise_for_status()
+    
+    # Check rate limit
+    remaining = int(resp.headers.get("X-RateLimit-Remaining", 0))
+    if remaining < 5:
+        print(f"Warning: Low rate limit remaining ({remaining}). Consider pausing.", file=sys.stderr)
 def load_rules(path: str) -> dict | None:
     try:
         with open(path, "r", encoding="utf-8") as fh:
@@ -31,6 +91,7 @@ def load_rules(path: str) -> dict | None:
         return None
 
 
+@retry_on_failure()
 def github_search_issues(
     owner: str, repo: str, token: str | None, per_page: int = 100
 ) -> List[dict]:
@@ -40,17 +101,36 @@ def github_search_issues(
     if token:
         headers["Authorization"] = f"Bearer {token}"
 
-    params = {
-        "q": query,
-        "per_page": per_page,
-    }
+    all_items = []
+    page = 1
+    while True:
+        params = {
+            "q": query,
+            "per_page": per_page,
+            "page": page,
+        }
 
-    resp = requests.get(url, headers=headers, params=params)
-    resp.raise_for_status()
-    data = resp.json()
-    return data.get("items", [])
+        resp = requests.get(url, headers=headers, params=params)
+        resp.raise_for_status()
+        
+        # Check rate limit
+        remaining = int(resp.headers.get("X-RateLimit-Remaining", 0))
+        if remaining < 5:
+            logger.warning(f"Low rate limit remaining ({remaining}). Consider pausing.")
+        
+        data = resp.json()
+        items = data.get("items", [])
+        all_items.extend(items)
+        
+        total_count = data.get("total_count", 0)
+        if len(all_items) >= total_count or len(items) < per_page:
+            break
+        page += 1
+    
+    return all_items
 
 
+@retry_on_failure()
 def github_get_issue(
     owner: str, repo: str, issue_number: int, token: str | None
 ) -> dict | None:
@@ -63,9 +143,16 @@ def github_get_issue(
     if resp.status_code == 404:
         return None
     resp.raise_for_status()
+    
+    # Check rate limit
+    remaining = int(resp.headers.get("X-RateLimit-Remaining", 0))
+    if remaining < 5:
+        print(f"Warning: Low rate limit remaining ({remaining}). Consider pausing.", file=sys.stderr)
+    
     return resp.json()
 
 
+@retry_on_failure()
 def assign_issue(
     owner: str, repo: str, issue_number: int, assignee: str, token: str
 ) -> None:
@@ -76,8 +163,15 @@ def assign_issue(
     }
     resp = requests.patch(url, headers=headers, json={"assignees": [assignee]})
     resp.raise_for_status()
+    
+    # Check rate limit
+    remaining = int(resp.headers.get("X-RateLimit-Remaining", 0))
+    if remaining < 5:
+        print(f"Warning: Low rate limit remaining ({remaining}). Consider pausing.", file=sys.stderr)
 
 
+@retry_on_failure()
+@retry_on_failure()
 def remove_label(
     owner: str, repo: str, issue_number: int, label: str, token: str
 ) -> None:
@@ -88,8 +182,14 @@ def remove_label(
     }
     resp = requests.delete(url, headers=headers)
     resp.raise_for_status()
+    
+    # Check rate limit
+    remaining = int(resp.headers.get("X-RateLimit-Remaining", 0))
+    if remaining < 5:
+        print(f"Warning: Low rate limit remaining ({remaining}). Consider pausing.", file=sys.stderr)
 
 
+@retry_on_failure()
 def get_project_columns(
     owner: str, repo: str, project_id: int, token: str
 ) -> List[dict]:
@@ -100,9 +200,16 @@ def get_project_columns(
     }
     resp = requests.get(url, headers=headers)
     resp.raise_for_status()
+    
+    # Check rate limit
+    remaining = int(resp.headers.get("X-RateLimit-Remaining", 0))
+    if remaining < 5:
+        print(f"Warning: Low rate limit remaining ({remaining}). Consider pausing.", file=sys.stderr)
+    
     return resp.json()
 
 
+@retry_on_failure()
 def get_column_cards(column_id: int, token: str) -> List[dict]:
     url = f"https://api.github.com/projects/columns/{column_id}/cards"
     headers = {
@@ -111,6 +218,12 @@ def get_column_cards(column_id: int, token: str) -> List[dict]:
     }
     resp = requests.get(url, headers=headers)
     resp.raise_for_status()
+    
+    # Check rate limit
+    remaining = int(resp.headers.get("X-RateLimit-Remaining", 0))
+    if remaining < 5:
+        print(f"Warning: Low rate limit remaining ({remaining}). Consider pausing.", file=sys.stderr)
+    
     return resp.json()
 
 
@@ -121,6 +234,7 @@ def find_card_for_issue(cards: List[dict], issue_url: str) -> dict | None:
     return None
 
 
+@retry_on_failure()
 def move_card(card_id: int, to_column_id: int, token: str) -> None:
     url = f"https://api.github.com/projects/columns/{to_column_id}/moves"
     headers = {
@@ -130,6 +244,11 @@ def move_card(card_id: int, to_column_id: int, token: str) -> None:
     data = {"card_id": card_id, "position": "top"}
     resp = requests.post(url, headers=headers, json=data)
     resp.raise_for_status()
+    
+    # Check rate limit
+    remaining = int(resp.headers.get("X-RateLimit-Remaining", 0))
+    if remaining < 5:
+        print(f"Warning: Low rate limit remaining ({remaining}). Consider pausing.", file=sys.stderr)
 
 
 def move_issue_to_backlog_column(
@@ -155,6 +274,129 @@ def move_issue_to_backlog_column(
     if card:
         # Move existing card to Backlog column
         move_card(card["id"], backlog_column_id, token)
+
+
+def process_issue(
+    issue: dict,
+    owner: str,
+    repo: str,
+    gh_token: str,
+    dry_run: bool,
+    needs_info_variants: list,
+    assignee_for_needs_info: str,
+    remove_triaged_on_needs_info: bool,
+    project_enabled: bool,
+    project_id: int,
+    backlog_column_id: int,
+    move_to_backlog_if_triaged_and_backlog: bool,
+    stale_enabled: bool,
+    stale_labels: list,
+    stale_days: int,
+    stale_action: str,
+    stale_comment: str,
+    audit_event_type: str,
+) -> Dict[str, Any]:
+    number = issue.get("number")
+    title = issue.get("title")
+    labels = [
+        lbl.get("name") for lbl in issue.get("labels", []) if isinstance(lbl, dict)
+    ]
+    issue_url = issue.get("url")
+
+    print(f"---\nIssue #{number}: {title}")
+    print(f"Labels: {labels}")
+
+    actions: List[str] = []
+    changed_fields: List[str] = []
+
+    audit_entry: Dict[str, Any] = {
+        "issue_number": number,
+        "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "event_type": audit_event_type,
+        "dry_run": dry_run,
+        "execution_branch": os.environ.get("GITHUB_REF", "unknown"),
+        "changed_fields": [],
+        "notes": "",
+    }
+
+    # Check for needs-info variants
+    if any(variant in labels for variant in needs_info_variants):
+        actions.append("assign to copilot-bot and remove Triaged")
+        audit_entry["notes"] += "needs-info detected; "
+        if not dry_run:
+            try:
+                assign_issue(owner, repo, number, assignee_for_needs_info, gh_token)
+                if remove_triaged_on_needs_info and "Triaged" in labels:
+                    remove_label(owner, repo, number, "Triaged", gh_token)
+                    changed_fields.append("removed Triaged")
+                changed_fields.append(f"assigned to {assignee_for_needs_info}")
+            except Exception as e:
+                logger.error(f"Failed to update issue #{number}: {e}")
+        else:
+            changed_fields.append(
+                f"would assign to {assignee_for_needs_info} and remove Triaged"
+            )
+
+    # Check for Triaged and Backlog
+    if (
+        "Triaged" in labels
+        and "Backlog" in labels
+        and project_enabled
+        and backlog_column_id
+        and move_to_backlog_if_triaged_and_backlog
+    ):
+        actions.append("move to Backlog column on board")
+        audit_entry["notes"] += "Triaged+Backlog detected; "
+        if not dry_run:
+            try:
+                move_issue_to_backlog_column(
+                    owner,
+                    repo,
+                    number,
+                    issue_url,
+                    project_id,
+                    backlog_column_id,
+                    gh_token,
+                )
+                changed_fields.append("moved to Backlog column")
+            except Exception as e:
+                logger.error(f"Failed to move issue #{number} on board: {e}")
+        else:
+            changed_fields.append("would move to Backlog column")
+
+    # Check for stale issues
+    if stale_enabled:
+        updated_at_str = issue.get("updated_at")
+        if updated_at_str:
+            updated_at = datetime.fromisoformat(updated_at_str.replace('Z', '+00:00'))
+            now = datetime.now(timezone.utc)
+            if (now - updated_at).days > stale_days and any(label in labels for label in stale_labels):
+                actions.append(f"{stale_action} stale issue")
+                audit_entry["notes"] += f"stale detected ({(now - updated_at).days} days); "
+                if not dry_run:
+                    try:
+                        if stale_action == "close":
+                            post_comment(owner, repo, number, stale_comment, gh_token)
+                            close_issue(owner, repo, number, gh_token)
+                            changed_fields.append("closed as stale")
+                        elif stale_action == "comment":
+                            post_comment(owner, repo, number, stale_comment, gh_token)
+                            changed_fields.append("commented as stale")
+                        # Add more actions if needed
+                    except Exception as e:
+                        logger.error(f"Failed to handle stale issue #{number}: {e}")
+                else:
+                    changed_fields.append(f"would {stale_action} as stale")
+
+    audit_entry["event_type"] = audit_event_type
+    audit_entry["changed_fields"] = changed_fields
+
+    if dry_run:
+        print("[dry-run] " + ", ".join(actions))
+    else:
+        print("[live] " + ", ".join(actions))
+
+    return audit_entry
 
 
 def main() -> int:
@@ -196,6 +438,12 @@ def main() -> int:
         "move_to_backlog_if_triaged_and_backlog", True
     )
     audit_event_type = grooming_settings.get("audit_event_type", "grooming")
+    stale_handling = grooming_settings.get("stale_issue_handling", {})
+    stale_enabled = stale_handling.get("enabled", False)
+    stale_labels = stale_handling.get("labels_to_check", [])
+    stale_days = stale_handling.get("days_threshold", 14)
+    stale_action = stale_handling.get("action", "close")
+    stale_comment = stale_handling.get("close_comment", "Closing stale issue.")
 
     dry_run_env = os.environ.get("DRY_RUN", "").lower()
     dry_run = dry_run_env in ("1", "true", "yes")
@@ -227,103 +475,46 @@ def main() -> int:
 
     print(f"Found {len(items)} open issues")
 
+    audit_entries = []
     for issue in items:
-        number = issue.get("number")
-        title = issue.get("title")
-        labels = [
-            lbl.get("name") for lbl in issue.get("labels", []) if isinstance(lbl, dict)
-        ]
-        issue_url = issue.get("url")
+        audit_entry = process_issue(
+            issue,
+            owner,
+            repo,
+            gh_token,
+            dry_run,
+            needs_info_variants,
+            assignee_for_needs_info,
+            remove_triaged_on_needs_info,
+            project_enabled,
+            project_id,
+            backlog_column_id,
+            move_to_backlog_if_triaged_and_backlog,
+            stale_enabled,
+            stale_labels,
+            stale_days,
+            stale_action,
+            stale_comment,
+            audit_event_type,
+        )
+        audit_entries.append(audit_entry)
 
-        print(f"---\nIssue #{number}: {title}")
-        print(f"Labels: {labels}")
-
-        actions: List[str] = []
-        changed_fields: List[str] = []
-
-        audit_entry: Dict[str, Any] = {
-            "issue_number": number,
-            "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-            "event_type": "grooming",
-            "dry_run": dry_run,
-            "execution_branch": os.environ.get("GITHUB_REF", "unknown"),
-            "changed_fields": [],
-            "notes": "",
-        }
-
-        # Check for needs-info variants
-        if any(variant in labels for variant in needs_info_variants):
-            actions.append("assign to copilot-bot and remove Triaged")
-            audit_entry["notes"] += "needs-info detected; "
-            if not dry_run:
+    # Record audits in triage_log.json
+    log_file = "triage_log.json"
+    try:
+        logs = []
+        if os.path.exists(log_file):
+            with open(log_file, "r", encoding="utf-8") as fh:
                 try:
-                    assign_issue(owner, repo, number, assignee_for_needs_info, gh_token)
-                    if remove_triaged_on_needs_info and "Triaged" in labels:
-                        remove_label(owner, repo, number, "Triaged", gh_token)
-                        changed_fields.append("removed Triaged")
-                    changed_fields.append(f"assigned to {assignee_for_needs_info}")
-                except Exception as e:
-                    print(f"Failed to update issue #{number}: {e}", file=sys.stderr)
-            else:
-                changed_fields.append(
-                    f"would assign to {assignee_for_needs_info} and remove Triaged"
-                )
-
-        # Check for Triaged and Backlog
-        if (
-            "Triaged" in labels
-            and "Backlog" in labels
-            and project_enabled
-            and backlog_column_id
-            and move_to_backlog_if_triaged_and_backlog
-        ):
-            actions.append("move to Backlog column on board")
-            audit_entry["notes"] += "Triaged+Backlog detected; "
-            if not dry_run:
-                try:
-                    move_issue_to_backlog_column(
-                        owner,
-                        repo,
-                        number,
-                        issue_url,
-                        project_id,
-                        backlog_column_id,
-                        gh_token,
-                    )
-                    changed_fields.append("moved to Backlog column")
-                except Exception as e:
-                    print(
-                        f"Failed to move issue #{number} on board: {e}", file=sys.stderr
-                    )
-            else:
-                changed_fields.append("would move to Backlog column")
-
-        audit_entry["event_type"] = audit_event_type
-
-        audit_entry["changed_fields"] = changed_fields
-
-        if dry_run:
-            print("[dry-run] " + ", ".join(actions))
-        else:
-            print("[live] " + ", ".join(actions))
-
-        # Record audit in triage_log.json
-        log_entry = audit_entry
-        log_file = "triage_log.json"
-        try:
-            logs = []
-            if os.path.exists(log_file):
-                with open(log_file, "r", encoding="utf-8") as fh:
-                    try:
-                        logs = json.load(fh)
-                    except Exception:
-                        logs = []
-            logs.append(log_entry)
-            with open(log_file, "w", encoding="utf-8") as fh:
-                json.dump(logs, fh, indent=2)
-            print(f"Appended grooming audit to {log_file}")
-        except Exception as e:
-            print("Failed to append to grooming log:", e, file=sys.stderr)
+                    logs = json.load(fh)
+                except Exception:
+                    logs = []
+        logs.extend(audit_entries)
+        with open(log_file, "w", encoding="utf-8") as fh:
+            json.dump(logs, fh, indent=2)
+        print(f"Appended {len(audit_entries)} grooming audits to {log_file}")
+    except Exception as e:
+        logger.error(f"Failed to append to grooming log: {e}")
 
     return 0
 
