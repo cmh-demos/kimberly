@@ -18,7 +18,7 @@ jobs:
     - name: Install linting tools
       run: |
         python -m pip install --upgrade pip
-        pip install flake8 black isort
+        pip install flake8 black isort yamllint
     - name: Cache pip
       uses: actions/cache@v4
       with:
@@ -34,6 +34,8 @@ jobs:
       run: isort --check-only . --filter-files --skip node_modules --skip .venv
     - name: Lint Markdown
       uses: DavidAnson/markdownlint-cli2-action@v16
+    - name: Lint YAML
+      run: yamllint .
 
   test:
     runs-on: ubuntu-latest
