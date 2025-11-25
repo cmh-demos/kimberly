@@ -111,9 +111,14 @@ def post_comment(
     resp.raise_for_status()
 
 
-def get_project_columns(owner: str, repo: str, project_id: int, token: str) -> List[dict]:
+def get_project_columns(
+    owner: str, repo: str, project_id: int, token: str
+) -> List[dict]:
     url = f"https://api.github.com/repos/{owner}/{repo}/projects/{project_id}/columns"
-    headers = {"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"}
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/vnd.github+json",
+    }
     resp = requests.get(url, headers=headers)
     resp.raise_for_status()
     return resp.json()
@@ -121,7 +126,10 @@ def get_project_columns(owner: str, repo: str, project_id: int, token: str) -> L
 
 def get_column_cards(column_id: int, token: str) -> List[dict]:
     url = f"https://api.github.com/projects/columns/{column_id}/cards"
-    headers = {"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"}
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/vnd.github+json",
+    }
     resp = requests.get(url, headers=headers)
     resp.raise_for_status()
     return resp.json()
@@ -136,7 +144,10 @@ def find_card_for_issue(cards: List[dict], issue_url: str) -> dict | None:
 
 def move_card(card_id: int, to_column_id: int, token: str) -> None:
     url = f"https://api.github.com/projects/columns/{to_column_id}/moves"
-    headers = {"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"}
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/vnd.github+json",
+    }
     data = {"card_id": card_id, "position": "top"}
     resp = requests.post(url, headers=headers, json=data)
     resp.raise_for_status()
@@ -144,16 +155,27 @@ def move_card(card_id: int, to_column_id: int, token: str) -> None:
 
 def create_card(column_id: int, issue_id: int, token: str) -> None:
     url = f"https://api.github.com/projects/columns/{column_id}/cards"
-    headers = {"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"}
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/vnd.github+json",
+    }
     data = {"content_id": issue_id, "content_type": "Issue"}
     resp = requests.post(url, headers=headers, json=data)
     resp.raise_for_status()
 
 
-def move_issue_to_backlog_column(owner: str, repo: str, issue_number: int, issue_url: str, project_id: int, backlog_column_id: int, token: str) -> None:
+def move_issue_to_backlog_column(
+    owner: str,
+    repo: str,
+    issue_number: int,
+    issue_url: str,
+    project_id: int,
+    backlog_column_id: int,
+    token: str,
+) -> None:
     # Get all columns for the project
     columns = get_project_columns(owner, repo, project_id, token)
-    
+
     # Find the card for this issue across all columns
     card = None
     for col in columns:
@@ -161,7 +183,7 @@ def move_issue_to_backlog_column(owner: str, repo: str, issue_number: int, issue
         card = find_card_for_issue(cards, issue_url)
         if card:
             break
-    
+
     if card:
         # Move existing card to Backlog column
         move_card(card["id"], backlog_column_id, token)
@@ -256,7 +278,7 @@ def main() -> int:
     project_enabled = project_management.get("enabled", False)
     project_id = project_management.get("project_id")
     backlog_column_id = project_management.get("columns", {}).get("Backlog")
-    
+
     required_fields = []
     req = rules.get("required_issue_fields")
     if isinstance(req, dict):
@@ -357,7 +379,7 @@ def main() -> int:
         changed_fields: List[str] = []
         audit_entry: Dict[str, Any] = {
             "issue_number": number,
-            "timestamp": datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
+            "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
             "event_type": "initial_triage",
             "triage_owner": default_owner,
             "severity": None,
@@ -712,9 +734,20 @@ def main() -> int:
                             if project_enabled and project_id and backlog_column_id:
                                 issue_url = f"https://api.github.com/repos/{owner}/{repo}/issues/{number}"
                                 try:
-                                    move_issue_to_backlog_column(owner, repo, number, issue_url, project_id, backlog_column_id, gh_token)
+                                    move_issue_to_backlog_column(
+                                        owner,
+                                        repo,
+                                        number,
+                                        issue_url,
+                                        project_id,
+                                        backlog_column_id,
+                                        gh_token,
+                                    )
                                 except Exception as e:
-                                    print(f"Failed to move issue to Backlog column: {e}", file=sys.stderr)
+                                    print(
+                                        f"Failed to move issue to Backlog column: {e}",
+                                        file=sys.stderr,
+                                    )
 
                         # When Backlog is present and Triaged missing -> add Triaged
                         if (
