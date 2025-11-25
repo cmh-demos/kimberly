@@ -135,13 +135,14 @@ class MeditationEngine:
 
             if current_usage > quota:
                 # Prune lowest scored items until under quota
-                tier_items.sort(key=lambda x: x["score"])
+                # Sort by score descending to keep highest-scored items first
+                tier_items.sort(key=lambda x: x["score"], reverse=True)
                 cumulative_size = 0
                 for item in tier_items:
-                    if cumulative_size + item["size_bytes"] > quota:
-                        to_prune.append(item["id"])
-                    else:
+                    if cumulative_size + item["size_bytes"] <= quota:
                         cumulative_size += item["size_bytes"]
+                    else:
+                        to_prune.append(item["id"])
 
             tier_usage[tier] = current_usage
 
