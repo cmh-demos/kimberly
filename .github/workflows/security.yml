@@ -28,8 +28,8 @@ jobs:
 
     - name: Check for secrets
       uses: zricethezav/gitleaks-action@v2
-      with:
-        token: ${{ github.token }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Run Bandit (security linting)
       run: bandit -r . -f json -o bandit-report.json || true
