@@ -1,0 +1,6 @@
+extends: "spectral:oas"
+rules:
+  # Relax a few rules for initial validation to avoid noise. Teams can tighten rules later.
+  info-contact: off
+  info-license: off
+  operation-operationId: off
