@@ -15,6 +15,9 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Fetch full git history
+      run: git fetch --unshallow || true
+
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
