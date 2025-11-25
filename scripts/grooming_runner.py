@@ -472,9 +472,9 @@ def process_issue(
                 label in labels for label in stale_labels
             ):
                 actions.append(f"{stale_action} stale issue")
-                audit_entry["notes"] += (
-                    f"stale detected ({days_since_update} days); "
-                )
+                audit_entry[
+                    "notes"
+                ] += f"stale detected ({days_since_update} days); "
                 if not dry_run:
                     try:
                         if stale_action == "close":
@@ -576,9 +576,9 @@ def process_issue(
                 )
                 if target_column_id:
                     actions.append(f"move to {to_column} column")
-                    audit_entry["notes"] += (
-                        f"workflow transition to {to_column}; "
-                    )
+                    audit_entry[
+                        "notes"
+                    ] += f"workflow transition to {to_column}; "
                     if not dry_run:
                         try:
                             move_issue_to_column(
@@ -663,9 +663,7 @@ def main() -> int:
     stale_labels = stale_handling.get("labels_to_check", [])
     stale_days = stale_handling.get("days_threshold", 14)
     stale_action = stale_handling.get("action", "close")
-    stale_comment = stale_handling.get(
-        "close_comment", "Closing stale issue."
-    )
+    stale_comment = stale_handling.get("close_comment", "Closing stale issue.")
 
     # Get workflow automation settings
     workflow_automation = grooming_settings.get("workflow_automation", {})
@@ -684,8 +682,7 @@ def main() -> int:
     # Validate token for security
     if gh_token and not validate_github_token(gh_token):
         logger.error(
-            "Invalid GitHub token format. "
-            "Ensure it's a valid GitHub token."
+            "Invalid GitHub token format. " "Ensure it's a valid GitHub token."
         )
         return 1
 
