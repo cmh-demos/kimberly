@@ -4,6 +4,7 @@ from unittest.mock import mock_open, patch, MagicMock
 import json
 import yaml
 import requests
+from datetime import datetime, timezone
 
 import scripts.grooming_runner as gr
 
@@ -90,6 +91,28 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
 
         gr.post_comment("owner", "repo", 1, "comment", "token")
         mock_post.assert_called_once()
+
+    def test_validate_github_token(self):
+        self.assertTrue(gr.validate_github_token("gh_1234567890abcdef"))
+        self.assertTrue(gr.validate_github_token("github_1234567890abcdef"))
+        self.assertTrue(gr.validate_github_token("a" * 40))  # Classic token
+        self.assertFalse(gr.validate_github_token("invalid"))
+        self.assertFalse(gr.validate_github_token(None))
+        self.assertFalse(gr.validate_github_token(""))
+
+    def test_sanitize_log_entry(self):
+        entry = {"notes": "My email is user@example.com", "other": "safe"}
+        sanitized = gr.sanitize_log_entry(entry)
+        self.assertEqual(sanitized["notes"], "[REDACTED: Potential PII]")
+        self.assertEqual(sanitized["other"], "safe")
+
+        safe_entry = {"notes": "This is safe", "other": "also safe"}
+        sanitized_safe = gr.sanitize_log_entry(safe_entry)
+        self.assertEqual(sanitized_safe, safe_entry)
+
+        no_notes_entry = {"other": "safe"}
+        sanitized_no_notes = gr.sanitize_log_entry(no_notes_entry)
+        self.assertEqual(sanitized_no_notes, no_notes_entry)
 
     @patch("scripts.grooming_runner.requests.get")
     def test_get_project_columns(self, mock_get):
@@ -302,15 +325,113 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
         self.assertEqual(result, 0)
 
     @patch.dict(
+        os.environ, {"GITHUB_REPOSITORY": "owner/repo", "GITHUB_TOKEN": "invalid"}
+    )
+    @patch("scripts.grooming_runner.load_rules")
+    def test_main_invalid_token(self, mock_load):
+        mock_load.return_value = {"project_management": {}, "grooming_bot_settings": {}}
+        result = gr.main()
+        self.assertEqual(result, 1)
+
+    @patch("scripts.grooming_runner.close_issue")
+    @patch("scripts.grooming_runner.post_comment")
+    @patch("scripts.grooming_runner.datetime")
+    def test_process_issue_stale_close(self, mock_datetime, mock_post, mock_close):
+        mock_datetime.now.return_value = datetime(2025, 11, 25, tzinfo=timezone.utc)
+        mock_datetime.fromisoformat.return_value = datetime(2025, 11, 10, tzinfo=timezone.utc)  # 15 days ago
+
+        issue = {
+            "number": 1,
+            "title": "Stale Issue",
+            "labels": [{"name": "needs-info"}],
+            "url": "url1",
+            "updated_at": "2025-11-10T00:00:00Z"
+        }
+
+        result = gr.process_issue(
+            issue, "owner", "repo", "token", False,
+            ["needs-info"], "bot", True, True, 1, 2, True,
+            True, ["needs-info"], 14, "close", "Close comment", "grooming"
+        )
+
+        mock_post.assert_called_once()
+        mock_close.assert_called_once()
+        self.assertIn("closed as stale", result["changed_fields"])
+
+    @patch("scripts.grooming_runner.post_comment")
+    @patch("scripts.grooming_runner.datetime")
+    def test_process_issue_stale_comment(self, mock_datetime, mock_post):
+        mock_datetime.now.return_value = datetime(2025, 11, 25, tzinfo=timezone.utc)
+        mock_datetime.fromisoformat.return_value = datetime(2025, 11, 10, tzinfo=timezone.utc)
+
+        issue = {
+            "number": 1,
+            "title": "Stale Issue",
+            "labels": [{"name": "needs-info"}],
+            "url": "url1",
+            "updated_at": "2025-11-10T00:00:00Z"
+        }
+
+        result = gr.process_issue(
+            issue, "owner", "repo", "token", False,
+            ["needs-info"], "bot", True, True, 1, 2, True,
+            True, ["needs-info"], 14, "comment", "Comment", "grooming"
+        )
+
+        mock_post.assert_called_once()
+        self.assertIn("commented as stale", result["changed_fields"])
+
+    @patch("scripts.grooming_runner.datetime")
+    def test_process_issue_not_stale(self, mock_datetime):
+        mock_datetime.now.return_value = datetime(2025, 11, 25, tzinfo=timezone.utc)
+        mock_datetime.fromisoformat.return_value = datetime(2025, 11, 20, tzinfo=timezone.utc)  # Recent
+
+        issue = {
+            "number": 1,
+            "title": "Recent Issue",
+            "labels": [{"name": "needs-info"}],
+            "url": "url1",
+            "updated_at": "2025-11-20T00:00:00Z"
+        }
+
+        result = gr.process_issue(
+            issue, "owner", "repo", "token", False,
+            ["needs-info"], "bot", True, True, 1, 2, True,
+            True, ["needs-info"], 14, "close", "Close", "grooming"
+        )
+
+        self.assertNotIn("closed as stale", result["changed_fields"])
+        self.assertNotIn("commented as stale", result["changed_fields"])
+
+    @patch.dict(
         os.environ, {"GITHUB_REPOSITORY": "owner/repo", "GITHUB_TOKEN": "gh_1234567890abcdef"}
     )
     @patch("scripts.grooming_runner.load_rules")
     @patch("scripts.grooming_runner.github_search_issues")
-    def test_main_search_exception(self, mock_search, mock_load):
-        mock_load.return_value = {"project_management": {}, "grooming_bot_settings": {}}
-        mock_search.side_effect = Exception("error")
+    @patch("scripts.grooming_runner.close_issue")
+    @patch("scripts.grooming_runner.post_comment")
+    @patch("builtins.open", new_callable=mock_open)
+    @patch("json.dump")
+    def test_main_with_stale_issue(
+        self, mock_json_dump, mock_open_file, mock_post, mock_close, mock_search, mock_load
+    ):
+        mock_load.side_effect = [
+            {"project_management": {}},
+            {"grooming_bot_settings": {"stale_issue_handling": {"enabled": True, "labels_to_check": ["needs-info"], "days_threshold": 14, "action": "close", "close_comment": "Stale"}}},
+        ]
+        mock_search.return_value = [
+            {
+                "number": 1,
+                "title": "Stale",
+                "labels": [{"name": "needs-info"}],
+                "url": "url1",
+                "updated_at": "2025-11-01T00:00:00Z"  # Old
+            }
+        ]
         result = gr.main()
-        self.assertEqual(result, 1)
+        self.assertEqual(result, 0)
+        mock_post.assert_called_once()
+        mock_close.assert_called_once()
 
 
 if __name__ == "__main__":
