@@ -26,6 +26,11 @@ jobs:
         pip install -r requirements.txt
         pip install bandit safety
 
+    - name: Check for secrets
+      uses: zricethezav/gitleaks-action@v2
+      with:
+        token: ${{ github.token }}
+
     - name: Run Bandit (security linting)
       run: bandit -r . -f json -o bandit-report.json || true
 
