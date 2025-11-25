@@ -1,12 +1,7 @@
 name: Security Checks
 
 on:
-  push:
-    branches: [ main, docs/project-definition ]
   pull_request:
-    branches: [ main, docs/project-definition ]
-  schedule:
-    - cron: '0 0 * * 1'  # Weekly on Mondays
 
 permissions:
   pull-requests: write

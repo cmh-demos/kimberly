@@ -2,9 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [ main, docs/project-definition ]
   pull_request:
-    branches: [ main, docs/project-definition ]
 
 jobs:
   lint:
