@@ -134,10 +134,9 @@ class TestTriageRunnerHelpers(unittest.TestCase):
 
 
 class TestSmokeRunner(unittest.TestCase):
+    @patch.dict(os.environ, {}, clear=True)
     def test_smoke_local_dry_run_no_repo(self):
         # When no GITHUB_REPOSITORY set, main exits gracefully (0)
-        env = os.environ.copy()
-        env.pop("GITHUB_REPOSITORY", None)
         rv = tr.main()
         self.assertEqual(rv, 0)
 

@@ -55,7 +55,7 @@ def read_rules_version(path: str) -> str | None:
 def github_search_issues(
     owner: str, repo: str, token: str | None, per_page: int = 25
 ) -> List[dict]:
-    query = f'repo:{owner}/{repo} is:issue is:open label:"Needs Triage"'
+    query = f'repo:{owner}/{repo} is:issue is:open -label:"Triaged"'
     url = "https://api.github.com/search/issues"
     headers = {"Accept": "application/vnd.github+json"}
     if token:

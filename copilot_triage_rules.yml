@@ -31,7 +31,7 @@ ci_validation:
 
 steps:
   # discovery
-  - query: 'is:issue is:open label="Needs Triage" sort:created'
+  - query: 'is:issue is:open -label:"Triaged" sort:created'
   # fetch candidate issues (issues only)
   - collect: "all fields"
   # capture issue body, labels, comments, project card, assignee, created_at
@@ -203,9 +203,6 @@ steps:
     # and decision
     fields:
       ["severity", "priority", "triage_owner", "triage_notes", "references"]
-  - remove_labels:
-      - "Needs Triage"
-  # remove the intake label when triage completes
   - add_labels:
       - "Triaged"
   # mark triaged issues; move to Backlog is gated
@@ -257,20 +254,6 @@ steps:
     include_execution_context: true
 
   # enforcement & housekeeping
-  - ensure_new_issues_labeled:
-    # ensure new issues get intake label (issues only)
-    label: "Needs Triage"
-    when: "on_issue_opened"
-    apply_to: "issues"
-  - scan_and_add_missing_labels:
-    # periodic job to scan issues and add missing labels (issues only)
-    schedule: "daily"
-    if_none_present:
-      - "Needs Triage"
-      - "Triaged"  # only add if neither present
-    add_label: "Needs Triage"
-    apply_to: "issues"
-
   - reconcile_label_pairs:  # detect & reconcile triaged/backlog mismatch
     schedule: "daily"
     description: |-
@@ -333,8 +316,8 @@ steps:
   - backlog_to_inprogress:
     description: |-
       When an issue receives 'In Progress' while also in 'Backlog',
-      remove 'Backlog' and add 'Ready To Work' to reflect
-      readiness for execution.
+      remove 'Backlog' and add 'Ready To Work' to reflect readiness for
+      execution.
     apply_to: "issues"
     when_label_added: "In Progress"
     requires_existing_label: "Backlog"
@@ -357,11 +340,10 @@ steps:
 rules:
   # primary filters
   - process_only: |-
-      type == issue and label == "Needs Triage" and state == open
+      type == issue and not label == "Triaged" and state == open
 
   # label rules and expectations
   - label_policy:
-    required_intake_label: "Needs Triage"
     triaged_labels: ["Triaged", "Backlog"]
     preferred_case: true
     label_normalization:
@@ -408,22 +390,23 @@ rules:
           "skip_automation",
           "force_label_add",
           "force_label_remove",
-        ]  # Allowed override actions
-    preservation_rules:  # guidance to avoid accidental removal
+        ]   # Allowed override actions
+    preservation_rules:
+      # guidance to avoid accidental removal
       - |-
           Do not remove Triaged or Backlog without explicit triage update.
     pair_enforcement:
       description: |-
-        Triaged and Backlog must exist together on issues. Triaged
-        prevents the bot from reworking the issue; Backlog triggers
-        downstream workflows.
+        Triaged and Backlog must exist together on issues. Triaged prevents
+        the bot from reworking the issue; Backlog triggers downstream
+        workflows.
       pair: ["Triaged", "Backlog"]
-      # remove both labels when mismatch detected
-      on_mismatch: "remove_both"
-      # safety: if one of the pair was modified recently
-      # (less than grace_period_hours) by a user,
-      # the system will skip automatic removal and notify maintainers
-      # instead of making changes.
+      on_mismatch: "remove_both"  # remove both labels when mismatch detected
+      # safety: if one of the pair was modified recently (less than
+      # grace_period_hours)
+      # by a user,
+      # the system will skip automatic removal and notify maintainers instead
+      # of making changes.
       grace_period_hours: 24
       skip_on_recent_human_action: true
       notify_on_skip: true  # notify triage channel if skip
@@ -431,10 +414,10 @@ rules:
   # title sanitization (remove embedded priority tags after priority
   # computed)
   - title_priority_cleanup:
-    description: >-
+    description: >
       Remove explicit priority tags from titles after priority is
-      computed during triage. Bot logs original title and why it
-      changed the title.
+      computed during triage.
+      Bot logs original title and why it changed the title.
     detection_patterns:
       - '(?i)\[Top Priority\]'
       - '(?i)\[High Priority\]'
@@ -468,15 +451,15 @@ rules:
 
   # severity definitions (recommended table)
   - severity_levels:
-    critical: >-
-      Complete loss of service or data corruption affecting many
-      users; security exploit in progress
-    high: >-
-      Major feature broken for many users; blocking revenue or
-      critical workflows
-    medium: >-
-      Feature missing or broken for a subset of users, or minor
-      but repeatable data loss
+    critical: >
+      Complete loss of service or data corruption affecting many users;
+      security exploit in progress
+    high: >
+      Major feature broken for many users;
+      blocking revenue or critical workflows
+    medium: >
+      Feature missing or broken for a subset of users,
+      or minor but repeatable data loss
     low: "Small UI bug, typo, or low impact issue"
 
   # prioritization guidance
@@ -491,9 +474,9 @@ rules:
 
   # concurrency and ownership
   - triage_ownership:
-    concurrent_work: >-
-      Allowed if issues do not touch the same files/owners or
-      project cards; otherwise acquire lock
+    concurrent_work: >
+      Allowed if issues do not touch the same files/owners or project cards;
+      otherwise acquire lock
     # Copilot bots always own triage across the project
     default_owner: "copilot-bot"
     keep_audit_comment: true
@@ -503,13 +486,12 @@ rules:
     skip_processing_if_label_present: ["Triaged"]
     skip_if_triaged_and_later_stage_present:
       ["Ready To Work", "In Progress", "In Review", "Done"]
-    reason_for_skip: >-
-      Triaged prevents triage bot from reworking the issue; when
-      Triaged appears alongside downstream workflow labels the
-      issue is beyond triage and should be ignored by triage
-      operations
-    # when the bot adds/removes labels it should post a short
-    # explanatory comment
+    reason_for_skip: >
+      Triaged prevents triage bot from reworking the issue;
+      when Triaged appears alongside downstream workflow labels the issue is
+      beyond triage and should be ignored by triage operations
+    # when the bot adds/removes labels it should post a short explanatory
+    # comment
     auto_label_comments: true
     comment_on_label_add_template: "label_added"
     comment_on_label_remove_template: "label_removed"
@@ -534,10 +516,10 @@ rules:
       - scheduled_label_audit: true
 
   # edge cases & special categories
-  - security: >-
-      Close coordination with security team; don't post sensitive
-      details in public issue comments. Use the security contact
-      or private channel.
+  - security: >
+      Close coordination with security team;
+      don't post sensitive details in public issue comments.
+      Use the security contact or private channel.
   - legal: "Tag `legal-review` and escalate to product/legal owner"
 
   # error handling for step failures
@@ -574,13 +556,11 @@ rules:
   - metrics_and_monitoring:
     description: "Track triage metrics for dashboards and alerts."
     metrics:
-      - triage_completion_rate: >-
-          Percentage of issues triaged within SLA
-      - average_triage_time: >-
-          Average time from issue creation to triage
-      - average_time_to_assign_owner: >-
+      - triage_completion_rate: "Percentage of issues triaged within SLA"
+      - average_triage_time: "Average time from issue creation to triage"
+      - average_time_to_assign_owner: >
           Average time from triage start to assignment of triage owner
-      - median_time_to_triage: >-
+      - median_time_to_triage: >
           Median time from creation to triage (less sensitive to outliers)
       - pii_detection_rate: "Rate of PII detections"
       - error_rate: "Percentage of triage runs with errors"
@@ -588,7 +568,7 @@ rules:
       - dry_runs: "Count of dry-run triage executions"
       - triaged_count: "Total issues triaged"
       - backlog_gate_failures: "Count of backlog gate failures"
-    retention_guidance: >-
+    retention_guidance: >
       Retain metrics data for 1 year, triage logs for 2 years.
       Archive older data to cold storage.
     dashboard_integration:
@@ -607,21 +587,22 @@ rules:
       - "Classify severity & priority and explain why"
       - "If duplicate, close as duplicate and link canonical issue"
       - "Assign an owner or milestone"
-      - >-
-        Remove 'Needs Triage' only when the issue is triaged;
-        add 'Triaged' and 'Backlog' labels when appropriate
+      - >
+          Remove 'Needs Triage' only when the issue is triaged;
+          add 'Triaged' and 'Backlog' labels when appropriate
 
-  # quick size estimate rules: enforce allowed values and why they are required
+  # quick size estimate rules: enforce allowed values and why they are
+  # required
   - quick_size_estimates:
     allowed_values: ["xsmall", "small", "medium", "large", "epic"]
     enforcement:
       required_for_triage: true
-      bot_action_if_missing: >-
+      bot_action_if_missing: >
         add_label: needs-info; post_comment: request_more_info
       human_override_label: "manual-triage"
-    usage_notes: >-
-      Quick estimate should be conservative; used for
-      prioritization and metrics.
+    usage_notes: >
+      Quick estimate should be conservative;
+      used for prioritization and metrics.
 
   # label mappings and deterministic classification
   - label_mappings:
@@ -638,7 +619,7 @@ rules:
 
   # service-level targets for triage (SLA)
   - sla:
-    description: >-
+    description: >
       Target response / initial triage times by severity
       (working hours unless otherwise noted).
     targets:
@@ -649,33 +630,32 @@ rules:
 
   # structured triage event / audit schema (triage_log.json)
   - triage_audit_schema:
-    description: >-
-      Canonical schema for each triage event appended to
-      triage_log.json. This enables dashboards and auditability.
+    description: >
+      Canonical schema for each triage event appended to triage_log.json.
+      This enables dashboards and auditability.
     version: "1.2"  # schema version for future extensions
     fields:
-      - issue_number:
-          type: int
-          description: "GitHub issue number"
+      - issue_number: {type: int, description: "GitHub issue number"}
       - triage_owner:
           type: string
           description: "Bot or user who performed triage"
       - event_type:
           type: string
-          description: >-
+          description: |-
             e.g., 'initial_triage','update','escalation','duplicate'
       - timestamp:
           type: rfc3339
           description: "ISO 8601 timestamp of the event"
       - severity:
           type: string
-          description: "Severity level (critical, high, medium, low)"
+          description: >
+            Severity level (critical, high, medium, low)
       - priority:
           type: string
           description: "Priority level (p0, p1, p2, p3)"
       - size_estimate:
           type: string
-          description: >-
+          description: >
             Quick size estimate (xsmall, small, medium, large, epic)
       - pii_detected:
           type: bool
@@ -693,35 +673,25 @@ rules:
           type: string
           description: "Git branch where triage ran"
       - backlog_gate_passed:
-          type: bool
-          description: "Whether backlog gating passed"
+          {type: bool, description: "Whether backlog gating passed"}
       - backlog_gate_reasons:
-          type: list
-          description: "Reasons for backlog gate outcome"
+          {type: list, description: "Reasons for backlog gate outcome"}
       - title_sanitized:
-          type: bool
-          description: "Whether the title was sanitized"
+          {type: bool, description: "Whether the title was sanitized"}
       - original_title:
-          type: string
-          description: "Original title before sanitization"
+          {type: string, description: "Original title before sanitization"}
       - changed_fields:
-          type: list
-          description: "Fields changed during triage"
-      - notes:
-          type: string
-          description: "Additional triage notes"
+          {type: list, description: "Fields changed during triage"}
+      - notes: {type: string, description: "Additional triage notes"}
       - references:
-          type: list
-          description: "Links to docs or related issues"
+          {type: list, description: "Links to docs or related issues"}
       - override_by:
           type: string
           description: "User or group who applied manual override"
       - override_reason:
-          type: string
-          description: "Reason for manual override"
+          {type: string, description: "Reason for manual override"}
       - override_timestamp:
-          type: rfc3339
-          description: "Timestamp of manual override"
+          {type: rfc3339, description: "Timestamp of manual override"}
     example: |
       {
         "issue_number": 123,
@@ -737,37 +707,37 @@ rules:
         "dry_run": false,
         "execution_branch": "main",
         "title_sanitized": true,
-        "original_title": "[Top Priority] README placeholders",
+        "original_title": "[Top Priority] README placeholders.",
         "changed_fields": ["severity","triage_owner","labels"],
         "notes": "Confirmed reproducible",
         "references": ["docs/memory-model.md","PR#456"]
       }
 
-  # Centralized Secrets and Environment Configuration
+# Centralized Secrets and Environment Configuration
   - secrets_config:
-    secure_intake_url: "${SECURE_INTAKE_URL}"
-    # Environment variable for secure intake URL
-    bot_comment_templates:  # Templates can reference secrets
+    secure_intake_url: "${SECURE_INTAKE_URL}"  # Env var for secure intake URL
+    bot_comment_templates:
+      # Templates can reference secrets
       secure_intake_instructions: |
         This issue contains sensitive data. To help us investigate securely,
-        please use the secure intake form at ${SECURE_INTAKE_URL} or contact
-        `security-oncall` directly. Do not paste secrets or personal data in
-        public comments.
+        please use the secure intake form at ${SECURE_INTAKE_URL} or
+        contact `security-oncall` directly. Do not paste secrets or personal
+        data in public comments.
     request_more_info: |
-      Thanks for filing this issue — I'm the triage bot and need a
-      bit more info to proceed.
-      Please update the issue with steps to reproduce and any relevant
-      logs (see `.github/ISSUE_TEMPLATE/bug_report.md`).
+      Thanks for filing this issue — I'm the triage bot and need a bit more
+      info to proceed.
+      Please update the issue with steps to reproduce and any relevant logs
+      (see `.github/ISSUE_TEMPLATE/bug_report.md`).
 
     marked_duplicate: |
-      This appears to be a duplicate of #{canonical_issue} — linking
-      and closing this one as duplicate.
-      If you believe the issue is different, please explain how it
-      differs and reopen.
+      This appears to be a duplicate of #{canonical_issue} — linking and
+      closing this one as duplicate.
+      If you believe the issue is different, please explain how it differs
+      and reopen.
 
     triaged_summary: |
-      Triage summary: severity = {severity}, priority = {priority},
-      owner = {triage_owner}. Links/refs: {references}.
+      Triage summary: severity = {severity}, priority = {priority}, owner =
+      {triage_owner}. Links/refs: {references}.
 
     triaged_backlog_notice: |
       This issue has been marked as `Triaged` and placed into the `Backlog`.
@@ -782,10 +752,10 @@ rules:
       run on the `main` branch or add the `manual-triage` override.
 
     backlog_added_notice: |
-      This issue passed backlog gating and has been placed into
-      the `Backlog` for planning.
-      If the move is incorrect, remove the label or add
-      `manual-triage` to prevent automated changes.
+      This issue passed backlog gating and has been placed into the `Backlog`
+      for planning.
+      If the move is incorrect, remove the label or add `manual-triage` to
+      prevent automated changes.
 
     backlog_gate_blocked_notice: |
       This issue cannot be moved into `Backlog` yet because it did not meet
@@ -805,11 +775,11 @@ rules:
       edits.
 
     redaction_notice: |
-      The content you provided appears to contain sensitive information
-      and has been redacted from public view to protect your data.
-      If you need to share additional details, please use our secure
-      intake channel (see `secure_intake_instructions`) or contact the
-      security team privately.
+      The content you provided appears to contain sensitive information and has
+      been redacted from public view to protect your data.
+      If you need to share additional details, please use our secure intake
+      channel (see `secure_intake_instructions`) or contact the security team
+      privately.
 
     secure_intake_instructions: |
       This issue contains sensitive data. To help us investigate securely,
@@ -818,30 +788,30 @@ rules:
       public comments.
 
     label_added: |
-      I added the `{label}` label to this issue as part of the triage workflow.
+      I added the `{label}` label to this issue as part of the triage
+      workflow.
       Reason: {reason}
 
     label_removed: |
-      I removed the `{label}` label from this issue as part of
-      the triage workflow.
+      I removed the `{label}` label from this issue as part of the triage
+      workflow.
       Reason: {reason}
 
     pair_mismatch_removed: |
-      I removed both `Triaged` and `Backlog` because their presence
-      was out-of-sync.
-      Reason: both labels must exist together — removing both so
-      this issue can be reprocessed.
+      I removed both `Triaged` and `Backlog` because their presence was
+      out-of-sync.
+      Reason: both labels must exist together — removing both so this issue
+      can be reprocessed.
 
     backlog_to_ready_notice: |
-      The `Backlog` label was removed and replaced with
-      `Ready To Work` because this issue moved into work
-      (In Progress).
-      Reason: `Ready To Work` indicates the issue is prepared
-      for active execution by the team.
+      The `Backlog` label was removed and replaced with `Ready To Work`
+      because this issue moved into work (In Progress).
+      Reason: `Ready To Work` indicates the issue is prepared for active
+      execution by the team.
 
     escalation_notice: |
-      This issue has been escalated based on severity/labels.
-      Notifying: {channels}.
+      This issue has been escalated based on severity/labels. Notifying:
+      {channels}.
 
   # duplicate detection & canonical issue policy
   - duplicates:
@@ -852,14 +822,13 @@ rules:
     # `max_search_window_days` settings to constrain work. Consider background
     # workers or cached similarity indexes for scale.
     policy: |
-      - If duplicates are detected, link to the canonical issue and
-        leave a short comment
-      - Close the duplicate with the reason
-        'Duplicate - linked to #<canonical_issue>'
-      - If two issues appear similar but different (e.g., different
-        root cause), the bot will NOT close and will ask for
-        clarification
-    canonical_linking: >-
+      - If duplicates are detected, link to the canonical issue and leave a
+        short comment
+      - Close the duplicate with the reason 'Duplicate - linked to
+        #<canonical_issue>'
+      - If two issues appear similar but different (e.g., different root cause),
+        the bot will NOT close and will ask for clarification
+    canonical_linking: |
       Prefer the earliest confirmed reproducible issue as canonical.
       Document why canonical was chosen in triage_log.json.
 
@@ -876,8 +845,7 @@ rules:
       - "add_labels"
       - "remove_labels"
     forbidden_actions:
-      # e.g., full stack traces with secrets, PII
-      - "post_sensitive_data"
+      - "post_sensitive_data"  # e.g., full stack traces with secrets, PII
       - "auto_close_security_issues_without_review"
     # automated PII handling is allowed and required for data hygiene
     allowed_pii_actions:
@@ -885,25 +853,25 @@ rules:
       - append_redaction_note: true
       - move_to_private_queue: true
     privacy_rules: |
-      - Do not post or echo PII (names, emails, phone numbers, auth
-        tokens) in public issue comments.
-      - If issue content contains PII or secrets, redaction must be
-        applied (mask or instruct to remove) and tag `security`.
-      - For security-tagged issues, the bot will escalate to security
-        private channel and avoid adding details in public issue
-        comments.
+      - Do not post or echo PII (names, emails, phone numbers, auth tokens)
+        in public issue comments.
+      - If issue content contains PII or secrets, redaction must be applied
+        (mask or instruct to remove) and tag `security`.
+      - For security-tagged issues, the bot will escalate to security private
+        channel and avoid adding details in public issue comments.
     security_escalation:
-      workflow: >-
-        If label:security or severity==critical then create private
-        alert and notify security-oncall. Do not post sensitive
-        details in public comments.
+      workflow: |
+        If label:security or severity==critical then create private alert and
+        notify security-oncall.
+        Do not post sensitive details in public comments.
 
   # machine-enforced PII handling rules
   - pii_handling:
-    description: >-
-      Machine-first PII detection, automatic redaction, and private
-      escalation workflow. Bots will redact, label, and route
-      sensitive content, while allowing manual overrides.
+    description: |
+      Machine-first PII detection, automatic redaction,
+      and private escalation workflow.
+      Bots will redact, label, and route sensitive content,
+      while allowing manual overrides.
     detect_patterns:  # default patterns used by scan_for_pii step
       - "api[_-]?key"
       - "secret"
@@ -928,77 +896,77 @@ rules:
 
   # safe-handling examples
   - security_examples:
-      - example_incoming: >-
-          User pasted a stack trace containing credentials
-        bot_action: >-
-          Respond asking to redact credentials and moved issue to
-          private security queue; notify security-oncall
-      - example_incoming: >-
-          Bug report contains PII in reproduction steps
-        bot_action: >-
-          Request anonymization in public, offer a secure private
-          intake channel for sensitive reproduction data
+      - example_incoming: "User pasted a stack trace containing credentials"
+        bot_action: |
+          Respond asking to redact credentials and moved issue to private
+          security queue;
+          notify security-oncall
+      - example_incoming: "Bug report contains PII in reproduction steps"
+        bot_action: |
+          Request anonymization in public, offer a secure private intake channel
+          for sensitive reproduction data
 
   # optional notes for maintainers
   - notes: |-
-      This file defines a recommended triage workflow. Small projects
-      may choose stricter or looser conventions. Recommended
-      automation: a GitHub Action or bot that enforces required fields
-      and appends audit entries to `triage_log.json`.
+      This file defines a recommended triage workflow. Small projects may choose
+      stricter or looser conventions. Recommended automation: a GitHub Action or
+      bot
+      that enforces required fields and appends audit entries to
+      `triage_log.json`.
       Auto-labeling via GitHub Actions is deferred per current
       direction.
   - safety_guarantees: |
-      Automation must be idempotent and avoid label flip-flops.
-      For example, `triaged_to_backlog` and `backlog_to_triaged` only
-      add labels when missing, skip if `manual-triage` or
-      security/no-triage tags are present, and respect recent human
-      edits (grace_period_hours = 24) to avoid undoing user changes.
+      Automation must be idempotent and avoid label flip-flops. For example,
+      `triaged_to_backlog` and `backlog_to_triaged` only add labels
+      when missing,
+      skip if `manual-triage` or security/no-triage tags are present,
+      and respect
+      recent human edits (grace_period_hours = 24) to avoid undoing
+      user changes.
 
   # Idempotency Checks and Examples
   - idempotency_checks:
-    description: >-
-      Ensure operations are idempotent to prevent repeated
-      executions from causing issues.
+    description: |
+      Ensure operations are idempotent to prevent repeated executions from
+      causing issues.
     examples:
-      - >-
-        Check if label already exists before adding
-        (e.g., if 'Triaged' in issue.labels, skip add)
-      - >-
-        Use audit logs to detect previous runs and skip
-        if already processed
-      - >-
-        For title sanitization, check for audit marker before editing
-      - >-
-        Avoid flip-flops: if adding 'Backlog' when 'Triaged' is
-        added, ensure not to remove it later unless conditions change
-    implementation: >-
+      - |
+        Check if label already exists before adding (e.g., if 'Triaged' in
+        issue.labels, skip add)
+      - "Use audit logs to detect previous runs and skip if already processed"
+      - "For title sanitization, check for audit marker before editing"
+      - |
+        Avoid flip-flops: if adding 'Backlog' when 'Triaged' is added,
+        ensure not to remove it later unless conditions change
+    implementation: |
       Each step should include a check: if already_applied(event),
       skip
 
   # execution / branch policy — enforce dry-run on non-main branches
   - execution_policy:
-    description: >-
-      Avoid performing real repository modifications unless running
-      on the protected branch(es). All other branches run in dry-run
-      mode where the bot reports actions but does not change state.
+    description: |-
+      Avoid performing real repository modifications unless running on the
+      protected branch(es). All other branches run in dry-run mode where the
+      bot reports actions but does not change state.
     protected_branches: ["main"]
-    # behavior applied unless current branch is in protected_branches
-    default_behavior: "dry_run"
+    default_behavior: "dry_run"  # behavior applied unless current branch
+    # is in protected_branches
     mutate_branches: ["main"]
-    # label added to issues when the run was simulated
-    dry_run_marker_label: "dry-run"
+    dry_run_marker_label: "dry-run"  # label added to issues when the
+    # run was simulated
     dry_run_comment_template: "dry_run_notice"
-    # Safety: enforce that any step which would change
-    # labels/move cards/remove labels/add labels/move cards
+    # Safety: enforce that any step which would change labels/move cards/
+    # remove labels/add labels/move cards
     # must check execution_policy before performing stateful changes.
 
   # guidance for bots to check the execution policy before state-changing ops
   - execution_policy_checks:
-    description: "Template guidance for automation: how to query the execution
+    description: |
+      Template guidance for automation: how to query the execution
       policy and respect dry-run vs real-run before making label or card
       changes. Bots should consult the checked flag produced by the
       check_execution_policy step (runtime variable `dry_run`) and avoid
-      performing any state-changing operations when true."
+      performing any state-changing operations when true.
     example_snippet: |
       # pseudocode — evaluate the runtime flag set by the pipeline
       if runtime.get('dry_run', True):
@@ -1054,50 +1022,48 @@ rules:
 
   # Changelog
   - changelog:
-    policy: >-
-      Bump schema version on breaking changes or major feature
-      additions. Update last_updated date on any change.
+    policy: |
+      Bump schema version on breaking changes or major feature additions.
+      Update last_updated date on any change.
       Maintain backward compatibility where possible.
     entries:
       - version: "1.2"
         date: "2025-11-24"
         changes:
-          - >-
+          - |
             Added machine-readable JSON schema and CI validation
             (yamllint, jsonschema)
-          - >-
-            Tightened PII regexes with pre-filters and allowlists
-            for low-risk domains
-          - >-
-            Added explicit test vectors for PII detection, duplicate
-            detection, and execution policy
-          - >-
-            Made manual override semantics explicit with
-            who_can_override and audit fields
-          - >-
-            Added runtime telemetry counters (PII events, dry_runs,
-            etc.) and retention guidance
-          - >-
-            Improved performance notes with caching and background
-            worker recommendations
+          - |
+            Tightened PII regexes with pre-filters and allowlists for
+            low-risk domains
+          - |
+            Added explicit test vectors for PII detection, duplicate detection,
+            and execution policy
+          - |
+            Made manual override semantics explicit with who_can_override and
+            audit fields
+          - |
+            Added runtime telemetry counters (PII events, dry_runs, etc.) and
+            retention guidance
+          - |
+            Improved performance notes with caching and background worker
+            recommendations
           - "Centralized secure intake URL into environment variables"
-          - >-
-            Added idempotency check section and examples to avoid
-            label flip-flops
+          - |
+            Added idempotency check section and examples to avoid label
+            flip-flops
           - "Added developer guidance section"
 
   # Developer Guidance
   - developer_guidance:
-    testing_locally: >-
+    testing_locally: |
       Use venv for Python dependencies. Run unit tests with pytest.
       Validate YAML with yamllint --config .yamllint.yml
       copilot_triage_rules.yml
     linters: "yamllint for YAML, jsonschema for JSON schema validation"
     how_to_test: |-
-      1. Set up venv:
-         python -m venv triage_env
-         source triage_env/bin/activate
-      2. Install deps: pip install -r requirements.txt
-      3. Run tests: pytest tests/
-      4. Validate schema:
-         jsonschema -i copilot_triage_rules.yml json_schema
+      1. Set up venv: python -m venv triage_env &&
+      source triage_env/bin/activate.
+      2. Install deps: pip install -r requirements.txt.
+      3. Run tests: pytest tests/.
+      4. Validate schema: jsonschema -i copilot_triage_rules.yml json_schema
