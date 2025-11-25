@@ -156,7 +156,9 @@ class MeditationEngine:
             "scored_items": scored_items,
             "to_prune": to_prune,
             "tier_usage": tier_usage,
-            "summary": f"Scored {len(scored_items)} items, pruning {len(to_prune)}",
+            "summary": (
+                f"Scored {len(scored_items)} items, pruning {len(to_prune)}"
+            ),
         }
 
 

@@ -3,14 +3,18 @@
 
 This script automates post-triage grooming of GitHub issues:
 - Assigns 'needs-info' issues to copilot-bot and removes 'Triaged' label.
-- Moves 'Triaged' + 'Backlog' issues to the Backlog column on GitHub Projects.
+- Moves 'Triaged' + 'Backlog' issues to the Backlog column on GitHub
+  Projects.
 - Handles stale issues (e.g., closes old 'needs-info' issues).
 
-Configuration is loaded from copilot_grooming_rules.yml and copilot_triage_rules.yml.
+Configuration is loaded from copilot_grooming_rules.yml and
+copilot_triage_rules.yml.
 
 Security: Validates GitHub tokens and sanitizes audit logs for PII.
-Resilience: Retries API calls with exponential backoff and rate limit monitoring.
-Activation: Can be run manually, scheduled, or via webhooks (configurable).
+Resilience: Retries API calls with exponential backoff and rate limit
+monitoring.
+Activation: Can be run manually, scheduled, or via webhooks
+(configurable).
 
 Usage:
     python scripts/grooming_runner.py
@@ -19,8 +23,10 @@ Environment Variables:
     GITHUB_REPOSITORY: Required (e.g., 'owner/repo')
     GITHUB_TOKEN: Optional; enables live changes (else dry-run)
     DRY_RUN: Force dry-run mode
-    GROOMING_RULES_PATH: Path to grooming rules YAML (default: copilot_grooming_rules.yml)
-    TRIAGE_RULES_PATH: Path to triage rules YAML (default: copilot_triage_rules.yml)
+    GROOMING_RULES_PATH: Path to grooming rules YAML
+        (default: copilot_grooming_rules.yml)
+    TRIAGE_RULES_PATH: Path to triage rules YAML
+        (default: copilot_triage_rules.yml)
 
 This is a manual stage, activated on demand or via automation.
 """
@@ -34,7 +40,7 @@ import requests
 import time
 import logging
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 
 # Set up logging
@@ -106,7 +112,8 @@ def retry_on_failure(max_retries: int = 3, backoff_factor: float = 2.0):
                     if attempt < max_retries:
                         wait_time = backoff_factor**attempt
                         logger.warning(
-                            f"Attempt {attempt + 1} failed: {e}. Retrying in {wait_time:.1f}s..."
+                            f"Attempt {attempt + 1} failed: {e}. "
+                            f"Retrying in {wait_time:.1f}s..."
                         )
                         time.sleep(wait_time)
                     else:
@@ -138,7 +145,8 @@ def close_issue(owner: str, repo: str, issue_number: int, token: str) -> None:
 def post_comment(
     owner: str, repo: str, issue_number: int, comment: str, token: str
 ) -> None:
-    url = f"https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}/comments"
+    url = "https://api.github.com/repos/" \
+           f"{owner}/{repo}/issues/{issue_number}/comments"
     headers = {
         "Accept": "application/vnd.github+json",
         "Authorization": f"Bearer {token}",
@@ -225,7 +233,8 @@ def github_get_issue(
     remaining = int(resp.headers.get("X-RateLimit-Remaining", 0))
     if remaining < 5:
         print(
-            f"Warning: Low rate limit remaining ({remaining}). Consider pausing.",
+            f"Warning: Low rate limit remaining ({remaining}). "
+            f"Consider pausing.",
             file=sys.stderr,
         )
 
@@ -248,31 +257,18 @@ def assign_issue(
     remaining = int(resp.headers.get("X-RateLimit-Remaining", 0))
     if remaining < 5:
         print(
-            f"Warning: Low rate limit remaining ({remaining}). Consider pausing.",
+            f"Warning: Low rate limit remaining ({remaining}). "
+            f"Consider pausing.",
             file=sys.stderr,
         )
 
 
 @retry_on_failure()
-@retry_on_failure()
 def add_label(
     owner: str, repo: str, issue_number: int, label: str, token: str
 ) -> None:
-    url = f"https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}/labels"
-    headers = {
-        "Accept": "application/vnd.github+json",
-        "Authorization": f"Bearer {token}",
-    }
-    data = [label]
-    resp = requests.post(url, headers=headers, json=data)
-    resp.raise_for_status()
-
-
-@retry_on_failure()
-def add_label(
-    owner: str, repo: str, issue_number: int, label: str, token: str
-) -> None:
-    url = f"https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}/labels"
+    url = "https://api.github.com/repos/" \
+           f"{owner}/{repo}/issues/{issue_number}/labels"
     headers = {
         "Accept": "application/vnd.github+json",
         "Authorization": f"Bearer {token}",
@@ -289,7 +285,10 @@ def add_label(
 def remove_label(
     owner: str, repo: str, issue_number: int, label: str, token: str
 ) -> None:
-    url = f"https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}/labels/{label}"
+    url = (
+        f"https://api.github.com/repos/{owner}/{repo}/issues/"
+        f"{issue_number}/labels/{label}"
+    )
     headers = {
         "Accept": "application/vnd.github+json",
         "Authorization": f"Bearer {token}",
@@ -305,7 +304,8 @@ def remove_label(
 def get_project_columns(
     owner: str, repo: str, project_id: int, token: str
 ) -> List[dict]:
-    url = f"https://api.github.com/repos/{owner}/{repo}/projects/{project_id}/columns"
+    url = "https://api.github.com/repos/" \
+           f"{owner}/{repo}/projects/{project_id}/columns"
     headers = {
         "Authorization": f"Bearer {token}",
         "Accept": "application/vnd.github+json",
@@ -317,7 +317,8 @@ def get_project_columns(
     remaining = int(resp.headers.get("X-RateLimit-Remaining", 0))
     if remaining < 5:
         print(
-            f"Warning: Low rate limit remaining ({remaining}). Consider pausing.",
+            f"Warning: Low rate limit remaining ({remaining}). "
+            f"Consider pausing.",
             file=sys.stderr,
         )
 
@@ -338,7 +339,8 @@ def get_column_cards(column_id: int, token: str) -> List[dict]:
     remaining = int(resp.headers.get("X-RateLimit-Remaining", 0))
     if remaining < 5:
         print(
-            f"Warning: Low rate limit remaining ({remaining}). Consider pausing.",
+            f"Warning: Low rate limit remaining ({remaining}). "
+            f"Consider pausing.",
             file=sys.stderr,
         )
 
@@ -541,7 +543,6 @@ def process_issue(
             required_assignee = condition.get("assignee")
             not_labels = condition.get("not_labels", [])
             to_column = transition.get("to_column")
-            from_column = transition.get("from_column")
 
             # Check if all required labels are present
             has_required_labels = all(
@@ -580,7 +581,8 @@ def process_issue(
                             )
                         except Exception as e:
                             logger.error(
-                                f"Failed to move issue #{number} to {to_column}: {e}"
+                                f"Failed to move issue #{number} to "
+                                f"{to_column}: {e}"
                             )
                     else:
                         changed_fields.append(
@@ -656,10 +658,6 @@ def main() -> int:
 
     # Get project columns
     project_columns = grooming_settings.get("project_columns", {})
-    ready_column_id = project_columns.get("ready")
-    in_progress_column_id = project_columns.get("in_progress")
-    in_review_column_id = project_columns.get("in_review")
-    done_column_id = project_columns.get("done")
 
     gh_token = os.environ.get("GITHUB_TOKEN")
 
@@ -678,7 +676,8 @@ def main() -> int:
 
     if not gh_repo:
         print(
-            "No GITHUB_REPOSITORY environment — running in local simulation mode"
+            "No GITHUB_REPOSITORY environment — running in local "
+            "simulation mode"
         )
         return 0
 

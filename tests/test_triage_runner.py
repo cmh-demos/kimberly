@@ -363,7 +363,10 @@ class TestSmokeRunner(unittest.TestCase):
         mock_label,
         mock_search,
     ):
-        body = "summary: test\nrepro_steps: steps\nexpected_behavior: expected\nactual_behavior: actual\nsize_estimate: small"
+        body = (
+            "summary: test\nrepro_steps: steps\nexpected_behavior: expected\n"
+            "actual_behavior: actual\nsize_estimate: small"
+        )
         mock_search.return_value = [
             {"number": 1, "title": "Test", "body": body, "labels": []}
         ]
@@ -419,7 +422,10 @@ class TestSmokeRunner(unittest.TestCase):
         mock_label,
         mock_search,
     ):
-        body = "summary: test\nrepro_steps: steps\nexpected_behavior: expected\nactual_behavior: actual\nsize_estimate: small"
+        body = (
+            "summary: test\nrepro_steps: steps\nexpected_behavior: expected\n"
+            "actual_behavior: actual\nsize_estimate: small"
+        )
         mock_search.return_value = [
             {
                 "number": 1,

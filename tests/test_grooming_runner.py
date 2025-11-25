@@ -1,7 +1,6 @@
 import os
 import unittest
 from unittest.mock import mock_open, patch, MagicMock
-import json
 import yaml
 import requests
 from datetime import datetime, timezone
@@ -656,7 +655,7 @@ class TestAdditionalCoverage(unittest.TestCase):
             "updated_at": "2025-01-01T00:00:00Z",
         }
         with patch("scripts.grooming_runner.logger") as mock_logger:
-            result = gr.process_issue(
+            gr.process_issue(
                 issue,
                 "owner",
                 "repo",
