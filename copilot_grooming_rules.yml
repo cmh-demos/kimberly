@@ -3,20 +3,21 @@
 # Configuration for the manual grooming stage in CI workflows.
 
 grooming_bot_settings:
-  description: >
+  description: |
     Settings for the grooming runner, which is a manual CI stage.
-    Grooming handles post-triage actions: assigning needs-info issues to copilot
-    for info gathering, and moving Triaged+Backlog issues to the Backlog board column.
+    Grooming handles post-triage actions: assigning needs-info
+    issues to copilot for info gathering, and moving
+    Triaged+Backlog issues to the Backlog board column.
   script_path: "scripts/grooming_runner.py"
   workflow_path: ".github/workflows/grooming.yml"
   activation: "manual"  # Options: manual, scheduled, webhook
   schedule: "daily"  # For scheduled activation
   webhook_events: ["issues.labeled"]  # For webhook triggers
-  needs_info_variants: ["needs-info"]  # Labels that trigger assignment to copilot-bot
+  needs_info_variants: ["needs-info"]  # Labels that trigger assignment
   assignee_for_needs_info: "copilot-bot"
   remove_triaged_on_needs_info: true
   move_to_backlog_if_triaged_and_backlog: true
-  project_board_integration: true  # Use project_management config for board moves
+  project_board_integration: true  # Use project_management config
   audit_event_type: "grooming"
   dry_run_support: true  # Respects DRY_RUN env var
   stale_issue_handling:
@@ -24,14 +25,17 @@ grooming_bot_settings:
     labels_to_check: ["needs-info"]
     days_threshold: 14
     action: "close"  # or "comment", "label"
-    close_comment: "This issue has been inactive for 14 days with needs-info label. Closing for now. Please reopen if you have more information."
+    close_comment: "This issue has been inactive for 14 days with needs-info
+      label. Closing for now. Please reopen if you have more information."
 
   # Workflow automation settings
   workflow_automation:
     enabled: true
-    description: >
-      Automate issue state transitions across the project board based on labels, assignees, and conditions.
-      Transitions follow the workflow: Backlog -> Ready -> In progress -> In review -> Done
+    description: |
+      Automate issue state transitions across the project board based
+      on labels, assignees, and conditions.
+      Transitions follow the workflow: Backlog -> Ready -> In progress ->
+      In review -> Done
     transitions:
       - name: "backlog_to_ready"
         description: "Move from Backlog to Ready when assigned to copilot-bot"
@@ -43,7 +47,9 @@ grooming_bot_settings:
           not_labels: ["ready", "in-progress", "in-review", "done"]
 
       - name: "ready_to_in_progress"
-        description: "Move from Ready to In progress when PR is created (detected by in-progress label or assignee action)"
+        description: |
+          Move from Ready to In progress when PR is created (detected
+          by in-progress label or assignee action)
         from_column: "Ready"
         to_column: "In progress"
         condition:

@@ -1,7 +1,11 @@
+---
 # Standard GitHub Labels for Repository
-# This file defines the standard set of labels used across issues, triage, and workflows.
-# Labels are categorized for clarity. Colors are chosen for visual distinction.
-# Reference: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/classifying-your-repository-with-topics
+# This file defines the standard set of labels used across issues, triage,
+# and workflows.
+# Labels are categorized for clarity. Colors are chosen for visual
+# distinction.
+# Reference: https://docs.github.com/en/repositories/managing-your-repositorys-
+# settings-and-features/customizing-your-repository/classifying-your-repository-with-topics
 
 labels:
   # Issue Types
