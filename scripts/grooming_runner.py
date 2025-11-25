@@ -1,14 +1,28 @@
 #!/usr/bin/env python3
 """Grooming runner for Copilot triage system.
 
-Behavior:
-- Reads `copilot_triage_rules.yml` for configuration
-- Queries GitHub for open issues
-- For issues with 'needs-info': assigns to copilot-bot and removes 'Triaged'
-- For issues with 'Triaged' and 'Backlog': moves to Backlog column on project board
-- Logs actions to triage_log.json
+This script automates post-triage grooming of GitHub issues:
+- Assigns 'needs-info' issues to copilot-bot and removes 'Triaged' label.
+- Moves 'Triaged' + 'Backlog' issues to the Backlog column on GitHub Projects.
+- Handles stale issues (e.g., closes old 'needs-info' issues).
 
-This is a manual stage, activated on demand.
+Configuration is loaded from copilot_grooming_rules.yml and copilot_triage_rules.yml.
+
+Security: Validates GitHub tokens and sanitizes audit logs for PII.
+Resilience: Retries API calls with exponential backoff and rate limit monitoring.
+Activation: Can be run manually, scheduled, or via webhooks (configurable).
+
+Usage:
+    python scripts/grooming_runner.py
+
+Environment Variables:
+    GITHUB_REPOSITORY: Required (e.g., 'owner/repo')
+    GITHUB_TOKEN: Optional; enables live changes (else dry-run)
+    DRY_RUN: Force dry-run mode
+    GROOMING_RULES_PATH: Path to grooming rules YAML (default: copilot_grooming_rules.yml)
+    TRIAGE_RULES_PATH: Path to triage rules YAML (default: copilot_triage_rules.yml)
+
+This is a manual stage, activated on demand or via automation.
 """
 
 from __future__ import annotations
@@ -26,6 +40,22 @@ from typing import Any, Dict, List, Optional
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+
+def validate_github_token(token: str | None) -> bool:
+    """Validate GitHub token format (basic check for gh_ or github_ prefix)."""
+    if not token:
+        return False
+    return token.startswith(("gh_", "github_")) or len(token) == 40  # Classic token length
+
+
+def sanitize_log_entry(entry: dict) -> dict:
+    """Remove or redact sensitive information from log entries."""
+    sanitized = entry.copy()
+    # Redact any potential PII in notes or titles (basic check)
+    if "notes" in sanitized and any(word in sanitized["notes"].lower() for word in ["email", "password", "token"]):
+        sanitized["notes"] = "[REDACTED: Potential PII]"
+    return sanitized
 
 
 def retry_on_failure(max_retries: int = 3, backoff_factor: float = 2.0):
@@ -83,6 +113,7 @@ def post_comment(owner: str, repo: str, issue_number: int, comment: str, token: 
     if remaining < 5:
         print(f"Warning: Low rate limit remaining ({remaining}). Consider pausing.", file=sys.stderr)
 def load_rules(path: str) -> dict | None:
+    """Load YAML rules from file path. Returns None if file not found."""
     try:
         with open(path, "r", encoding="utf-8") as fh:
             data = yaml.safe_load(fh) or {}
@@ -95,6 +126,7 @@ def load_rules(path: str) -> dict | None:
 def github_search_issues(
     owner: str, repo: str, token: str | None, per_page: int = 100
 ) -> List[dict]:
+    """Search for open issues in the repo, with pagination support."""
     query = f"repo:{owner}/{repo} is:issue is:open"
     url = "https://api.github.com/search/issues"
     headers = {"Accept": "application/vnd.github+json"}
@@ -451,6 +483,11 @@ def main() -> int:
     gh_repo = os.environ.get("GITHUB_REPOSITORY")
     gh_token = os.environ.get("GITHUB_TOKEN")
 
+    # Validate token for security
+    if gh_token and not validate_github_token(gh_token):
+        logger.error("Invalid GitHub token format. Ensure it's a valid GitHub token.")
+        return 1
+
     if not gh_repo:
         print("No GITHUB_REPOSITORY environment — running in local simulation mode")
         return 0
@@ -509,7 +546,9 @@ def main() -> int:
                     logs = json.load(fh)
                 except Exception:
                     logs = []
-        logs.extend(audit_entries)
+        # Sanitize entries for compliance
+        sanitized_entries = [sanitize_log_entry(entry) for entry in audit_entries]
+        logs.extend(sanitized_entries)
         with open(log_file, "w", encoding="utf-8") as fh:
             json.dump(logs, fh, indent=2)
         print(f"Appended {len(audit_entries)} grooming audits to {log_file}")

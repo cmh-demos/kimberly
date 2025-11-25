@@ -156,7 +156,7 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
         # Should not call move_card
 
     @patch.dict(
-        os.environ, {"GITHUB_REPOSITORY": "owner/repo", "GITHUB_TOKEN": "token"}
+        os.environ, {"GITHUB_REPOSITORY": "owner/repo", "GITHUB_TOKEN": "gh_1234567890abcdef"}
     )
     @patch("scripts.grooming_runner.load_rules")
     @patch("scripts.grooming_runner.github_search_issues")
@@ -203,7 +203,7 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
 
     @patch.dict(
         os.environ,
-        {"GITHUB_REPOSITORY": "owner/repo", "GITHUB_TOKEN": "token", "DRY_RUN": "true"},
+        {"GITHUB_REPOSITORY": "owner/repo", "GITHUB_TOKEN": "gh_1234567890abcdef", "DRY_RUN": "true"},
     )
     @patch("scripts.grooming_runner.load_rules")
     @patch("scripts.grooming_runner.github_search_issues")
@@ -235,7 +235,7 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
         mock_json_dump.assert_called()
 
     @patch.dict(
-        os.environ, {"GITHUB_REPOSITORY": "owner/repo", "GITHUB_TOKEN": "token"}
+        os.environ, {"GITHUB_REPOSITORY": "owner/repo", "GITHUB_TOKEN": "gh_1234567890abcdef"}
     )
     @patch("scripts.grooming_runner.load_rules")
     @patch("scripts.grooming_runner.github_search_issues")
@@ -269,7 +269,7 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
         self.assertEqual(result, 0)
 
     @patch.dict(
-        os.environ, {"GITHUB_REPOSITORY": "owner/repo", "GITHUB_TOKEN": "token"}
+        os.environ, {"GITHUB_REPOSITORY": "owner/repo", "GITHUB_TOKEN": "gh_1234567890abcdef"}
     )
     @patch("scripts.grooming_runner.load_rules")
     @patch("scripts.grooming_runner.github_search_issues")
@@ -302,7 +302,7 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
         self.assertEqual(result, 0)
 
     @patch.dict(
-        os.environ, {"GITHUB_REPOSITORY": "owner/repo", "GITHUB_TOKEN": "token"}
+        os.environ, {"GITHUB_REPOSITORY": "owner/repo", "GITHUB_TOKEN": "gh_1234567890abcdef"}
     )
     @patch("scripts.grooming_runner.load_rules")
     @patch("scripts.grooming_runner.github_search_issues")
