@@ -609,24 +609,6 @@ def main() -> int:
                     )
                     post_comment(owner, repo, number, comment_text, gh_token)
 
-                # add Triaged label and short comment if triaging complete
-                if "Triaged" not in labels_list:
-                    post_label(owner, repo, number, "Triaged", gh_token)
-                    post_comment(
-                        owner,
-                        repo,
-                        number,
-                        rules.get("bot_comment_templates", {}).get(
-                            "triaged_backlog_notice",
-                            "This issue has been marked Triaged and placed in Backlog.",
-                        ),
-                        gh_token,
-                    )
-                    changed_fields.append("Triaged")
-
-                # Assign triage owner
-                assign_triage_owner(owner, repo, number, default_owner, gh_token)
-
                 # backlog gating
                 can_add_backlog = True
                 if "missing_size_estimate" in backlog_actions:
@@ -637,6 +619,21 @@ def main() -> int:
                     can_add_backlog = False
 
                 if can_add_backlog:
+                    # add Triaged label and short comment if triaging complete
+                    if "Triaged" not in labels_list:
+                        post_label(owner, repo, number, "Triaged", gh_token)
+                        post_comment(
+                            owner,
+                            repo,
+                            number,
+                            rules.get("bot_comment_templates", {}).get(
+                                "triaged_backlog_notice",
+                                "This issue has been marked Triaged and placed in Backlog.",
+                            ),
+                            gh_token,
+                        )
+                        changed_fields.append("Triaged")
+
                     if "Backlog" not in labels_list:
                         post_label(owner, repo, number, "Backlog", gh_token)
                         post_comment(
