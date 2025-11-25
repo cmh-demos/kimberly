@@ -30,13 +30,9 @@ jobs:
       - name: Lint with flake8
         run: flake8 . --count --show-source --statistics
       - name: Check formatting with black
-        run: black --check . --exclude ".venv|out|dist|node_modules"
+        run: black --check .
       - name: Check imports with isort
-        run: |
-          isort --check-only . \
-            --filter-files \
-            --skip node_modules \
-            --skip .venv
+        run: isort --check-only .
       - name: Lint Markdown
         uses: DavidAnson/markdownlint-cli2-action@v16
       - name: Lint YAML

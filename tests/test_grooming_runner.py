@@ -1,10 +1,11 @@
 import os
 import unittest
-from unittest.mock import mock_open, patch, MagicMock
-import yaml
-import requests
 from datetime import datetime, timezone
 from io import StringIO
+from unittest.mock import MagicMock, mock_open, patch
+
+import requests
+import yaml
 
 import scripts.grooming_runner as gr
 

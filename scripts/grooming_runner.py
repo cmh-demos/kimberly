@@ -32,16 +32,17 @@ This is a manual stage, activated on demand or via automation.
 """
 
 from __future__ import annotations
+
+import json
+import logging
 import os
 import sys
-import json
-import yaml
-import requests
 import time
-import logging
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
+import requests
+import yaml
 
 # Set up logging
 logging.basicConfig(
