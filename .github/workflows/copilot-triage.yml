@@ -2,14 +2,14 @@
 name: Copilot triage (manual)
 
 on:
-  workflow_dispatch: {}
+  workflow_dispatch
 
 # Minimal permissions — only what we need to read config and (optionally)
 # modify issues when running on main.
 permissions:
-  contents: read
-  issues: write
-  pull-requests: write
+  contents: "read"
+  issues: "write"
+  pull-requests: "write"
 
 env:
   RULES_PATH: copilot_triage_rules.yml

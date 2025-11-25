@@ -1,3 +1,4 @@
+---
 # Repository-wide Markdownlint configuration
 # Conservative line length, but allow tables to exceed the limit because many
 # tables in docs contain multiple columns where wrapping inside cells isn't
