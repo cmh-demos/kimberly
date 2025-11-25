@@ -61,7 +61,9 @@ def handle_rate_limit(resp: requests.Response) -> None:
     reset_time = int(resp.headers.get("X-RateLimit-Reset", 0))
     if remaining < 5:
         sleep_time = max(reset_time - int(time.time()), 60)  # At least 60s
-        logger.warning(f"Rate limit low ({remaining} remaining). Sleeping {sleep_time}s.")
+        logger.warning(
+            f"Rate limit low ({remaining} remaining). Sleeping {sleep_time}s."
+        )
         time.sleep(sleep_time)
 
 
@@ -235,9 +237,7 @@ def assign_issue(
 
 @retry_on_failure()
 @retry_on_failure()
-def add_label(
-    owner: str, repo: str, issue_number: int, label: str, token: str
-) -> None:
+def add_label(owner: str, repo: str, issue_number: int, label: str, token: str) -> None:
     url = f"https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}/labels"
     headers = {
         "Accept": "application/vnd.github+json",
@@ -247,10 +247,9 @@ def add_label(
     resp = requests.post(url, headers=headers, json=data)
     resp.raise_for_status()
 
+
 @retry_on_failure()
-def add_label(
-    owner: str, repo: str, issue_number: int, label: str, token: str
-) -> None:
+def add_label(owner: str, repo: str, issue_number: int, label: str, token: str) -> None:
     url = f"https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}/labels"
     headers = {
         "Accept": "application/vnd.github+json",
@@ -513,7 +512,9 @@ def process_issue(
             # Check if all required labels are present
             has_required_labels = all(label in labels for label in required_labels)
             # Check if assignee matches
-            has_assignee = required_assignee is None or required_assignee in assignee_logins
+            has_assignee = (
+                required_assignee is None or required_assignee in assignee_logins
+            )
             # Check if none of the not_labels are present
             has_no_not_labels = not any(label in labels for label in not_labels)
 
@@ -693,6 +694,7 @@ def main() -> int:
     log_file = "triage_log.json"
     try:
         import tempfile
+
         logs = []
         if os.path.exists(log_file):
             with open(log_file, "r", encoding="utf-8") as fh:
@@ -703,7 +705,9 @@ def main() -> int:
         # Sanitize entries for compliance
         sanitized_entries = [sanitize_log_entry(entry) for entry in audit_entries]
         logs.extend(sanitized_entries)
-        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", delete=False, suffix=".json") as tmp:
+        with tempfile.NamedTemporaryFile(
+            mode="w", encoding="utf-8", delete=False, suffix=".json"
+        ) as tmp:
             json.dump(logs, tmp, indent=2)
             tmp.flush()
             os.replace(tmp.name, log_file)
