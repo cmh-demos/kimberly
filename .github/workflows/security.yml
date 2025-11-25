@@ -51,13 +51,23 @@ jobs:
         script: |
           const fs = require('fs');
           let comment = '## Security Scan Results\n\n';
-          if (fs.existsSync('bandit-report.json')) {
-            const bandit = JSON.parse(fs.readFileSync('bandit-report.json', 'utf8'));
-            comment += `**Bandit Issues:** ${bandit.results ? bandit.results.length : 0}\n`;
+          try {
+            if (fs.existsSync('bandit-report.json')) {
+              const banditContent = fs.readFileSync('bandit-report.json', 'utf8');
+              const bandit = JSON.parse(banditContent);
+              comment += `**Bandit Issues:** ${bandit.results ? bandit.results.length : 0}\n`;
+            }
+          } catch (e) {
+            comment += '**Bandit:** Report parsing failed\n';
           }
-          if (fs.existsSync('safety-report.json')) {
-            const safety = JSON.parse(fs.readFileSync('safety-report.json', 'utf8'));
-            comment += `**Safety Vulnerabilities:** ${safety.length}\n`;
+          try {
+            if (fs.existsSync('safety-report.json')) {
+              const safetyContent = fs.readFileSync('safety-report.json', 'utf8');
+              const safety = JSON.parse(safetyContent);
+              comment += `**Safety Vulnerabilities:** ${Array.isArray(safety) ? safety.length : 0}\n`;
+            }
+          } catch (e) {
+            comment += '**Safety:** Report parsing failed\n';
           }
           github.rest.issues.createComment({
             issue_number: context.issue.number,
