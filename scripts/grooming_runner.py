@@ -136,7 +136,7 @@ def retry_on_failure(max_retries: int = 3, backoff_factor: float = 2.0):
 @retry_on_failure()
 def close_issue(owner: str, repo: str, issue_number: int, token: str) -> None:
     url = (
-        f"https://api.github.com/repos/{owner}/{repo}/" f"issues/{issue_number}"
+        f"https://api.github.com/repos/{owner}/{repo}" f"/issues/{issue_number}"
     )
     headers = {
         "Accept": "application/vnd.github+json",
@@ -231,7 +231,7 @@ def github_get_issue(
     owner: str, repo: str, issue_number: int, token: str | None
 ) -> dict | None:
     url = (
-        f"https://api.github.com/repos/{owner}/{repo}/" f"issues/{issue_number}"
+        f"https://api.github.com/repos/{owner}/{repo}" f"/issues/{issue_number}"
     )
     headers = {"Accept": "application/vnd.github+json"}
     if token:
@@ -259,7 +259,7 @@ def assign_issue(
     owner: str, repo: str, issue_number: int, assignee: str, token: str
 ) -> None:
     url = (
-        f"https://api.github.com/repos/{owner}/{repo}/" f"issues/{issue_number}"
+        f"https://api.github.com/repos/{owner}/{repo}" f"/issues/{issue_number}"
     )
     headers = {
         "Accept": "application/vnd.github+json",
