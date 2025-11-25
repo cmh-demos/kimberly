@@ -34,6 +34,13 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: Check for paid API usage (free-mode)
+      run: |
+        if grep -r "openai\|anthropic\|claude" --include="*.py" .; then
+          echo "Paid API usage detected! Failing CI."
+          exit 1
+        fi
+
     - name: Run Bandit (security linting)
       run: bandit -r . -f json -o bandit-report.json || true
 

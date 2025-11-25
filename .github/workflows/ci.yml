@@ -66,24 +66,3 @@ jobs:
       with:
         file_glob: 'docs/openapi.yaml'
         spectral_ruleset: '.spectral.yml'  # optional
-
-  security-check:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-
-    - name: Fetch full git history
-      run: git fetch --unshallow || true
-
-    - name: Check for secrets
-      uses: zricethezav/gitleaks-action@v2
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Check for paid API usage (free-mode)
-      run: |
-        if grep -r "openai\|anthropic\|claude" --include="*.py" .; then
-          echo "Paid API usage detected! Failing CI."
-          exit 1
-        fi
