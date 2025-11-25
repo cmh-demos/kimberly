@@ -199,7 +199,9 @@ def fetch_related_docs(
     references = []
     # Simple implementation: search for keywords in docs/ folder via GitHub API
     # This is a placeholder; in practice, use GitHub search or local search
-    keywords = re.findall(r"\w+", issue_title + " " + issue_body)[:10]  # top 10 words
+    keywords = re.findall(r"\w+", issue_title + " " + issue_body)[
+        :10
+    ]  # top 10 words
     query = f'repo:{owner}/{repo} path:docs/ {" ".join(keywords[:5])}'
     try:
         resp = requests.get(
@@ -299,7 +301,8 @@ def main() -> int:
                 dup_cfg = s["detect_duplicates"]
                 if isinstance(dup_cfg, dict):
                     duplicate_similarity_threshold = dup_cfg.get(
-                        "similarity_threshold", DEFAULT_DUPLICATE_SIMILARITY_THRESHOLD
+                        "similarity_threshold",
+                        DEFAULT_DUPLICATE_SIMILARITY_THRESHOLD,
                     )
             # fallback older style keys
         # also check for pii_handling.detect_patterns
@@ -323,7 +326,9 @@ def main() -> int:
     if not dry_run_env:
         ref = os.environ.get("GITHUB_REF", "")
         current_branch = (
-            ref.replace("refs/heads/", "") if ref.startswith("refs/heads/") else ""
+            ref.replace("refs/heads/", "")
+            if ref.startswith("refs/heads/")
+            else ""
         )
         dry_run = current_branch not in protected_branches
     else:
@@ -333,13 +338,20 @@ def main() -> int:
     gh_token = os.environ.get("GITHUB_TOKEN")
 
     if not gh_repo:
-        print("No GITHUB_REPOSITORY environment — running in local simulation mode")
-        print("Runner exits after parsing rules (no API calls without repository).")
+        print(
+            "No GITHUB_REPOSITORY environment — running in local simulation mode"
+        )
+        print(
+            "Runner exits after parsing rules (no API calls without repository)."
+        )
         return 0
 
     owner, repo = gh_repo.split("/")
     if not gh_token:
-        print("No GITHUB_TOKEN present — will operate in dry-run only", file=sys.stderr)
+        print(
+            "No GITHUB_TOKEN present — will operate in dry-run only",
+            file=sys.stderr,
+        )
         dry_run = True
 
     print(f"Dry-run: {dry_run}")
@@ -379,7 +391,9 @@ def main() -> int:
         changed_fields: List[str] = []
         audit_entry: Dict[str, Any] = {
             "issue_number": number,
-            "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "timestamp": datetime.now(timezone.utc).strftime(
+                "%Y-%m-%dT%H:%M:%SZ"
+            ),
             "event_type": "initial_triage",
             "triage_owner": default_owner,
             "severity": None,
@@ -439,7 +453,9 @@ def main() -> int:
         duplicates = []
         try:
             # perform a lightweight search for issues with similar words from title
-            title_terms = [w.lower() for w in re.findall(r"\w+", title) if len(w) > 2]
+            title_terms = [
+                w.lower() for w in re.findall(r"\w+", title) if len(w) > 2
+            ]
             if title_terms:
                 q = " ".join(title_terms[:6])
                 q_full = f"repo:{owner}/{repo} is:issue is:open {q}"
@@ -460,7 +476,9 @@ def main() -> int:
                 for c in cand:
                     if c.get("number") == number:
                         continue
-                    s = SequenceMatcher(None, title.lower(), c.get("title", "").lower())
+                    s = SequenceMatcher(
+                        None, title.lower(), c.get("title", "").lower()
+                    )
                     ratio = s.ratio()
                     if ratio >= duplicate_similarity_threshold:
                         duplicates.append(
@@ -474,7 +492,9 @@ def main() -> int:
             duplicates = []
 
         if duplicates:
-            actions.append("would mark as duplicate and link to canonical issue(s)")
+            actions.append(
+                "would mark as duplicate and link to canonical issue(s)"
+            )
             audit_entry["notes"] += f"duplicates={duplicates}; "
         # 4) Title sanitization: remove priority tags from title when present
         sanitized_title = re.sub(
@@ -496,9 +516,13 @@ def main() -> int:
         priority = None
         # map label names to severity if present
         labels_list = [
-            lbl.get("name") for lbl in issue.get("labels", []) if isinstance(lbl, dict)
+            lbl.get("name")
+            for lbl in issue.get("labels", [])
+            if isinstance(lbl, dict)
         ]
-        label_to_sev = rules.get("label_mappings", {}).get("label_to_severity", {})
+        label_to_sev = rules.get("label_mappings", {}).get(
+            "label_to_severity", {}
+        )
         for lbl in labels_list:
             if lbl in label_to_sev:
                 severity = label_to_sev[lbl]
@@ -513,7 +537,9 @@ def main() -> int:
                 or "security" in labels_list
             ):
                 severity = "critical"
-            elif "block" in text or "broken for many" in text or "major" in text:
+            elif (
+                "block" in text or "broken for many" in text or "major" in text
+            ):
                 severity = "high"
             elif "minor" in text or "typo" in text:
                 severity = "low"
@@ -521,14 +547,21 @@ def main() -> int:
                 severity = "medium"
 
         # compute priority from labels or fallback
-        label_to_pr = rules.get("label_mappings", {}).get("label_to_priority", {})
+        label_to_pr = rules.get("label_mappings", {}).get(
+            "label_to_priority", {}
+        )
         for lbl in labels_list:
             if lbl in label_to_pr:
                 priority = label_to_pr[lbl]
                 break
         if not priority:
             # simple mapping based on severity
-            priority_map = {"critical": "p0", "high": "p1", "medium": "p2", "low": "p3"}
+            priority_map = {
+                "critical": "p0",
+                "high": "p1",
+                "medium": "p2",
+                "low": "p3",
+            }
             priority = priority_map.get(severity, "p3")
 
         audit_entry["severity"] = severity
@@ -549,7 +582,9 @@ def main() -> int:
             if size_est_value not in allowed_sizes:
                 # invalid size estimate
                 backlog_actions.append("invalid_size_estimate")
-                actions.append("would add label: needs-info (invalid size_estimate)")
+                actions.append(
+                    "would add label: needs-info (invalid size_estimate)"
+                )
         else:
             backlog_actions.append("missing_size_estimate")
 
@@ -576,7 +611,10 @@ def main() -> int:
                     )
 
                 # sanitize title if needed
-                if audit_entry["title_sanitized"] and audit_entry["original_title"]:
+                if (
+                    audit_entry["title_sanitized"]
+                    and audit_entry["original_title"]
+                ):
                     # update title via issue edit
                     new_title = sanitized_title.strip()
                     resp = requests.patch(
@@ -655,7 +693,10 @@ def main() -> int:
                     )
 
                 # escalate when critical / security
-                if audit_entry["severity"] == "critical" or "security" in labels_list:
+                if (
+                    audit_entry["severity"] == "critical"
+                    or "security" in labels_list
+                ):
                     post_comment(
                         owner,
                         repo,
@@ -668,11 +709,15 @@ def main() -> int:
                     changed_fields.append("escalation")
 
                 # Pair enforcement & triaged_to_backlog/backlog_to_triaged
-                pair_cfg = rules.get("label_policy", {}).get("pair_enforcement", {})
+                pair_cfg = rules.get("label_policy", {}).get(
+                    "pair_enforcement", {}
+                )
                 if isinstance(pair_cfg, dict):
                     pair = pair_cfg.get("pair", ["Triaged", "Backlog"])
                     if "Triaged" in pair and "Backlog" in pair:
-                        skip_labels = set(pair_cfg.get("skip_if_any_present", []))
+                        skip_labels = set(
+                            pair_cfg.get("skip_if_any_present", [])
+                        )
                         # refresh labels_list from API
                         lbls_resp = requests.get(
                             f"https://api.github.com/repos/{owner}/{repo}/issues/{number}",
@@ -715,7 +760,11 @@ def main() -> int:
                             )
                             changed_fields.append("Backlog")
                             # Move to Backlog column if project management is enabled
-                            if project_enabled and project_id and backlog_column_id:
+                            if (
+                                project_enabled
+                                and project_id
+                                and backlog_column_id
+                            ):
                                 issue_url = f"https://api.github.com/repos/{owner}/{repo}/issues/{number}"
                                 try:
                                     move_issue_to_backlog_column(

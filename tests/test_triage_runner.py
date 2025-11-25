@@ -247,7 +247,13 @@ class TestSmokeRunner(unittest.TestCase):
     @patch("builtins.open", new_callable=mock_open)
     @patch("scripts.triage_runner.json.dump")
     def test_main_with_low_severity(
-        self, mock_dump, mock_file, mock_assign, mock_comment, mock_label, mock_search
+        self,
+        mock_dump,
+        mock_file,
+        mock_assign,
+        mock_comment,
+        mock_label,
+        mock_search,
     ):
         mock_search.return_value = [
             {"number": 1, "title": "minor bug", "body": "body", "labels": []}
@@ -265,7 +271,13 @@ class TestSmokeRunner(unittest.TestCase):
     @patch("builtins.open", new_callable=mock_open)
     @patch("scripts.triage_runner.json.dump")
     def test_main_with_typo_severity(
-        self, mock_dump, mock_file, mock_assign, mock_comment, mock_label, mock_search
+        self,
+        mock_dump,
+        mock_file,
+        mock_assign,
+        mock_comment,
+        mock_label,
+        mock_search,
     ):
         mock_search.return_value = [
             {"number": 1, "title": "typo in code", "body": "body", "labels": []}
@@ -314,10 +326,21 @@ class TestSmokeRunner(unittest.TestCase):
     @patch("builtins.open", new_callable=mock_open)
     @patch("scripts.triage_runner.json.dump")
     def test_main_with_missing_fields(
-        self, mock_dump, mock_file, mock_assign, mock_comment, mock_label, mock_search
+        self,
+        mock_dump,
+        mock_file,
+        mock_assign,
+        mock_comment,
+        mock_label,
+        mock_search,
     ):
         mock_search.return_value = [
-            {"number": 1, "title": "Test", "body": "description: test", "labels": []}
+            {
+                "number": 1,
+                "title": "Test",
+                "body": "description: test",
+                "labels": [],
+            }
         ]
         rv = tr.main()
         self.assertEqual(rv, 0)
@@ -332,7 +355,13 @@ class TestSmokeRunner(unittest.TestCase):
     @patch("builtins.open", new_callable=mock_open)
     @patch("scripts.triage_runner.json.dump")
     def test_main_backlog_added(
-        self, mock_dump, mock_file, mock_assign, mock_comment, mock_label, mock_search
+        self,
+        mock_dump,
+        mock_file,
+        mock_assign,
+        mock_comment,
+        mock_label,
+        mock_search,
     ):
         body = "summary: test\nrepro_steps: steps\nexpected_behavior: expected\nactual_behavior: actual\nsize_estimate: small"
         mock_search.return_value = [
@@ -351,10 +380,21 @@ class TestSmokeRunner(unittest.TestCase):
     @patch("builtins.open", new_callable=mock_open)
     @patch("scripts.triage_runner.json.dump")
     def test_main_with_critical_issue(
-        self, mock_dump, mock_file, mock_assign, mock_comment, mock_label, mock_search
+        self,
+        mock_dump,
+        mock_file,
+        mock_assign,
+        mock_comment,
+        mock_label,
+        mock_search,
     ):
         mock_search.return_value = [
-            {"number": 1, "title": "Data loss bug", "body": "body", "labels": []}
+            {
+                "number": 1,
+                "title": "Data loss bug",
+                "body": "body",
+                "labels": [],
+            }
         ]
         rv = tr.main()
         self.assertEqual(rv, 0)
@@ -471,7 +511,13 @@ class TestSmokeRunner(unittest.TestCase):
     @patch("builtins.open", new_callable=mock_open)
     @patch("scripts.triage_runner.json.dump")
     def test_main_live_action_failure(
-        self, mock_dump, mock_file, mock_assign, mock_comment, mock_label, mock_search
+        self,
+        mock_dump,
+        mock_file,
+        mock_assign,
+        mock_comment,
+        mock_label,
+        mock_search,
     ):
         mock_search.return_value = [
             {"number": 1, "title": "Test", "body": "body", "labels": []}

@@ -49,9 +49,18 @@ def validate_github_token(token: str | None) -> bool:
     if not token:
         return False
     # Support classic, fine-grained PATs, and other formats
-    valid_prefixes = ("ghp_", "ghs_", "ghu_", "gho_", "github_pat_", "gh_", "github_")
+    valid_prefixes = (
+        "ghp_",
+        "ghs_",
+        "ghu_",
+        "gho_",
+        "github_pat_",
+        "gh_",
+        "github_",
+    )
     return (
-        any(token.startswith(prefix) for prefix in valid_prefixes) or len(token) == 40
+        any(token.startswith(prefix) for prefix in valid_prefixes)
+        or len(token) == 40
     )  # Classic token length
 
 
@@ -72,7 +81,8 @@ def sanitize_log_entry(entry: dict) -> dict:
     sanitized = entry.copy()
     # Redact any potential PII in notes or titles (basic check)
     if "notes" in sanitized and any(
-        word in sanitized["notes"].lower() for word in ["email", "password", "token"]
+        word in sanitized["notes"].lower()
+        for word in ["email", "password", "token"]
     ):
         sanitized["notes"] = "[REDACTED: Potential PII]"
     return sanitized
@@ -153,7 +163,11 @@ def load_rules(path: str) -> dict | None:
 
 @retry_on_failure()
 def github_search_issues(
-    owner: str, repo: str, token: str | None, per_page: int = 100, max_pages: int = 10
+    owner: str,
+    repo: str,
+    token: str | None,
+    per_page: int = 100,
+    max_pages: int = 10,
 ) -> List[dict]:
     """Search for open issues in the repo, with pagination support."""
     query = f"repo:{owner}/{repo} is:issue is:open"
@@ -182,7 +196,11 @@ def github_search_issues(
         all_items.extend(items)
 
         total_count = data.get("total_count", 0)
-        if len(all_items) >= total_count or len(items) < per_page or page >= max_pages:
+        if (
+            len(all_items) >= total_count
+            or len(items) < per_page
+            or page >= max_pages
+        ):
             break
         page += 1
 
@@ -237,7 +255,9 @@ def assign_issue(
 
 @retry_on_failure()
 @retry_on_failure()
-def add_label(owner: str, repo: str, issue_number: int, label: str, token: str) -> None:
+def add_label(
+    owner: str, repo: str, issue_number: int, label: str, token: str
+) -> None:
     url = f"https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}/labels"
     headers = {
         "Accept": "application/vnd.github+json",
@@ -249,7 +269,9 @@ def add_label(owner: str, repo: str, issue_number: int, label: str, token: str) 
 
 
 @retry_on_failure()
-def add_label(owner: str, repo: str, issue_number: int, label: str, token: str) -> None:
+def add_label(
+    owner: str, repo: str, issue_number: int, label: str, token: str
+) -> None:
     url = f"https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}/labels"
     headers = {
         "Accept": "application/vnd.github+json",
@@ -396,7 +418,9 @@ def process_issue(
     number = issue.get("number")
     title = issue.get("title")
     labels = [
-        lbl.get("name") for lbl in issue.get("labels", []) if isinstance(lbl, dict)
+        lbl.get("name")
+        for lbl in issue.get("labels", [])
+        if isinstance(lbl, dict)
     ]
     issue_url = issue.get("url")
 
@@ -425,7 +449,9 @@ def process_issue(
     if stale_enabled:
         updated_at_str = issue.get("updated_at")
         if updated_at_str:
-            updated_at = datetime.fromisoformat(updated_at_str.replace("Z", "+00:00"))
+            updated_at = datetime.fromisoformat(
+                updated_at_str.replace("Z", "+00:00")
+            )
             now = datetime.now(timezone.utc)
             if (now - updated_at).days > stale_days and any(
                 label in labels for label in stale_labels
@@ -437,18 +463,24 @@ def process_issue(
                 if not dry_run:
                     try:
                         if stale_action == "close":
-                            post_comment(owner, repo, number, stale_comment, gh_token)
+                            post_comment(
+                                owner, repo, number, stale_comment, gh_token
+                            )
                             close_issue(owner, repo, number, gh_token)
                             changed_fields.append("closed as stale")
                         elif stale_action == "comment":
-                            post_comment(owner, repo, number, stale_comment, gh_token)
+                            post_comment(
+                                owner, repo, number, stale_comment, gh_token
+                            )
                             changed_fields.append("commented as stale")
                         elif stale_action == "label":
                             # Add a label, e.g., "stale"
                             add_label(owner, repo, number, "stale", gh_token)
                             changed_fields.append("labeled as stale")
                     except Exception as e:
-                        logger.error(f"Failed to handle stale issue #{number}: {e}")
+                        logger.error(
+                            f"Failed to handle stale issue #{number}: {e}"
+                        )
                 else:
                     changed_fields.append(f"would {stale_action} as stale")
 
@@ -458,7 +490,9 @@ def process_issue(
         audit_entry["notes"] += "needs-info detected; "
         if not dry_run:
             try:
-                assign_issue(owner, repo, number, assignee_for_needs_info, gh_token)
+                assign_issue(
+                    owner, repo, number, assignee_for_needs_info, gh_token
+                )
                 if remove_triaged_on_needs_info and "Triaged" in labels:
                     remove_label(owner, repo, number, "Triaged", gh_token)
                     changed_fields.append("removed Triaged")
@@ -510,10 +544,13 @@ def process_issue(
             from_column = transition.get("from_column")
 
             # Check if all required labels are present
-            has_required_labels = all(label in labels for label in required_labels)
+            has_required_labels = all(
+                label in labels for label in required_labels
+            )
             # Check if assignee matches
             has_assignee = (
-                required_assignee is None or required_assignee in assignee_logins
+                required_assignee is None
+                or required_assignee in assignee_logins
             )
             # Check if none of the not_labels are present
             has_no_not_labels = not any(label in labels for label in not_labels)
@@ -524,7 +561,9 @@ def process_issue(
                 )
                 if target_column_id:
                     actions.append(f"move to {to_column} column")
-                    audit_entry["notes"] += f"workflow transition to {to_column}; "
+                    audit_entry[
+                        "notes"
+                    ] += f"workflow transition to {to_column}; "
                     if not dry_run:
                         try:
                             move_issue_to_column(
@@ -536,13 +575,17 @@ def process_issue(
                                 target_column_id,
                                 gh_token,
                             )
-                            changed_fields.append(f"moved to {to_column} column")
+                            changed_fields.append(
+                                f"moved to {to_column} column"
+                            )
                         except Exception as e:
                             logger.error(
                                 f"Failed to move issue #{number} to {to_column}: {e}"
                             )
                     else:
-                        changed_fields.append(f"would move to {to_column} column")
+                        changed_fields.append(
+                            f"would move to {to_column} column"
+                        )
                 break  # Only apply the first matching transition
 
     audit_entry["event_type"] = audit_event_type
@@ -557,7 +600,9 @@ def process_issue(
 
 
 def main() -> int:
-    triage_rules_path = os.environ.get("TRIAGE_RULES_PATH", "copilot_triage_rules.yml")
+    triage_rules_path = os.environ.get(
+        "TRIAGE_RULES_PATH", "copilot_triage_rules.yml"
+    )
     grooming_rules_path = os.environ.get(
         "GROOMING_RULES_PATH", "copilot_grooming_rules.yml"
     )
@@ -584,7 +629,9 @@ def main() -> int:
 
     # Get grooming settings
     grooming_settings = grooming_rules.get("grooming_bot_settings", {})
-    needs_info_variants = grooming_settings.get("needs_info_variants", ["needs-info"])
+    needs_info_variants = grooming_settings.get(
+        "needs_info_variants", ["needs-info"]
+    )
     assignee_for_needs_info = grooming_settings.get(
         "assignee_for_needs_info", "copilot-bot"
     )
@@ -624,11 +671,15 @@ def main() -> int:
 
     # Validate token for security
     if gh_token and not validate_github_token(gh_token):
-        logger.error("Invalid GitHub token format. Ensure it's a valid GitHub token.")
+        logger.error(
+            "Invalid GitHub token format. Ensure it's a valid GitHub token."
+        )
         return 1
 
     if not gh_repo:
-        print("No GITHUB_REPOSITORY environment — running in local simulation mode")
+        print(
+            "No GITHUB_REPOSITORY environment — running in local simulation mode"
+        )
         return 0
 
     owner, repo = gh_repo.split("/")
@@ -640,12 +691,17 @@ def main() -> int:
             valid_column_ids = {col["id"] for col in columns}
             for col_name, col_id in project_columns.items():
                 if col_id and col_id not in valid_column_ids:
-                    logger.warning(f"Invalid column ID for {col_name}: {col_id}")
+                    logger.warning(
+                        f"Invalid column ID for {col_name}: {col_id}"
+                    )
         except Exception as e:
             logger.error(f"Failed to validate project columns: {e}")
 
     if not gh_token:
-        print("No GITHUB_TOKEN present — will operate in dry-run only", file=sys.stderr)
+        print(
+            "No GITHUB_TOKEN present — will operate in dry-run only",
+            file=sys.stderr,
+        )
         dry_run = True
 
     print(f"Dry-run: {dry_run}")
@@ -703,7 +759,9 @@ def main() -> int:
                 except Exception:
                     logs = []
         # Sanitize entries for compliance
-        sanitized_entries = [sanitize_log_entry(entry) for entry in audit_entries]
+        sanitized_entries = [
+            sanitize_log_entry(entry) for entry in audit_entries
+        ]
         logs.extend(sanitized_entries)
         with tempfile.NamedTemporaryFile(
             mode="w", encoding="utf-8", delete=False, suffix=".json"

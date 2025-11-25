@@ -32,7 +32,10 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
     def test_github_search_issues(self, mock_get):
         mock_resp = MagicMock()
         mock_resp.raise_for_status.return_value = None
-        mock_resp.json.return_value = {"items": [{"number": 1}], "total_count": 1}
+        mock_resp.json.return_value = {
+            "items": [{"number": 1}],
+            "total_count": 1,
+        }
         mock_resp.headers = {"X-RateLimit-Remaining": "10"}
         mock_get.return_value = mock_resp
 
@@ -44,7 +47,9 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
     @patch("scripts.grooming_runner.time.sleep")
     def test_github_search_issues_retry(self, mock_sleep, mock_get):
         mock_resp_fail = MagicMock()
-        mock_resp_fail.raise_for_status.side_effect = requests.ConnectionError("fail")
+        mock_resp_fail.raise_for_status.side_effect = requests.ConnectionError(
+            "fail"
+        )
         mock_resp_success = MagicMock()
         mock_resp_success.raise_for_status.return_value = None
         mock_resp_success.json.return_value = {"items": [{"number": 1}]}
@@ -156,7 +161,9 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
     @patch("scripts.grooming_runner.get_column_cards")
     @patch("scripts.grooming_runner.find_card_for_issue")
     @patch("scripts.grooming_runner.move_card")
-    def test_move_issue_to_column(self, mock_move, mock_find, mock_cards, mock_columns):
+    def test_move_issue_to_column(
+        self, mock_move, mock_find, mock_cards, mock_columns
+    ):
         mock_columns.return_value = [{"id": 1}]
         mock_cards.return_value = [{"id": 1}]
         mock_find.return_value = {"id": 1}
@@ -167,7 +174,9 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
     @patch("scripts.grooming_runner.get_project_columns")
     @patch("scripts.grooming_runner.get_column_cards")
     @patch("scripts.grooming_runner.find_card_for_issue")
-    def test_move_issue_to_column_no_card(self, mock_find, mock_cards, mock_columns):
+    def test_move_issue_to_column_no_card(
+        self, mock_find, mock_cards, mock_columns
+    ):
         mock_columns.return_value = [{"id": 1}]
         mock_cards.return_value = []
         mock_find.return_value = None
@@ -177,7 +186,10 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
 
     @patch.dict(
         os.environ,
-        {"GITHUB_REPOSITORY": "owner/repo", "GITHUB_TOKEN": "gh_1234567890abcdef"},
+        {
+            "GITHUB_REPOSITORY": "owner/repo",
+            "GITHUB_TOKEN": "gh_1234567890abcdef",
+        },
     )
     @patch("scripts.grooming_runner.load_rules")
     @patch("scripts.grooming_runner.github_search_issues")
@@ -195,7 +207,10 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
     @patch.dict(os.environ, {})
     @patch("scripts.grooming_runner.load_rules")
     def test_main_no_repo(self, mock_load):
-        mock_load.return_value = {"project_management": {}, "grooming_bot_settings": {}}
+        mock_load.return_value = {
+            "project_management": {},
+            "grooming_bot_settings": {},
+        }
         result = gr.main()
         self.assertEqual(result, 0)
 
@@ -213,11 +228,16 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
         result = gr.main()
         self.assertEqual(result, 1)
 
-    @patch.dict(os.environ, {"GITHUB_REPOSITORY": "owner/repo", "GITHUB_TOKEN": ""})
+    @patch.dict(
+        os.environ, {"GITHUB_REPOSITORY": "owner/repo", "GITHUB_TOKEN": ""}
+    )
     @patch("scripts.grooming_runner.load_rules")
     @patch("scripts.grooming_runner.github_search_issues")
     def test_main_no_token(self, mock_search, mock_load):
-        mock_load.return_value = {"project_management": {}, "grooming_bot_settings": {}}
+        mock_load.return_value = {
+            "project_management": {},
+            "grooming_bot_settings": {},
+        }
         mock_search.return_value = []
         result = gr.main()
         self.assertEqual(result, 0)
@@ -261,7 +281,10 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
 
     @patch.dict(
         os.environ,
-        {"GITHUB_REPOSITORY": "owner/repo", "GITHUB_TOKEN": "gh_1234567890abcdef"},
+        {
+            "GITHUB_REPOSITORY": "owner/repo",
+            "GITHUB_TOKEN": "gh_1234567890abcdef",
+        },
     )
     @patch("scripts.grooming_runner.load_rules")
     @patch("scripts.grooming_runner.github_search_issues")
@@ -296,7 +319,10 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
 
     @patch.dict(
         os.environ,
-        {"GITHUB_REPOSITORY": "owner/repo", "GITHUB_TOKEN": "gh_1234567890abcdef"},
+        {
+            "GITHUB_REPOSITORY": "owner/repo",
+            "GITHUB_TOKEN": "gh_1234567890abcdef",
+        },
     )
     @patch("scripts.grooming_runner.load_rules")
     @patch("scripts.grooming_runner.github_search_issues")
@@ -329,19 +355,27 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
         self.assertEqual(result, 0)
 
     @patch.dict(
-        os.environ, {"GITHUB_REPOSITORY": "owner/repo", "GITHUB_TOKEN": "invalid"}
+        os.environ,
+        {"GITHUB_REPOSITORY": "owner/repo", "GITHUB_TOKEN": "invalid"},
     )
     @patch("scripts.grooming_runner.load_rules")
     def test_main_invalid_token(self, mock_load):
-        mock_load.return_value = {"project_management": {}, "grooming_bot_settings": {}}
+        mock_load.return_value = {
+            "project_management": {},
+            "grooming_bot_settings": {},
+        }
         result = gr.main()
         self.assertEqual(result, 1)
 
     @patch("scripts.grooming_runner.close_issue")
     @patch("scripts.grooming_runner.post_comment")
     @patch("scripts.grooming_runner.datetime")
-    def test_process_issue_stale_close(self, mock_datetime, mock_post, mock_close):
-        mock_datetime.now.return_value = datetime(2025, 11, 25, tzinfo=timezone.utc)
+    def test_process_issue_stale_close(
+        self, mock_datetime, mock_post, mock_close
+    ):
+        mock_datetime.now.return_value = datetime(
+            2025, 11, 25, tzinfo=timezone.utc
+        )
         mock_datetime.fromisoformat.return_value = datetime(
             2025, 11, 10, tzinfo=timezone.utc
         )  # 15 days ago
@@ -385,7 +419,9 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
     @patch("scripts.grooming_runner.post_comment")
     @patch("scripts.grooming_runner.datetime")
     def test_process_issue_stale_comment(self, mock_datetime, mock_post):
-        mock_datetime.now.return_value = datetime(2025, 11, 25, tzinfo=timezone.utc)
+        mock_datetime.now.return_value = datetime(
+            2025, 11, 25, tzinfo=timezone.utc
+        )
         mock_datetime.fromisoformat.return_value = datetime(
             2025, 11, 10, tzinfo=timezone.utc
         )
@@ -427,7 +463,9 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
 
     @patch("scripts.grooming_runner.datetime")
     def test_process_issue_not_stale(self, mock_datetime):
-        mock_datetime.now.return_value = datetime(2025, 11, 25, tzinfo=timezone.utc)
+        mock_datetime.now.return_value = datetime(
+            2025, 11, 25, tzinfo=timezone.utc
+        )
         mock_datetime.fromisoformat.return_value = datetime(
             2025, 11, 20, tzinfo=timezone.utc
         )  # Recent
@@ -469,7 +507,10 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
 
     @patch.dict(
         os.environ,
-        {"GITHUB_REPOSITORY": "owner/repo", "GITHUB_TOKEN": "gh_1234567890abcdef"},
+        {
+            "GITHUB_REPOSITORY": "owner/repo",
+            "GITHUB_TOKEN": "gh_1234567890abcdef",
+        },
     )
     @patch("scripts.grooming_runner.load_rules")
     @patch("scripts.grooming_runner.github_search_issues")
@@ -727,7 +768,9 @@ class TestAdditionalCoverage(unittest.TestCase):
     @patch("scripts.grooming_runner.time.sleep")
     def test_retry_on_failure_exhaust_retries(self, mock_sleep, mock_get):
         mock_resp = MagicMock()
-        mock_resp.raise_for_status.side_effect = requests.ConnectionError("fail")
+        mock_resp.raise_for_status.side_effect = requests.ConnectionError(
+            "fail"
+        )
         mock_get.return_value = mock_resp
 
         with patch("scripts.grooming_runner.logger") as mock_logger:
@@ -744,7 +787,10 @@ class TestAdditionalCoverage(unittest.TestCase):
 
     @patch.dict(
         os.environ,
-        {"GITHUB_REPOSITORY": "owner/repo", "GITHUB_TOKEN": "gh_1234567890abcdef"},
+        {
+            "GITHUB_REPOSITORY": "owner/repo",
+            "GITHUB_TOKEN": "gh_1234567890abcdef",
+        },
     )
     @patch("scripts.grooming_runner.load_rules")
     @patch("scripts.grooming_runner.github_search_issues")
@@ -765,7 +811,9 @@ class TestAdditionalCoverage(unittest.TestCase):
                 "updated_at": "2025-01-01T00:00:00Z",
             }
         ]
-        with patch("scripts.grooming_runner.sanitize_log_entry") as mock_sanitize:
+        with patch(
+            "scripts.grooming_runner.sanitize_log_entry"
+        ) as mock_sanitize:
             mock_sanitize.return_value = {"test": "entry"}
             result = gr.main()
             self.assertEqual(result, 0)
