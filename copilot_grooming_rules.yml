@@ -8,6 +8,7 @@ grooming_bot_settings:
     Grooming handles post-triage actions: assigning needs-info issues to copilot
     for info gathering, and moving Triaged+Backlog issues to the Backlog board column.
   script_path: "scripts/grooming_runner.py"
+  workflow_path: ".github/workflows/grooming.yml"
   activation: "manual"  # Options: manual, scheduled, webhook
   schedule: "daily"  # For scheduled activation
   webhook_events: ["issues.labeled"]  # For webhook triggers
