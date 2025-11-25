@@ -147,17 +147,30 @@ def move_issue_to_backlog_column(
         move_card(card["id"], backlog_column_id, token)
 
 def main() -> int:
-    rules_path = os.environ.get("RULES_PATH", "copilot_triage_rules.yml")
-    rules = load_rules(rules_path)
-    if rules is None:
-        print(f"ERROR: rules file not found at {rules_path}", file=sys.stderr)
+    triage_rules_path = os.environ.get("TRIAGE_RULES_PATH", "copilot_triage_rules.yml")
+    grooming_rules_path = os.environ.get("GROOMING_RULES_PATH", "copilot_grooming_rules.yml")
+    triage_rules = load_rules(triage_rules_path)
+    grooming_rules = load_rules(grooming_rules_path)
+    if triage_rules is None:
+        print(f"ERROR: triage rules file not found at {triage_rules_path}", file=sys.stderr)
+        return 1
+    if grooming_rules is None:
+        print(f"ERROR: grooming rules file not found at {grooming_rules_path}", file=sys.stderr)
         return 1
 
-    # Get project management config
-    project_management = rules.get("project_management", {})
+    # Get project management config from triage rules
+    project_management = triage_rules.get("project_management", {})
     project_enabled = project_management.get("enabled", False)
     project_id = project_management.get("project_id")
     backlog_column_id = project_management.get("columns", {}).get("Backlog")
+
+    # Get grooming settings
+    grooming_settings = grooming_rules.get("grooming_bot_settings", {})
+    needs_info_variants = grooming_settings.get("needs_info_variants", ["needs-info"])
+    assignee_for_needs_info = grooming_settings.get("assignee_for_needs_info", "copilot-bot")
+    remove_triaged_on_needs_info = grooming_settings.get("remove_triaged_on_needs_info", True)
+    move_to_backlog_if_triaged_and_backlog = grooming_settings.get("move_to_backlog_if_triaged_and_backlog", True)
+    audit_event_type = grooming_settings.get("audit_event_type", "grooming")
 
     dry_run_env = os.environ.get("DRY_RUN", "").lower()
     dry_run = dry_run_env in ("1", "true", "yes")
@@ -211,25 +224,24 @@ def main() -> int:
             "notes": "",
         }
 
-        # Check for needs-info variants (assume "needs-info" for now)
-        needs_info_variants = ["needs-info"]  # Can expand if needed
+        # Check for needs-info variants
         if any(variant in labels for variant in needs_info_variants):
             actions.append("assign to copilot-bot and remove Triaged")
             audit_entry["notes"] += "needs-info detected; "
             if not dry_run:
                 try:
-                    assign_issue(owner, repo, number, "copilot-bot", gh_token)
-                    if "Triaged" in labels:
+                    assign_issue(owner, repo, number, assignee_for_needs_info, gh_token)
+                    if remove_triaged_on_needs_info and "Triaged" in labels:
                         remove_label(owner, repo, number, "Triaged", gh_token)
                         changed_fields.append("removed Triaged")
-                    changed_fields.append("assigned to copilot-bot")
+                    changed_fields.append(f"assigned to {assignee_for_needs_info}")
                 except Exception as e:
                     print(f"Failed to update issue #{number}: {e}", file=sys.stderr)
             else:
-                changed_fields.append("would assign to copilot-bot and remove Triaged")
+                changed_fields.append(f"would assign to {assignee_for_needs_info} and remove Triaged")
 
         # Check for Triaged and Backlog
-        if "Triaged" in labels and "Backlog" in labels and project_enabled and backlog_column_id:
+        if "Triaged" in labels and "Backlog" in labels and project_enabled and backlog_column_id and move_to_backlog_if_triaged_and_backlog:
             actions.append("move to Backlog column on board")
             audit_entry["notes"] += "Triaged+Backlog detected; "
             if not dry_run:
@@ -240,6 +252,8 @@ def main() -> int:
                     print(f"Failed to move issue #{number} on board: {e}", file=sys.stderr)
             else:
                 changed_fields.append("would move to Backlog column")
+
+        audit_entry["event_type"] = audit_event_type
 
         audit_entry["changed_fields"] = changed_fields
 
