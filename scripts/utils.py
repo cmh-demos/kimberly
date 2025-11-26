@@ -16,7 +16,7 @@ def retry_on_failure(
     max_retries: int = 5,
     backoff_factor: float = 2.0,
     base_delay: float = 1.0,
-    logger=None
+    logger=None,
 ):
     """Decorator to retry a function on failure with exponential backoff.
 
@@ -29,10 +29,12 @@ def retry_on_failure(
     Catches requests.ConnectionError, requests.Timeout, and
     requests.HTTPError and retries with exponential backoff plus jitter.
     """
+
     def decorator(func: F) -> F:
         @wraps(func)
         def wrapper(*args, **kwargs):
             import sys
+
             last_exception = None
             for attempt in range(1, max_retries + 1):
                 try:
@@ -66,5 +68,7 @@ def retry_on_failure(
                         else:
                             print(msg, file=sys.stderr)
                         raise last_exception
+
         return wrapper
+
     return decorator
