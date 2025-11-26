@@ -49,14 +49,17 @@ components. self-hosted embeddings only when explicitly enabled.
 --------------------
 All tiers are configurable per-user but offer sane defaults.
 
-Quota Hierarchy: The system enforces a two-level quota hierarchy where
-**total quota > tier quotas**.
+Quota Hierarchy: The system enforces a two-level quota hierarchy where the
+**total quota is the upper limit above individual tier quotas**.
 
 - **Total user quota**: The maximum storage allowed per user across all tiers
-  combined. Default: 3 MB per user (free-mode ceiling).
+  combined. Default: 3 MB per user (free-mode ceiling). This is the hard ceiling
+  that cannot be exceeded regardless of individual tier limits.
 - **Tier quotas**: Each tier has an individual quota that constrains storage
-  within that tier. The sum of tier quotas may exceed the total quota, but
-  actual usage across all tiers must not exceed the total user quota.
+  within that tier. The sum of tier quotas may exceed the total quota (e.g.,
+  512 KB + 2 MB + 10 MB = 12.5 MB), but actual usage across all tiers must not
+  exceed the total user quota. This allows flexibility in tier allocation while
+  maintaining a strict storage ceiling.
 
 Enforcement order:
 
@@ -399,17 +402,19 @@ function run_meditation(user_id):
     item.score = compute_score(signals)
     persist_score(item)
 
-  # Step 1: Enforce total user quota (total > tier sums)
-  all_items = filter(items, not item.protected)
-  total_size = sum(item.size_bytes for item in all_items)
+  # Filter out protected items for quota enforcement
+  prunable_items = filter(items, not item.protected)
+
+  # Step 1: Enforce total user quota (upper limit above tier quotas)
+  total_size = sum(item.size_bytes for item in prunable_items)
   while total_size > total_quota[user_id]:
-    candidate = min(all_items, key=lambda i: (i.score, i.created_at))
+    candidate = min(prunable_items, key=lambda i: (i.score, i.created_at))
     archive(candidate)
     total_size -= candidate.size_bytes
 
   # Step 2: Enforce per-tier quotas
   for tier in [short-term, long-term, permanent]:
-    bucket = filter(items, item.tier == tier and not item.protected)
+    bucket = filter(prunable_items, item.tier == tier)
     current_size = sum(item.size_bytes for item in bucket)
     while current_size > tier_quota[tier]:
       candidate = min(bucket, key=lambda i: (i.score, i.created_at))
