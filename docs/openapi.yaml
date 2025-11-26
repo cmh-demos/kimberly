@@ -6,6 +6,23 @@ info:
   description: OpenAPI spec for Kimberly personal AI assistant (MVP surface).
 servers:
   - url: https://api.kimberly.local/v1
+tags:
+  - name: Authentication
+    description: User authentication and account management
+  - name: User
+    description: User profile and settings management
+  - name: GDPR Compliance
+    description: Data privacy and GDPR compliance endpoints
+  - name: Chat
+    description: Chat messaging with Kimberly
+  - name: Memory
+    description: Memory management and querying
+  - name: Agents
+    description: Agent tasks and management
+  - name: Billing
+    description: Billing and subscription management
+  - name: Health
+    description: System health and status
 components:
   securitySchemes:
     bearerAuth:
@@ -22,11 +39,6 @@ components:
         password:
           type: string
       required: [email, password]
-    AuthResponse:
-      type: object
-      properties:
-        token:
-          type: string
     TokenResponse:
       type: object
       properties:
@@ -385,6 +397,21 @@ components:
           type: string
         result:
           type: object
+    AgentInvocation:
+      type: object
+      properties:
+        agent_id:
+          type: string
+          description: >
+            Optional ID of the agent to invoke. If not specified, the system
+            will automatically route the task to the appropriate agent.
+        task:
+          type: string
+          description: The task to perform
+        params:
+          type: object
+          description: Parameters for the task
+      required: [task]
     ChatRequest:
       type: object
       properties:
@@ -453,6 +480,9 @@ paths:
   /signup:
     post:
       summary: Create a user account
+      description: Register a new user account with email and password
+      tags:
+        - Authentication
       requestBody:
         description: User sign-up payload
         required: true
@@ -481,6 +511,9 @@ paths:
   /login:
     post:
       summary: Authenticate user
+      description: Authenticate an existing user and receive a JWT token
+      tags:
+        - Authentication
       requestBody:
         description: User login
         required: true
@@ -509,6 +542,9 @@ paths:
   /user:
     get:
       summary: Get user profile and settings
+      description: Retrieve the authenticated user's profile and settings
+      tags:
+        - User
       security:
         - bearerAuth: []
       responses:
@@ -520,6 +556,9 @@ paths:
                 $ref: '#/components/schemas/User'
     put:
       summary: Update user settings
+      description: Update the authenticated user's settings and preferences
+      tags:
+        - User
       security:
         - bearerAuth: []
       requestBody:
@@ -917,6 +956,9 @@ paths:
   /health:
     get:
       summary: Health check
+      description: Check the health status of the API service
+      tags:
+        - Health
       responses:
         '200':
           description: OK
@@ -932,6 +974,9 @@ paths:
   /chat:
     post:
       summary: Send a chat message to Kimberly
+      description: Send a message to Kimberly and receive a response
+      tags:
+        - Chat
       security:
         - bearerAuth: []
       requestBody:
@@ -980,6 +1025,9 @@ paths:
   /memory:
     get:
       summary: List memory items
+      description: List all memory items for the authenticated user
+      tags:
+        - Memory
       security:
         - bearerAuth: []
       parameters:
@@ -1033,6 +1081,9 @@ paths:
                     total: 1
     post:
       summary: Add a memory item
+      description: Store a new memory item for the authenticated user
+      tags:
+        - Memory
       security:
         - bearerAuth: []
       requestBody:
@@ -1090,6 +1141,9 @@ paths:
   /memory/{id}:
     delete:
       summary: Delete memory by id
+      description: Delete a specific memory item by its ID
+      tags:
+        - Memory
       security:
         - bearerAuth: []
       parameters:
@@ -1110,6 +1164,11 @@ paths:
   /memory/query:
     post:
       summary: Semantic+filter query against memory
+      description: >
+        Perform a semantic search query against the memory store with
+        optional filters
+      tags:
+        - Memory
       security:
         - bearerAuth: []
       requestBody:
@@ -1134,6 +1193,11 @@ paths:
   /memory/meditate:
     post:
       summary: Trigger a meditation (scoring + pruning) run
+      description: >
+        Initiate a meditation process that scores and prunes memory items
+        based on usage and relevance
+      tags:
+        - Memory
       security:
         - bearerAuth: []
       responses:
@@ -1153,6 +1217,11 @@ paths:
   /memory/embed:
     post:
       summary: Upload self-hosted embeddings (optional, free-mode only)
+      description: >
+        Upload custom embeddings for memory items when using self-hosted
+        embedding models (free mode only)
+      tags:
+        - Memory
       security:
         - bearerAuth: []
       requestBody:
@@ -1185,9 +1254,41 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /memory/metrics:
+    get:
+      summary: Get memory usage metrics
+      description: >
+        Retrieve memory quota and usage metrics for the authenticated user,
+        including storage usage across all memory types
+      tags:
+        - Memory
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Memory metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemoryMetrics'
+              examples:
+                memory-metrics:
+                  value:
+                    quota:
+                      short_term: 1000
+                      long_term: 5000
+                      permanent: 100
+                    usage:
+                      short_term: 234
+                      long_term: 1520
+                      permanent: 12
+                    last_meditation: "2025-11-22T15:00:00Z"
   /agents:
     get:
       summary: List available agents
+      description: Get a list of all available agents and their current status
+      tags:
+        - Agents
       security:
         - bearerAuth: []
       responses:
@@ -1216,6 +1317,9 @@ paths:
                       status: idle
     post:
       summary: Create/invoke a new agent task
+      description: Invoke an agent to perform a task asynchronously
+      tags:
+        - Agents
       security:
         - bearerAuth: []
       requestBody:
@@ -1247,6 +1351,9 @@ paths:
   /agents/tasks/{task_id}:
     get:
       summary: Get status of an agent task
+      description: Check the current status and result of an agent task
+      tags:
+        - Agents
       security:
         - bearerAuth: []
       parameters:
@@ -1271,6 +1378,11 @@ paths:
   /billing/subscribe:
     post:
       summary: Subscribe to a billing plan (future feature, currently free)
+      description: >
+        Subscribe to a billing plan. Currently only free tier is available.
+        Premium features will be added in future releases.
+      tags:
+        - Billing
       security:
         - bearerAuth: []
       requestBody:
