@@ -65,6 +65,12 @@ jobs:
 
       - name: Run grooming script
         env:
+          # Personal Access Token (PAT) — preferred for operations
+          # that require a user token (e.g. assigning Copilot agents).
+          # Set this secret in your repository or organization as
+          # GROOMING_ACCESS_KEY.
+          GROOMING_ACCESS_KEY: ${{ secrets.GROOMING_ACCESS_KEY }}
+          # Keep the default runtime token available as a fallback.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           DRY_RUN: ${{ env.DRY_RUN }}
