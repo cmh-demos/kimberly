@@ -16,6 +16,11 @@ on:
 
 jobs:
   groom:
+    # Run in the 'copilot' environment so environment-scoped secrets
+    # (e.g. GROOMING_ACCESS_KEY) are available to the job. Note that
+    # protected environments may require manual approval before jobs
+    # run.
+    environment: copilot
     runs-on: ubuntu-latest
     # Limit the GITHUB_TOKEN to the least privilege needed by the
     # grooming script. It reads repo contents locally (checkout) and
