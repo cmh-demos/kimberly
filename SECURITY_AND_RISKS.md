@@ -38,6 +38,112 @@ vulnerabilities.
 - **Encryption**: End-to-end encryption for user data (as per design).
 - **Access Control**: JWT authentication, RBAC for agents.
 
+### Encryption-at-Rest (AES-256-GCM)
+
+The `scripts/security/encryption.py` module provides AES-256-GCM
+encryption for sensitive data at rest:
+
+- **Algorithm**: AES-256-GCM with 96-bit nonces for authenticated
+  encryption
+- **Key Size**: 256 bits (32 bytes)
+- **Features**:
+  - Encrypt/decrypt bytes, strings, and JSON objects
+  - Associated Authenticated Data (AAD) support
+  - Unique random nonces per encryption operation
+
+Example usage:
+
+```python
+from scripts.security.encryption import DataEncryptor
+
+key = DataEncryptor.generate_key()
+encryptor = DataEncryptor(key, key_id="my_key")
+
+# Encrypt JSON data
+data = {"user_id": "123", "preferences": {"theme": "dark"}}
+encrypted = encryptor.encrypt_json(data)
+
+# Decrypt later
+decrypted = encryptor.decrypt_json(encrypted)
+```
+
+### Key Management Service (KMS) Integration
+
+The `scripts/security/kms.py` module provides abstract KMS interface
+with implementations for:
+
+- **LocalKMSProvider**: File-based key storage for development/testing
+  (with optional master key encryption)
+- **AWSKMSProvider**: AWS KMS integration using envelope encryption
+  for production deployments
+
+Features:
+
+- Key creation, rotation, and deletion
+- Key metadata tracking (creation time, status, description)
+- Envelope encryption for AWS KMS (data keys encrypted by CMK)
+
+Example usage:
+
+```python
+from scripts.security.kms import LocalKMSProvider, AWSKMSProvider
+
+# Development: Local file-based KMS
+kms = LocalKMSProvider(keys_dir=".keys")
+key_meta = kms.create_key(description="User data encryption")
+encryptor = kms.get_encryptor(key_meta.key_id)
+
+# Production: AWS KMS with envelope encryption
+kms = AWSKMSProvider(kms_key_id="alias/kimberly-cmk")
+```
+
+### Audit Logging for Sensitive Operations
+
+The `scripts/security/audit.py` module provides comprehensive audit
+trails for security-critical operations:
+
+- **Covered Operations**: Authentication, data access, memory CRUD,
+  encryption/decryption, key management, agent invocations, admin actions
+- **PII Sanitization**: Automatic redaction of passwords, tokens,
+  emails, SSNs, and credit card numbers
+- **Log Rotation**: Configurable max entries with automatic archiving
+- **Search**: Query audit logs by operation type, user ID, time range
+
+Supported sensitive operations (see `SensitiveOperation` enum):
+
+- `auth.login`, `auth.logout`, `auth.failed`, `auth.token_issued`
+- `data.read`, `data.write`, `data.delete`, `data.export`
+- `memory.create`, `memory.read`, `memory.update`, `memory.delete`
+- `encrypt.data`, `decrypt.data`
+- `key.create`, `key.rotate`, `key.delete`, `key.access`
+- `agent.invoke`, `agent.complete`, `agent.error`
+- `security.alert`, `security.violation`
+
+Example usage:
+
+```python
+from scripts.security.audit import get_audit_logger, SensitiveOperation
+
+audit = get_audit_logger()
+
+# Log authentication
+audit.log_auth_success(user_id="user_123", source_ip="192.168.1.1")
+
+# Log data access
+audit.log_data_access(
+    user_id="user_123",
+    resource_id="mem_456",
+    resource_type="memory",
+    action="read"
+)
+
+# Log key operation
+audit.log_key_operation("create", key_id="key_abc", user_id="admin")
+
+# Search audit log
+events = audit.search(operation="auth.login", user_id="user_123")
+```
+
 ## Known Security Considerations
 
 - Agent sandboxing is in development; avoid running untrusted agents
@@ -257,7 +363,7 @@ harm if current Critical/High the risk occurs. state. risks first.
 | R-002 |Unrealistic non-functional goals (latency <1s, 99.9% uptime at early- stage)| Product / Architecture | High | Likely | High |Re-scope SLOs; run latency benchmarks on a PoC; consider hosted models for low-latency MVP.| Performance tests; benchmark reports | @backend-dev | Active — validation needed |
 | R-003 |LLM deployment cost & infra mismatch (Llama 3.1 inference hardware & licensing)| Cost / Infrastructure | High | Likely | High |Produce cost estimate for self-hosting vs hosted provider; plan GPU sizing; track licensing/redistribution constraints.| Cost run rates, infra invoices | @ops TBD | Active — investigate |
 | R-004 |Security: E2E encryption claims without KMS/key management design| Security / Privacy | Critical | Possible | Critical |Draft KMS design, add key rotation, encryption-at-rest + in- transit diagrams, threat model. Limit telemetry to redacted PII.| Security reviews, pen-test | @sec TBD | Active — fix design |
-| R-005 | GDPR & data deletion gaps — no verified deletion/export flow | Legal / Compliance | Critical | Possible | Critical |Implement a data export & deletion endpoint; add audit logging and automated tests to prove deletion.| Manual/automated deletion checks, compliance review | @data_privacy TBD | Active — needs implementation |
+| R-005 | GDPR & data deletion gaps — no verified deletion/export flow | Legal / Compliance | Critical | Possible | Critical |Implement a data export & deletion endpoint; add audit logging and automated tests to prove deletion.| Manual/automated deletion checks, compliance review | @data_privacy TBD | **Mitigated** — API implemented in `src/api/compliance.py` with full test coverage |
 | R-006 | OpenAPI duplication & schema issues breaking SDK/clients | Developer Experience | High | Likely | High |Lint & fix openapi.yaml; add CI lint step, add a sample client generation check in CI.| CI validation failure | @api TBD | Active — fix in progress |
 | R-007 | No CI pipelines for tests/quality/validation | Developer Experience / Risk | High | Likely | High |Add GitHub Actions for linting, unit tests, openapi validation, copilot_tracking schema checks.| PR checks status | @dev TBD | Active — onboarding CI |
 | R-008 | No AI-quality tests (hallucinations, bias, memory accuracy) | Quality | High | Likely | High |Create an AI test harness and regression suite (acceptance tests for memory correctness, hallucination detection, fairness checks).| Test failures & regression alerts | @ml TBD | Planned |

@@ -36,19 +36,100 @@ and constraints.
 
 ## Diagrams
 
-Embed Mermaid diagrams for component and sequence views.
+The following Mermaid diagrams illustrate the system architecture and key data flows.
 
-Example component diagram (Mermaid):
+### System Component Diagram
+
+```mermaid
+graph TB
+  subgraph Clients
+    Web[Web Browser]
+    Mobile[Mobile PWA]
+    Voice[Voice Assistant]
+  end
+
+  subgraph Gateway Layer
+    API[API Gateway<br/>TLS, Auth, Rate-limit]
+  end
+
+  subgraph Core Services
+    Auth[Auth Service]
+    Users[User Service]
+    Chat[AI/Chat Service<br/>Llama 3.1 8B]
+    Billing[Billing Service]
+    Memory[Memory Service]
+    Agents[Agent Orchestrator]
+  end
+
+  subgraph Background Processing
+    Queue[(Message Queue<br/>Kafka/RabbitMQ)]
+    Worker[Worker Fleet]
+  end
+
+  subgraph Data Stores
+    Postgres[(PostgreSQL<br/>+ pgvector)]
+    Redis[(Redis<br/>Cache/Session)]
+    S3[(Object Storage<br/>S3-compatible)]
+  end
+
+  subgraph Observability
+    Prometheus[Prometheus]
+    Grafana[Grafana]
+    Logs[ELK/Tempo<br/>Logs & Traces]
+  end
+
+  Web -->|HTTPS| API
+  Mobile -->|HTTPS| API
+  Voice -->|HTTPS| API
+
+  API --> Auth
+  API --> Users
+  API --> Chat
+  API --> Billing
+  API --> Memory
+  API --> Agents
+
+  Auth --> Redis
+  Auth --> Postgres
+  Users --> Postgres
+  Chat --> Memory
+  Chat --> Postgres
+  Memory --> Postgres
+  Memory --> Redis
+  Billing --> Postgres
+  Billing --> Queue
+  Agents --> Queue
+  Agents --> Chat
+
+  Worker --> Queue
+  Worker --> Postgres
+  Worker --> S3
+
+  Auth -.-> Prometheus
+  Users -.-> Prometheus
+  Chat -.-> Prometheus
+  Memory -.-> Prometheus
+  Worker -.-> Prometheus
+  Prometheus --> Grafana
+  Auth -.-> Logs
+  Chat -.-> Logs
+```
+
+### Simplified Data Flow
 
 ```mermaid
 graph LR
- Client -->|HTTPS| API[API Gateway]
- API --> Auth[Auth Service]
- API --> Users[User Service]
- Users --> Postgres[(PostgreSQL)]
- Auth --> Redis[(Redis Cache)]
- Jobs[Worker] --> Queue[(Message Queue)]
- Jobs --> S3[(Object Storage)]
+  Client -->|HTTPS| API[API Gateway]
+  API --> Auth[Auth Service]
+  API --> Users[User Service]
+  API --> Chat[AI Service]
+  API --> Memory[Memory Service]
+  Users --> Postgres[(PostgreSQL)]
+  Auth --> Redis[(Redis Cache)]
+  Memory --> Postgres
+  Chat --> Memory
+  Worker[Worker] --> Queue[(Message Queue)]
+  Worker --> S3[(Object Storage)]
 ```
 
 ## Sequence Diagrams
@@ -91,6 +172,92 @@ sequenceDiagram
     API-->>Client: 200 OK + token
 ```
 
+### Chat Conversation Flow
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant API as API Gateway
+    participant Auth as Auth Service
+    participant Chat as AI/Chat Service
+    participant Memory as Memory Service
+    participant DB as PostgreSQL
+    participant LLM as Llama 3.1 8B
+
+    Client->>API: POST /chat (message)
+    API->>Auth: Validate JWT
+    Auth-->>API: Valid
+    API->>Chat: Process message
+    Chat->>Memory: Retrieve relevant context
+    Memory->>DB: Query memories (hybrid search)
+    DB-->>Memory: Memory items
+    Memory-->>Chat: Context data
+    Chat->>LLM: Generate response (message + context)
+    LLM-->>Chat: AI response
+    Chat->>Memory: Store conversation
+    Memory->>DB: Insert short-term memory
+    Chat-->>API: Response + usage
+    API-->>Client: 200 OK + response
+```
+
+### Memory Retrieval Flow
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant API as API Gateway
+    participant Memory as Memory Service
+    participant DB as PostgreSQL
+    participant Cache as Redis
+
+    Client->>API: POST /memory/query (query, filters)
+    API->>Memory: Query request
+    Memory->>Cache: Check cache
+    alt Cache hit
+        Cache-->>Memory: Cached results
+    else Cache miss
+        Memory->>DB: Metadata filter + FTS
+        DB-->>Memory: Candidate items
+        Memory->>Memory: Hybrid re-rank (score + recency)
+        Memory->>Cache: Store results
+    end
+    Memory-->>API: Top-K results
+    API-->>Client: 200 OK + results
+```
+
+### Agent Delegation Flow
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant API as API Gateway
+    participant Chat as AI/Chat Service
+    participant Agents as Agent Orchestrator
+    participant Queue as Message Queue
+    participant Worker as Background Worker
+    participant DB as PostgreSQL
+
+    Client->>API: POST /chat (task request)
+    API->>Chat: Process request
+    Chat->>Chat: Detect agent-suitable task
+    Chat->>Agents: Delegate to agent
+    Agents->>Agents: Check concurrent limit (max 3)
+    Agents->>Queue: Enqueue agent task
+    Agents-->>Chat: Task ID
+    Chat-->>API: Acknowledge + task ID
+    API-->>Client: 202 Accepted + task ID
+
+    Queue->>Worker: Process task
+    Worker->>Worker: Execute agent logic
+    Worker->>DB: Store results
+    Worker-->>Queue: Task complete
+
+    Client->>API: GET /agents/tasks/{task_id}
+    API->>DB: Query task status
+    DB-->>API: Task result
+    API-->>Client: 200 OK + result
+```
+
 ### Billing Flow
 
 ```mermaid
@@ -112,6 +279,42 @@ sequenceDiagram
     Worker-->>DB: Record transaction
     Worker-->>API: Notify success (via webhook or poll)
     API-->>Client: 200 OK + confirmation
+```
+
+### Memory Meditation (Nightly Scoring) Flow
+
+```mermaid
+sequenceDiagram
+    participant Scheduler as Cron/Scheduler
+    participant Worker as Meditation Worker
+    participant DB as PostgreSQL
+    participant Metrics as Prometheus
+
+    Scheduler->>Worker: Trigger nightly meditation
+    Worker->>DB: Fetch user memory items
+    DB-->>Worker: Memory items batch
+
+    loop For each memory item
+        Worker->>Worker: Compute relevance_to_goals
+        Worker->>Worker: Compute emotional_weight
+        Worker->>Worker: Compute predictive_value
+        Worker->>Worker: Compute recency_freq
+        Worker->>Worker: Calculate weighted score
+        Worker->>DB: Update item score
+    end
+
+    Worker->>DB: Get tier quotas
+    DB-->>Worker: Quota limits
+
+    loop For each tier over quota
+        Worker->>Worker: Sort by ascending score
+        Worker->>DB: Archive lowest-scoring items
+        Worker->>DB: Mark for deletion (grace period)
+    end
+
+    Worker->>Metrics: Report meditation.processed
+    Worker->>Metrics: Report meditation.pruned
+    Worker-->>Scheduler: Meditation complete
 ```
 
 ## Constraints and trade-offs
