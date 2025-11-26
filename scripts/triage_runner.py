@@ -15,6 +15,7 @@ when DRY_RUN=false (the workflow sets DRY_RUN=false only for main branch).
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
 import sys
@@ -24,6 +25,14 @@ from typing import Any, Dict, List, Optional
 
 import requests
 import yaml
+
+from scripts.utils import retry_on_failure
+
+# Set up logging
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
 
 # Default duplicate detection similarity threshold (0.0-1.0)
 # Can be overridden via detect_duplicates.similarity_threshold in rules file
@@ -52,6 +61,7 @@ def read_rules_version(path: str) -> str | None:
         return None
 
 
+@retry_on_failure(logger=logger)
 def github_search_issues(
     owner: str,
     repo: str,
@@ -98,6 +108,7 @@ def github_search_issues(
     return items
 
 
+@retry_on_failure(logger=logger)
 def github_get_issue(
     owner: str, repo: str, issue_number: int, token: str | None
 ) -> dict | None:
@@ -113,6 +124,7 @@ def github_get_issue(
     return resp.json()
 
 
+@retry_on_failure(logger=logger)
 def post_label(
     owner: str, repo: str, issue_number: int, label: str, token: str
 ) -> None:
@@ -128,6 +140,7 @@ def post_label(
     resp.raise_for_status()
 
 
+@retry_on_failure(logger=logger)
 def post_comment(
     owner: str, repo: str, issue_number: int, comment_text: str, token: str
 ) -> None:
@@ -143,6 +156,7 @@ def post_comment(
     resp.raise_for_status()
 
 
+@retry_on_failure(logger=logger)
 def get_project_columns(
     owner: str, repo: str, project_id: int, token: str
 ) -> List[dict]:
@@ -159,6 +173,7 @@ def get_project_columns(
     return resp.json()
 
 
+@retry_on_failure(logger=logger)
 def get_column_cards(column_id: int, token: str) -> List[dict]:
     url = f"https://api.github.com/projects/columns/{column_id}/cards"
     headers = {
@@ -177,6 +192,7 @@ def find_card_for_issue(cards: List[dict], issue_url: str) -> dict | None:
     return None
 
 
+@retry_on_failure(logger=logger)
 def move_card(card_id: int, to_column_id: int, token: str) -> None:
     url = f"https://api.github.com/projects/columns/{to_column_id}/moves"
     headers = {
@@ -188,6 +204,7 @@ def move_card(card_id: int, to_column_id: int, token: str) -> None:
     resp.raise_for_status()
 
 
+@retry_on_failure(logger=logger)
 def create_card(column_id: int, issue_id: int, token: str) -> None:
     url = f"https://api.github.com/projects/columns/{column_id}/cards"
     headers = {
@@ -254,6 +271,7 @@ def fetch_related_docs(
     return references
 
 
+@retry_on_failure(logger=logger)
 def assign_triage_owner(
     owner: str, repo: str, issue_number: int, assignee: str, token: str
 ) -> None:

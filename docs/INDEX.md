@@ -6,6 +6,7 @@ documentation in this repository. Use this page as a navigation hub.
 - README.md — Project overview and quickstart
 - PROJECT.md — Project vision, goals and requirements
 - ROADMAP.md — High-level roadmap, 12-week plan, backlog and success criteria
+- SUCCESS_CRITERIA.md — Performance benchmarks, SLOs, and profiling guidance
 - PROJECT_MANAGEMENT.md — Board, cadences, KPIs, and sprint mapping
 - WORKFLOW.md — Work process and SDLC
 - CONTRIBUTING.md — Development, testing and code standards
