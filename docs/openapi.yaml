@@ -200,6 +200,16 @@ components:
           type: string
         result:
           type: object
+    AgentInvocation:
+      type: object
+      properties:
+        task:
+          type: string
+          description: The task to perform
+        params:
+          type: object
+          description: Parameters for the task
+      required: [task]
     ChatRequest:
       type: object
       properties:
@@ -647,6 +657,30 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /memory/metrics:
+    get:
+      summary: Get memory quota usage and metrics
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Memory metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemoryMetrics'
+              examples:
+                metrics-example:
+                  value:
+                    quota:
+                      short_term: 524288
+                      long_term: 2097152
+                      permanent: 10485760
+                    usage:
+                      short_term: 120000
+                      long_term: 500000
+                      permanent: 2000000
+                    last_meditation: "2025-11-22T03:00:00Z"
   /agents:
     get:
       summary: List available agents
@@ -702,6 +736,51 @@ paths:
                 $ref: '#/components/schemas/AgentTaskResponse'
         '400':
           description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /agents/{id}/run:
+    post:
+      summary: Invoke a specific agent
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The agent identifier
+          schema:
+            type: string
+      requestBody:
+        description: Parameters for the agent run
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentInvocation'
+            examples:
+              run-scheduler:
+                value:
+                  task: "schedule_meeting"
+                  params:
+                    title: "Team standup"
+                    time: "2025-11-23T10:00:00Z"
+      responses:
+        '202':
+          description: Agent task accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentTaskResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Agent not found
           content:
             application/json:
               schema:
