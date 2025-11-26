@@ -86,7 +86,7 @@ suggested; we can convert these into GitHub issues next.
 ### Epic A — Developer onboarding & CI (High priority)
 
 - Story A.1: Create a runnable Quickstart + example (README + test harness). — owner:
-Docs/FE, estimate: 2 days
+Documentation/Frontend, estimate: 2 days
 - Story A.2: Add CI checks: openapi linter, docs build, copilot_tracking schema
 validation. — owner: SRE, estimate: 3 days
 - Story A.3: Clean `docs/openapi.yaml` duplicates and add examples. — owner: Backend,
@@ -95,7 +95,7 @@ estimate: 3–5 days
 ### Epic B — Core chat pipeline & short-term memory (Highest priority)
 
 - Story B.1: Implement POST /chat end-to-end with basic TTS/ASR mocked. — owner:
-Backend/FE, estimate: 5 days
+Backend/Frontend, estimate: 5 days
 - Story B.2: Short-term memory API (add/list/delete) with canonical quotas (see
 `docs/memory-model.md`) — owner: Backend, estimate: 4 days
 - Story B.3: E2E smoke tests and memory recall tests. — owner: QA, estimate: 3 days
