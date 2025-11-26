@@ -54,14 +54,24 @@ jobs:
       - name: Run pip-audit (dependency vulnerabilities)
         id: pip-audit
         run: |
-          pip-audit --format json --output pip-audit-report.json \
-            -r requirements.txt || echo "vuln_found=true" >> $GITHUB_OUTPUT
+          if pip-audit --format json --output pip-audit-report.json \
+            -r requirements.txt; then
+            echo "No vulnerabilities found"
+          else
+            exit_code=$?
+            if [ -f pip-audit-report.json ]; then
+              echo "vuln_found=true" >> $GITHUB_OUTPUT
+            else
+              echo "::error::pip-audit failed with exit code $exit_code"
+              exit $exit_code
+            fi
+          fi
         continue-on-error: true
 
       - name: Fail on critical vulnerabilities
         if: steps.pip-audit.outputs.vuln_found == 'true'
         run: |
-          echo "::warning::Dependency vulnerabilities detected!"
+          echo "::error::Dependency vulnerabilities detected!"
           cat pip-audit-report.json
           exit 1
 
@@ -73,7 +83,7 @@ jobs:
 
       - name: Upload pip-audit report
         uses: actions/upload-artifact@v4
-        if: always()
+        if: success() || failure()
         with:
           name: pip-audit-report
           path: pip-audit-report.json
