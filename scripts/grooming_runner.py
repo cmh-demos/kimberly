@@ -713,6 +713,7 @@ def process_issue(
     *args,
     **kwargs,
 ) -> Dict[str, Any]:
+    global copilot_assigns_this_run
     number = issue.get("number")
     title = issue.get("title")
     labels = [
@@ -845,7 +846,6 @@ def process_issue(
                         audit_entry["notes"] += "skipped assign — copilot restarted after error; "
                     else:
                         # No blocking Copilot event; attempt to assign if slot available
-                        global copilot_assigns_this_run
                         if copilot_assigns_this_run >= MAX_COPILOT_ASSIGN_PER_RUN:
                             audit_entry["notes"] += "skipped assign — per-run cap reached; "
                         else:
@@ -859,7 +859,6 @@ def process_issue(
                             changed_fields.append(f"assigned to {assignee_for_needs_info}")
                 else:
                     # No Copilot timeline entries — proceed to assign if slot available
-                    global copilot_assigns_this_run
                     if copilot_assigns_this_run >= MAX_COPILOT_ASSIGN_PER_RUN:
                         audit_entry["notes"] += "skipped assign — per-run cap reached; "
                     else:
@@ -908,7 +907,6 @@ def process_issue(
                     elif etype == "start" and evt.get("created_at") and last_err and evt.get("created_at") > last_err:
                         audit_entry["notes"] += "skipped assign — copilot restarted after error; "
                     else:
-                        global copilot_assigns_this_run
                         if copilot_assigns_this_run >= MAX_COPILOT_ASSIGN_PER_RUN:
                             audit_entry["notes"] += "skipped assign — per-run cap reached; "
                         else:
@@ -936,7 +934,6 @@ def process_issue(
                             )
                             changed_fields.append("commented needs_work guidance")
                 else:
-                    global copilot_assigns_this_run
                     if copilot_assigns_this_run >= MAX_COPILOT_ASSIGN_PER_RUN:
                         audit_entry["notes"] += "skipped assign — per-run cap reached; "
                     else:
