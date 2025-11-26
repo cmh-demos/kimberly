@@ -66,9 +66,194 @@ components:
     ExportResponse:
       type: object
       properties:
+        export_id:
+          type: string
+          description: Unique identifier for the export request
+        status:
+          type: string
+          enum: [pending, processing, completed, failed]
+          description: Current status of the export
         download_url:
           type: string
-          description: URL to download exported data
+          description: URL to download exported data (available when completed)
+        created_at:
+          type: string
+          format: date-time
+        expires_at:
+          type: string
+          format: date-time
+          description: When the download URL expires
+    ExportStatusResponse:
+      type: object
+      properties:
+        export_id:
+          type: string
+        status:
+          type: string
+          enum: [pending, processing, completed, failed]
+        progress_percent:
+          type: integer
+          minimum: 0
+          maximum: 100
+        download_url:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+        expires_at:
+          type: string
+          format: date-time
+        error_message:
+          type: string
+    DeleteResponse:
+      type: object
+      properties:
+        deletion_id:
+          type: string
+          description: Unique identifier for the deletion request
+        status:
+          type: string
+          enum: [pending, processing, completed, failed]
+        created_at:
+          type: string
+          format: date-time
+    DeleteStatusResponse:
+      type: object
+      properties:
+        deletion_id:
+          type: string
+        status:
+          type: string
+          enum: [pending, processing, completed, failed]
+        progress_percent:
+          type: integer
+          minimum: 0
+          maximum: 100
+        data_types_deleted:
+          type: array
+          items:
+            type: string
+          description: List of data types that have been deleted
+        created_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+        error_message:
+          type: string
+    AuditLogEntry:
+      type: object
+      properties:
+        id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        user_id:
+          type: string
+        action:
+          type: string
+          enum:
+            - data_export_requested
+            - data_export_completed
+            - data_deletion_requested
+            - data_deletion_completed
+            - consent_updated
+            - data_accessed
+            - data_modified
+            - login
+            - logout
+            - settings_changed
+        resource_type:
+          type: string
+          description: Type of resource affected
+        resource_id:
+          type: string
+          description: ID of resource affected
+        details:
+          type: object
+          description: Additional context for the action
+        ip_address:
+          type: string
+        user_agent:
+          type: string
+    AuditLogResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuditLogEntry'
+        page:
+          type: integer
+        per_page:
+          type: integer
+        total:
+          type: integer
+    RetentionPolicy:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        data_type:
+          type: string
+          enum:
+            - chat_history
+            - memory_short_term
+            - memory_long_term
+            - memory_permanent
+            - audit_logs
+            - telemetry
+        retention_days:
+          type: integer
+          description: Number of days to retain data (0 = indefinite)
+        auto_delete:
+          type: boolean
+          description: Whether to automatically delete after retention period
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    RetentionPolicyListResponse:
+      type: object
+      properties:
+        policies:
+          type: array
+          items:
+            $ref: '#/components/schemas/RetentionPolicy'
+    ComplianceCheckResult:
+      type: object
+      properties:
+        check_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        overall_status:
+          type: string
+          enum: [compliant, non_compliant, warning]
+        checks:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              status:
+                type: string
+                enum: [passed, failed, warning]
+              message:
+                type: string
+              details:
+                type: object
     ErrorResponse:
       type: object
       properties:
@@ -358,9 +543,33 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
   /user/export:
     post:
-      summary: Export user data
+      summary: Export user data (GDPR Article 20 - Data Portability)
+      description: >
+        Initiates an export of all user data in a portable format (JSON).
+        This endpoint complies with GDPR Article 20 (Right to Data Portability).
+        The export includes: profile data, memories, chat history, preferences,
+        and associated metadata.
+      operationId: requestDataExport
+      tags:
+        - GDPR Compliance
       security:
         - bearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                format:
+                  type: string
+                  enum: [json, csv]
+                  default: json
+                  description: Export format
+                include_metadata:
+                  type: boolean
+                  default: true
+                  description: Include metadata in export
       responses:
         '202':
           description: Export initiated
@@ -368,14 +577,343 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ExportResponse'
-  /user/delete:
-    post:
-      summary: Delete user account and data
+              examples:
+                export-initiated:
+                  value:
+                    export_id: "exp_abc123"
+                    status: "pending"
+                    created_at: "2025-11-26T10:00:00Z"
+                    expires_at: "2025-12-03T10:00:00Z"
+        '429':
+          description: Too many export requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /user/export/{export_id}:
+    get:
+      summary: Get export status
+      description: Check the status of a data export request
+      operationId: getExportStatus
+      tags:
+        - GDPR Compliance
       security:
         - bearerAuth: []
+      parameters:
+        - name: export_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Export status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportStatusResponse'
+              examples:
+                export-completed:
+                  value:
+                    export_id: "exp_abc123"
+                    status: "completed"
+                    progress_percent: 100
+                    download_url: "https://storage.kimberly.local/exports/..."
+                    created_at: "2025-11-26T10:00:00Z"
+                    completed_at: "2025-11-26T10:05:00Z"
+                    expires_at: "2025-12-03T10:00:00Z"
+        '404':
+          description: Export not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /user/delete:
+    post:
+      summary: Delete user account and data (GDPR Article 17 - Right to Erasure)
+      description: >
+        Initiates deletion of all user data. This endpoint complies with
+        GDPR Article 17 (Right to Erasure / Right to be Forgotten).
+        All personal data including profile, memories, chat history, and
+        associated metadata will be permanently deleted.
+      operationId: requestDataDeletion
+      tags:
+        - GDPR Compliance
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                confirm:
+                  type: boolean
+                  description: Confirmation that user wants to delete all data
+                  default: false
+                reason:
+                  type: string
+                  description: Optional reason for deletion (for analytics)
       responses:
         '202':
           description: Deletion initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteResponse'
+              examples:
+                deletion-initiated:
+                  value:
+                    deletion_id: "del_xyz789"
+                    status: "pending"
+                    created_at: "2025-11-26T10:00:00Z"
+        '400':
+          description: Confirmation required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /user/delete/{deletion_id}:
+    get:
+      summary: Get deletion status
+      description: Check the status of a data deletion request
+      operationId: getDeletionStatus
+      tags:
+        - GDPR Compliance
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: deletion_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Deletion status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteStatusResponse'
+              examples:
+                deletion-completed:
+                  value:
+                    deletion_id: "del_xyz789"
+                    status: "completed"
+                    progress_percent: 100
+                    data_types_deleted:
+                      - "profile"
+                      - "memories"
+                      - "chat_history"
+                      - "preferences"
+                    created_at: "2025-11-26T10:00:00Z"
+                    completed_at: "2025-11-26T10:10:00Z"
+        '404':
+          description: Deletion request not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /audit/logs:
+    get:
+      summary: Get audit logs
+      description: >
+        Retrieve audit logs for the authenticated user. Logs include all
+        data access, modifications, exports, and deletions for compliance
+        tracking.
+      operationId: getAuditLogs
+      tags:
+        - GDPR Compliance
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 50
+            maximum: 100
+        - name: action
+          in: query
+          schema:
+            type: string
+            enum:
+              - data_export_requested
+              - data_export_completed
+              - data_deletion_requested
+              - data_deletion_completed
+              - consent_updated
+              - data_accessed
+              - data_modified
+              - login
+              - logout
+              - settings_changed
+        - name: start_date
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: end_date
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Audit logs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditLogResponse'
+              examples:
+                audit-logs:
+                  value:
+                    items:
+                      - id: "log_001"
+                        timestamp: "2025-11-26T10:00:00Z"
+                        user_id: "user_123"
+                        action: "data_export_requested"
+                        resource_type: "user_data"
+                        resource_id: "exp_abc123"
+                        details:
+                          format: "json"
+                        ip_address: "192.168.1.1"
+                        user_agent: "Mozilla/5.0..."
+                    page: 1
+                    per_page: 50
+                    total: 1
+  /compliance/retention-policies:
+    get:
+      summary: Get retention policies
+      description: >
+        Retrieve the current data retention policies. Policies define how
+        long different types of data are retained before automatic deletion.
+      operationId: getRetentionPolicies
+      tags:
+        - GDPR Compliance
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Retention policies
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetentionPolicyListResponse'
+              examples:
+                policies:
+                  value:
+                    policies:
+                      - id: "pol_001"
+                        name: "Chat History Retention"
+                        data_type: "chat_history"
+                        retention_days: 365
+                        auto_delete: true
+                        created_at: "2025-01-01T00:00:00Z"
+                        updated_at: "2025-01-01T00:00:00Z"
+                      - id: "pol_002"
+                        name: "Short-term Memory Retention"
+                        data_type: "memory_short_term"
+                        retention_days: 7
+                        auto_delete: true
+                        created_at: "2025-01-01T00:00:00Z"
+                        updated_at: "2025-01-01T00:00:00Z"
+    put:
+      summary: Update retention policies
+      description: Update data retention policies for the user
+      operationId: updateRetentionPolicies
+      tags:
+        - GDPR Compliance
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                policies:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      data_type:
+                        type: string
+                        enum:
+                          - chat_history
+                          - memory_short_term
+                          - memory_long_term
+                          - memory_permanent
+                          - audit_logs
+                          - telemetry
+                      retention_days:
+                        type: integer
+                        minimum: 0
+                      auto_delete:
+                        type: boolean
+                    required:
+                      - data_type
+                      - retention_days
+      responses:
+        '200':
+          description: Policies updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetentionPolicyListResponse'
+        '400':
+          description: Invalid policy configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /compliance/check:
+    get:
+      summary: Run compliance check
+      description: >
+        Run automated compliance checks to verify GDPR and data protection
+        requirements are being met. Returns a detailed report of all checks.
+      operationId: runComplianceCheck
+      tags:
+        - GDPR Compliance
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Compliance check results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplianceCheckResult'
+              examples:
+                compliant:
+                  value:
+                    check_id: "chk_001"
+                    timestamp: "2025-11-26T10:00:00Z"
+                    overall_status: "compliant"
+                    checks:
+                      - name: "Data Encryption"
+                        status: "passed"
+                        message: "All data at rest is encrypted"
+                      - name: "Retention Policies"
+                        status: "passed"
+                        message: "Retention policies are properly configured"
+                      - name: "Audit Logging"
+                        status: "passed"
+                        message: "Audit logging is enabled"
+                      - name: "Data Export"
+                        status: "passed"
+                        message: "Data export functionality is available"
+                      - name: "Data Deletion"
+                        status: "passed"
+                        message: "Data deletion functionality is available"
   /health:
     get:
       summary: Health check
