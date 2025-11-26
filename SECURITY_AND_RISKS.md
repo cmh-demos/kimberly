@@ -253,16 +253,16 @@ harm if current Critical/High the risk occurs. state. risks first.
 
 | ID | Risk | Category | Impact | Likelihood | Priority | Mitigation(s) | Detection | Owner | Status |
 |----|------|----------|--------|------------|----------|---------------|-----------|-------|--------|
-| R-001 | No runnable implementation / primarily docs | Product / Delivery | Critical | Likely | Critical |Build a minimal end-to-end PoC using a hosted LLM to validate flows and developer on-ramps. Create quickstart in README.| PR/CI checks, demo readiness | @backend-dev | Active — high |
-| R-002 |Unrealistic non-functional goals (latency <1s, 99.9% uptime at early- stage)| Product / Architecture | High | Likely | High |Re-scope SLOs; run latency benchmarks on a PoC; consider hosted models for low-latency MVP.| Performance tests; benchmark reports | @backend-dev | Active — validation needed |
-| R-003 |LLM deployment cost & infra mismatch (Llama 3.1 inference hardware & licensing)| Cost / Infrastructure | High | Likely | High |Produce cost estimate for self-hosting vs hosted provider; plan GPU sizing; track licensing/redistribution constraints.| Cost run rates, infra invoices | @ops TBD | Active — investigate |
-| R-004 |Security: E2E encryption claims without KMS/key management design| Security / Privacy | Critical | Possible | Critical |Draft KMS design, add key rotation, encryption-at-rest + in- transit diagrams, threat model. Limit telemetry to redacted PII.| Security reviews, pen-test | @sec TBD | Active — fix design |
-| R-005 | GDPR & data deletion gaps — no verified deletion/export flow | Legal / Compliance | Critical | Possible | Critical |Implement a data export & deletion endpoint; add audit logging and automated tests to prove deletion.| Manual/automated deletion checks, compliance review | @data_privacy TBD | Active — needs implementation |
-| R-006 | OpenAPI duplication & schema issues breaking SDK/clients | Developer Experience | High | Likely | High |Lint & fix openapi.yaml; add CI lint step, add a sample client generation check in CI.| CI validation failure | @api TBD | Active — fix in progress |
-| R-007 | No CI pipelines for tests/quality/validation | Developer Experience / Risk | High | Likely | High |Add GitHub Actions for linting, unit tests, openapi validation, copilot_tracking schema checks.| PR checks status | @dev TBD | Active — onboarding CI |
-| R-008 | No AI-quality tests (hallucinations, bias, memory accuracy) | Quality | High | Likely | High |Create an AI test harness and regression suite (acceptance tests for memory correctness, hallucination detection, fairness checks).| Test failures & regression alerts | @ml TBD | Planned |
-| R-009 |Agent sandboxing insufficient — agents may leak secrets or take destructive actions| Security / Safety | Critical | Possible | Critical |Define agent capability model, deny list for I/O, require policy enforcement and per-agent resource limits (CPU, memory, network).| Unit tests, agent traces, policy violation alerts | @engineering TBD | Active — design required |
-| R-010 | Backup & Disaster Recovery untested (RPO/RTO unknown) | Operations | High | Possible | High |Document RPO/RTO, implement daily backups, periodic restore drills, store backups encrypted and off- site.| Restore drills, backup health metrics | @ops TBD | Planned |
+| R-001 | No runnable implementation / primarily docs | Product / Delivery | Critical | Likely | Critical |Build a minimal end-to-end PoC using a hosted LLM to validate flows and developer on-ramps. Create quickstart in README.| PR/CI checks, demo readiness | @backend-developer | Active — high |
+| R-002 |Unrealistic non-functional goals (latency <1s, 99.9% uptime at early- stage)| Product / Architecture | High | Likely | High |Re-scope SLOs; run latency benchmarks on a PoC; consider hosted models for low-latency MVP.| Performance tests; benchmark reports | @backend-developer | Active — validation needed |
+| R-003 |LLM deployment cost & infra mismatch (Llama 3.1 inference hardware & licensing)| Cost / Infrastructure | High | Likely | High |Produce cost estimate for self-hosting vs hosted provider; plan GPU sizing; track licensing/redistribution constraints.| Cost run rates, infra invoices | @devops-engineer | Active — investigate |
+| R-004 |Security: E2E encryption claims without KMS/key management design| Security / Privacy | Critical | Possible | Critical |Draft KMS design, add key rotation, encryption-at-rest + in- transit diagrams, threat model. Limit telemetry to redacted PII.| Security reviews, pen-test | @security-engineer | Active — fix design |
+| R-005 | GDPR & data deletion gaps — no verified deletion/export flow | Legal / Compliance | Critical | Possible | Critical |Implement a data export & deletion endpoint; add audit logging and automated tests to prove deletion.| Manual/automated deletion checks, compliance review | @privacy-data-engineer | Active — needs implementation |
+| R-006 | OpenAPI duplication & schema issues breaking SDK/clients | Developer Experience | High | Likely | High |Lint & fix openapi.yaml; add CI lint step, add a sample client generation check in CI.| CI validation failure | @api-engineer | Active — fix in progress |
+| R-007 | No CI pipelines for tests/quality/validation | Developer Experience / Risk | High | Likely | High |Add GitHub Actions for linting, unit tests, openapi validation, copilot_tracking schema checks.| PR checks status | @devops-engineer | Active — onboarding CI |
+| R-008 | No AI-quality tests (hallucinations, bias, memory accuracy) | Quality | High | Likely | High |Create an AI test harness and regression suite (acceptance tests for memory correctness, hallucination detection, fairness checks).| Test failures & regression alerts | @ml-engineer | Planned |
+| R-009 |Agent sandboxing insufficient — agents may leak secrets or take destructive actions| Security / Safety | Critical | Possible | Critical |Define agent capability model, deny list for I/O, require policy enforcement and per-agent resource limits (CPU, memory, network).| Unit tests, agent traces, policy violation alerts | @engineering-lead | Active — design required |
+| R-010 | Backup & Disaster Recovery untested (RPO/RTO unknown) | Operations | High | Possible | High |Document RPO/RTO, implement daily backups, periodic restore drills, store backups encrypted and off- site.| Restore drills, backup health metrics | @sre | Planned |
 
 ---
 
@@ -276,66 +276,63 @@ decisions.
    - Info needed: Model size to be used, expected concurrency for target SLOs, GPU types and counts,
      memory/IO profiles, whether quantized model is acceptable.
    - Next action: Run a PoC benchmark with a small quantized model or measure hosted provider
-     latency/cost; owner: @ml; target: 2 weeks.
+     latency/cost; owner: @ml-engineer; target: 2 weeks.
 
 2. Licensing and legal constraints for chosen LLM (weights, redistribution, commercial use)
    - Why: Could prevent shipping a self-hosted model or require vendor licensing costs.
    - Info needed: Llama 3.1 license and any third-party dependencies; vendor approval for commercial
      hosting if applicable.
-   - Next action: Legal review and model license audit; owner: @legal; target: 1 week.
+   - Next action: Legal review and model license audit; owner: @legal-advisor; target: 1 week.
 
 3. Concrete SLOs & realistic performance targets for MVP
    - Why: Determines architecture choices and cost tradeoffs.
    - Info needed: Real user patterns (expected daily/peak interactions), acceptable voice latency,
      acceptable percentiles (P50/P95), and acceptable cost per active user/day.
-   - Next action: Product & engineering to agree on pragmatic SLOs; owner: @product; target: 1 week.
+   - Next action: Product & engineering to agree on pragmatic SLOs; owner: @product-manager; target: 1 week.
 
 4. Data retention & deletion mechanics for GDPR/compliance
    - Why: Must be demonstrable (logs/tests) before any public-facing release.
    - Info needed: retention policies, audit trail locations, export format, deletion confirmation
      tests (end-to-end).
-   - Next action: Implement and test data deletion endpoint for demo data; owner: @data_privacy;
+   - Next action: Implement and test data deletion endpoint for demo data; owner: @privacy-data-engineer;
      target: 2 weeks.
 
 5. Threat model for voice inputs and third-party integrations (calendars, email, GitHub)
    - Why: Agents and external services expand attack surface and need explicit constraints.
    - Info needed: OAuth flows, scoping decisions, token storage strategy, least-privilege plan.
-   - Next action: Produce a one-page threat model; owner: @sec; target: 2 weeks.
+   - Next action: Produce a one-page threat model; owner: @security-engineer; target: 2 weeks.
 
 6. Telemetry and logging privacy — exact fields collected in `misc/copilot_tracking.json` and data
    minimization policy
    - Why: Avoid PII leaks in telemetry and audits.
    - Info needed: Which fields contain PII? Can telemetry be sampled, redacted, or hashed? Retention
      policy for logs (required for incident research vs privacy law).
-   - Next action: Review telemetry schema & propose redaction rules; owner: @sec or @dev; target: 1
+   - Next action: Review telemetry schema & propose redaction rules; owner: @security-engineer or @backend-developer; target: 1
      week.
 
 7. CI/CD hosting & runners — which environment will run inference tests or integration tests that
    require GPUs
    - Why: CI that needs GPUs has different cost/ops implications (self-hosted runners vs cloud).
-   - Next action: Decide CI strategy for ML workloads; owner: @devops; target: 2 weeks.
+   - Next action: Decide CI strategy for ML workloads; owner: @devops-engineer; target: 2 weeks.
 
 8. Detailed agent orchestration model (capabilities, concurrency, isolation semantics)
    - Why: Agent behaviors are a safety and reliability risk; we need an explicit orchestration
      design.
    - Next action: Create an agent orchestration ADR and propose a minimal sandbox for the MVP;
-     owner: @engineering; target: 3 weeks.
+     owner: @engineering-lead; target: 3 weeks.
 
 ---
 
 ### Immediate short-term actions (quick wins to reduce highest risk)
 
 - PoC runnable demo (hosted LLM) to verify latency & flow — target: 3
-  days.
+  days. Owner: @ml-engineer / @backend-developer.
 - Add small GitHub Actions workflow to validate `docs/openapi.yaml`
-  and
+  and prove `misc/copilot_tracking.json` against the schemas — target: 1–2 days. Owner: @backend-developer.
 - Add an explicit data deletion endpoint for demo data and automated
-  test case
+  test case deletion — target: 1 week. Owner: @privacy-data-engineer.
 - Draft the one-page threat model and KMS design — target: 1 week.
-  Owner: @sec.
-Owner: @ml / @dev. proving `misc/copilot_tracking.json` against the
-schemas — target: 1–2 days. Owner: @dev. deletion — target: 1 week.
-Owner: @data_privacy.
+  Owner: @security-engineer.
 
 ### How we will track progress
 
@@ -480,33 +477,33 @@ once open. Assign the issue to the suggested owner or a named person.
 
 - [ ] Investigate Llama 3.1 hosting/benchmark (issue: `investigate/llama-hosting-benchmarks`) —
       produce latency & cost numbers for possible model sizes (quantized, non-quantized), expected
-      concurrency, and recommended GPU types (cost estimate + runbook). Suggested owner: @ml or
-      @devops.
+      concurrency, and recommended GPU types (cost estimate + runbook). Suggested owner: @ml-engineer or
+      @devops-engineer.
 
 - [ ] LLM licensing audit (issue: `audit/llm-licensing-and-legal`) — confirm license terms,
       redistribution and commercial use constraints for Llama 3.x and any dependencies. Suggested
-      owner: @legal.
+      owner: @legal-advisor.
 
 - [ ] Decide SLOs & profiling targets (issue: `tune/slo-definition-and-benchmarks`) — agree
-      realistic P50/P95 latency targets and traffic patterns for MVP. Suggested owner: @product +
-      @engineering.
+      realistic P50/P95 latency targets and traffic patterns for MVP. Suggested owner: @product-manager +
+      @engineering-lead.
 
 - [ ] Data deletion & GDPR workflow (issue: `feature/data-deletion-and-export`) — design and
       implement an audited deletion/export API for user data and test harness. Suggested owner:
-      @data_privacy.
+      @privacy-data-engineer.
 
 - [ ] OpenAPI validation + CI enforcement (issue: `ci/openapi-lint-and-validation`) — fix schema
-      dupes and add CI step to validate generated SDK. Suggested owner: @api.
+      dupes and add CI step to validate generated SDK. Suggested owner: @api-engineer.
 
 - [ ] Telemetry redaction rules (issue: `security/telemetry-redaction-and-retention`) — propose
-      privacy-preserving telemetry schema and retention settings. Suggested owner: @sec.
+      privacy-preserving telemetry schema and retention settings. Suggested owner: @security-engineer.
 
 - [ ] Agent orchestration ADR + sandbox (issue: `arch/agent-orchestration-and-sandbox`) — write ADR,
       propose minimal sandbox for MVP, define deny-list and capability model. Suggested owner:
-      @engineering.
+      @engineering-lead.
 
 - [ ] CI runners / hardware for ML tests (issue: `devops/ci-ml-runners`) — decide whether to use
-      hosted runners or self-hosted GPU runners for model workloads in CI. Suggested owner: @devops.
+      hosted runners or self-hosted GPU runners for model workloads in CI. Suggested owner: @devops-engineer.
 
 ### Next steps
 
