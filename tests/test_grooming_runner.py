@@ -609,6 +609,7 @@ class TestAdditionalCoverage(unittest.TestCase):
             json={"assignees": ["assignee"]},
         )
 
+    @patch.dict(os.environ, {"GROOMING_ACCESS_KEY": "gh_pat_for_tests"})
     @patch("scripts.grooming_runner.requests.patch")
     @patch("scripts.grooming_runner.requests.post")
     def test_assign_issue_graphql_fallback(self, mock_post, mock_patch):
@@ -658,6 +659,7 @@ class TestAdditionalCoverage(unittest.TestCase):
         gr.assign_issue("owner", "repo", 1, "copilot", "token")
         self.assertGreaterEqual(mock_post.call_count, 2)
 
+    @patch.dict(os.environ, {"GROOMING_ACCESS_KEY": "gh_pat_for_tests"})
     @patch("scripts.grooming_runner.requests.patch")
     def test_assign_issue_graphql_fallback_missing_actor(self, mock_patch):
         # REST returns 422 and GraphQL has no matching actor
@@ -675,23 +677,33 @@ class TestAdditionalCoverage(unittest.TestCase):
             with self.assertRaises(RuntimeError):
                 gr.assign_issue("owner", "repo", 1, "copilot", "token")
 
-        @patch.dict(os.environ, {"GROOMING_ACCESS_KEY": "gh_pat_from_env"})
-        @patch("scripts.grooming_runner.requests.patch")
-        def test_assign_issue_prefers_grooming_access_key(self, mock_patch):
-            mock_resp = MagicMock()
-            mock_resp.raise_for_status.return_value = None
-            mock_resp.headers = {"X-RateLimit-Remaining": "10"}
-            mock_patch.return_value = mock_resp
+    @patch.dict(os.environ, {"GROOMING_ACCESS_KEY": "gh_pat_from_env"})
+    @patch("scripts.grooming_runner.requests.patch")
+    def test_assign_issue_prefers_grooming_access_key(self, mock_patch):
+        mock_resp = MagicMock()
+        mock_resp.raise_for_status.return_value = None
+        mock_resp.headers = {"X-RateLimit-Remaining": "10"}
+        mock_patch.return_value = mock_resp
 
-            # Call with a different token value to ensure the env var is used
-            gr.assign_issue("owner", "repo", 1, "assignee", "gh_runtime_token")
-            mock_patch.assert_called_once()
-            args, kwargs = mock_patch.call_args
-            # Confirm authorization header contains the env PAT value
-            self.assertIn("Authorization", kwargs["headers"])
-            self.assertEqual(
-                kwargs["headers"]["Authorization"], "Bearer gh_pat_from_env"
-            )
+        # Call with a different token value to ensure the env var is used
+        gr.assign_issue("owner", "repo", 1, "copilot", "gh_runtime_token")
+        mock_patch.assert_called_once()
+        args, kwargs = mock_patch.call_args
+        # Confirm authorization header contains the env PAT value
+        self.assertIn("Authorization", kwargs["headers"])
+        self.assertEqual(
+            kwargs["headers"]["Authorization"], "Bearer gh_pat_from_env"
+        )
+
+    @patch("scripts.grooming_runner.requests.patch")
+    @patch.dict(os.environ, {}, clear=True)
+    def test_assign_issue_copilot_no_pat_skips(self, mock_patch):
+        # When no GROOMING_ACCESS_KEY is present, copilot assignments
+        # must be skipped (no REST call attempted).
+        with patch("scripts.grooming_runner.logger") as mock_logger:
+            gr.assign_issue("owner", "repo", 1, "copilot", "token")
+            mock_patch.assert_not_called()
+            mock_logger.warning.assert_called()
 
     @patch.dict(
         os.environ,
