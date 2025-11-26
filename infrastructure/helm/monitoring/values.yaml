@@ -115,6 +115,8 @@ loki:
       type: filesystem
     schemaConfig:
       configs:
+        # Schema start date for log indexing. Logs before this date won't be
+        # indexed. Update if deploying before 2024 or use a custom value.
         - from: "2024-01-01"
           store: tsdb
           object_store: filesystem
