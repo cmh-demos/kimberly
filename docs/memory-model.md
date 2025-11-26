@@ -136,6 +136,10 @@ tasks (0..1)
   actions?)
 (0..1)
 - recency_freq: frequency and recency normalized (0..1)
+- freshness_boost: exponential decay based on `last_seen_at`, computed as
+  `exp(-days_since_last_seen / decay_constant)` where `decay_constant`
+  defaults to 30 days. This signal prioritizes recently-accessed memories
+  during retrieval re-ranking (0..1).
 
 Pruning rules (cost-aware):
 
