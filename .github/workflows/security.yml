@@ -54,8 +54,18 @@ jobs:
       - name: Run pip-audit (dependency vulnerabilities)
         id: pip-audit
         run: |
+          # Ignore known vulnerabilities with no available fix:
+          # - GHSA-wj6h-64fc-37mp (ecdsa CVE-2024-23342): timing attack,
+          #   maintainer won't fix
+          # - GHSA-3749-ghw9-m3mg (torch CVE-2025-2953): local DoS, fix not
+          #   yet released
+          # - GHSA-887c-mr87-cxwp (torch CVE-2025-3730): local DoS, fix not
+          #   yet released
           if pip-audit --format json --output pip-audit-report.json \
-            -r requirements.txt; then
+            -r requirements.txt \
+            --ignore-vuln GHSA-wj6h-64fc-37mp \
+            --ignore-vuln GHSA-3749-ghw9-m3mg \
+            --ignore-vuln GHSA-887c-mr87-cxwp; then
             echo "No vulnerabilities found"
           else
             exit_code=$?
