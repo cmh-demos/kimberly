@@ -383,7 +383,8 @@ cons — not full-featured K8s, potential limits when scaling.
 
 1. Export your local k3d/kind configurations and Helm values
 2. Provision Oracle Cloud VMs using the free tier (2 AMD instances recommended)
-3. Install k3s on the VMs: `curl -sfL https://get.k3s.io | sh -`
+3. Install k3s on the VMs:
+   `curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=v1.28.2+k3s1 sh -s - --disable=traefik`
 4. Copy kubeconfig from the remote cluster to your local machine
 5. Apply existing Helm charts and manifests to the new cluster
 6. Update DNS/ingress to point to Oracle Cloud IPs
@@ -395,7 +396,8 @@ cons — not full-featured K8s, potential limits when scaling.
 2. Create a `fly.toml` configuration for each service
 3. Deploy stateless services: `fly deploy`
 4. Provision Fly Postgres for database: `fly postgres create`
-5. Migrate data using `pg_dump` / `pg_restore`
+5. Migrate data (plan for downtime during transfer):
+   `pg_dump -h source_host -U user dbname | fly postgres connect -a target-app -c "psql"`
 6. Configure secrets: `fly secrets set KEY=value`
 7. Update DNS to Fly.io-provided hostnames
 
@@ -406,7 +408,10 @@ cons — not full-featured K8s, potential limits when scaling.
 3. Configure `kubectl` context for the new cluster
 4. Deploy ingress controller (nginx-ingress or cloud-native option)
 5. Apply Helm charts: `helm upgrade --install <release> <chart>`
-6. Migrate stateful data (Postgres, Redis, object storage) using provider tools
+6. Migrate stateful data (plan for downtime):
+   - Postgres: `pg_dump -h source -U user db | psql -h target -U user -d db`
+   - Redis: Use `redis-cli --rdb` or provider migration tools
+   - Object storage: Use `rclone sync` or provider-native transfer tools
 7. Update DNS records and TLS certificates
 8. Run smoke tests and verify SLOs
 
