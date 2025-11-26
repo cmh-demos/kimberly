@@ -15,6 +15,7 @@ import hashlib
 import json
 import logging
 import os
+import subprocess
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -539,11 +540,12 @@ class VaultKMSProvider(KMSProvider):
           Vault ciphertext (base64 encoded)
         """
         client = self._get_client()
-        b64_plaintext = base64.b64encode(plaintext).decode("utf-8")
+        # Vault Transit requires base64-encoded input
+        encoded_data = base64.b64encode(plaintext).decode("utf-8")
 
         response = client.secrets.transit.encrypt_data(
             name=self._key_name,
-            plaintext=b64_plaintext,
+            plaintext=encoded_data,
             mount_point=self._mount_path,
         )
         return response["data"]["ciphertext"]
@@ -565,8 +567,9 @@ class VaultKMSProvider(KMSProvider):
             ciphertext=ciphertext,
             mount_point=self._mount_path,
         )
-        b64_plaintext = response["data"]["plaintext"]
-        return base64.b64decode(b64_plaintext)
+        # Vault returns base64-encoded data in the 'plaintext' field
+        encoded_result = response["data"]["plaintext"]
+        return base64.b64decode(encoded_result)
 
 
 class SOPSKMSProvider(KMSProvider):
@@ -614,8 +617,6 @@ class SOPSKMSProvider(KMSProvider):
             return {}
 
         try:
-            import subprocess
-
             env = os.environ.copy()
             env["SOPS_AGE_KEY_FILE"] = self._age_key_file
 
@@ -627,7 +628,14 @@ class SOPSKMSProvider(KMSProvider):
                 check=True,
             )
 
-            import yaml
+            # Lazy import: yaml is optional dependency for SOPS support
+            try:
+                import yaml
+            except ImportError:
+                raise ImportError(
+                    "PyYAML is required for SOPS integration. "
+                    "Install with: pip install pyyaml"
+                )
 
             self._cached_secrets = yaml.safe_load(result.stdout)
             return self._cached_secrets

@@ -2,6 +2,7 @@
 
 import json
 import os
+import shutil
 import tempfile
 import unittest
 from pathlib import Path
@@ -169,8 +170,6 @@ class TestLocalKMSProvider(unittest.TestCase):
         self.kms = LocalKMSProvider(keys_dir=self.temp_dir)
 
     def tearDown(self):
-        import shutil
-
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def test_create_key(self):
@@ -343,8 +342,6 @@ class TestAuditLogger(unittest.TestCase):
         )
 
     def tearDown(self):
-        import shutil
-
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def test_log_creates_event(self):
@@ -531,8 +528,6 @@ class TestGlobalAuditLogger(unittest.TestCase):
         # Restore
         set_audit_logger(original)
 
-        import shutil
-
         shutil.rmtree(temp_dir, ignore_errors=True)
 
 
@@ -543,8 +538,6 @@ class TestIntegration(unittest.TestCase):
         self.temp_dir = tempfile.mkdtemp()
 
     def tearDown(self):
-        import shutil
-
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def test_full_encryption_workflow(self):
@@ -632,8 +625,6 @@ class TestGetKMSProviderFactory(unittest.TestCase):
         self._orig_local_kms_dir = os.environ.get("LOCAL_KMS_DIR")
 
     def tearDown(self):
-        import shutil
-
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
         # Restore original env vars
@@ -774,8 +765,6 @@ class TestSOPSKMSProvider(unittest.TestCase):
         self.temp_dir = tempfile.mkdtemp()
 
     def tearDown(self):
-        import shutil
-
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def test_sops_provider_initialization(self):
