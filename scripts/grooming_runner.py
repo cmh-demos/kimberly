@@ -267,11 +267,24 @@ def github_get_issue(
 def assign_issue(
     owner: str, repo: str, issue_number: int, assignee: str, token: str
 ) -> None:
-    # Allow an explicit grooming PAT (GROOMING_ACCESS_KEY) to override
-    # the provided token for assignment operations — this is helpful
-    # when running in Actions and a runtime GITHUB_TOKEN cannot be used
-    # to assign Copilot coding agents.
-    used_token = os.environ.get("GROOMING_ACCESS_KEY") or token
+    # For Copilot coding agents we MUST use the grooming PAT set in
+    # the GROOMING_ACCESS_KEY secret. Do not fall back to the runtime
+    # GITHUB_TOKEN or any other token for assigning Copilot agents.
+    is_copilot_agent = "copilot" in (assignee or "").lower()
+    if is_copilot_agent:
+        used_token = os.environ.get("GROOMING_ACCESS_KEY")
+        if not used_token:
+            # No PAT available — skip Copilot assignment to avoid
+            # attempting with an unsuitable token.
+            logger.warning(
+                "No GROOMING_ACCESS_KEY present — cannot assign Copilot "
+                "agent for issue %s; skipping assign",
+                issue_number,
+            )
+            return
+    else:
+        # Non-Copilot assignees may use the provided token.
+        used_token = token
 
     base = f"https://api.github.com/repos/{owner}/{repo}"
     url = f"{base}/issues/{issue_number}"
@@ -316,8 +329,11 @@ def assign_issue(
             # Try GraphQL fallback to assign agents like Copilot. If that
             # fails, re-raise the original exception so callers know.
             try:
+                # Use the same token used for the REST call for the
+                # GraphQL fallback path. For Copilot assignments this
+                # will be the grooming PAT.
                 _assign_issue_via_graphql(
-                    owner, repo, issue_number, assignee, token
+                    owner, repo, issue_number, assignee, used_token
                 )
                 return
             except Exception:
