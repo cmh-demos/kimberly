@@ -7,10 +7,25 @@ Timeline: 3 months (6 x 2-week sprints)
 
 Sprint 0 (Prep — 1 week)
 
-- Objectives: define acceptance criteria, finalize MVP scope, set up instrumentation, CI
-  for logs/schema.
-- Deliverables: PRD signoff, telemetry plan, test harness, append helper script for
-  copilot logs.
+- Objectives:
+  - Finalize and sign off on all Product Requirements Documents (PRDs) for MVP scope
+  - Define acceptance criteria for each sprint (Sprints 1–5)
+  - Establish CI/CD pipelines for logs, schema validation, and automated testing
+  - Set up instrumentation framework for baseline telemetry collection
+  - Confirm team roles, owners, and communication channels
+  - Align on technical architecture and data flow (see `ARCHITECTURE.md`)
+- Deliverables:
+  - Signed-off PRD with prioritized feature list and out-of-scope items
+  - Telemetry plan documenting KPIs, event schema, and data retention policies
+  - Test harness ready for integration and unit tests
+  - Append helper script for copilot logs (`scripts/append_log.py`)
+  - Sprint backlog with estimated story points for Sprint 1
+- Acceptance:
+  - PRD approved by PM, Eng lead, and stakeholders
+  - CI pipelines green on all initial commits; schema validation enforced
+  - Telemetry plan reviewed and accepted by SRE
+  - All team members confirmed with assigned roles and Slack/Teams channels active
+- Owners: PM (roadmap & PRD), Eng lead (architecture & CI), SRE (telemetry)
 
 Sprint 1 (Weeks 1–2)
 
