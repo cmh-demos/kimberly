@@ -337,6 +337,15 @@ Tests cover:
 
 5. **Retention**: Export download URLs expire after 7 days.
 
+6. **Thread Safety**: All singleton services use thread-safe double-checked
+   locking pattern with individual locks per service to prevent deadlocks.
+
+7. **Memory Safety**: Audit logs are automatically rotated when exceeding
+   10,000 entries to prevent memory exhaustion attacks.
+
+8. **Error Handling**: Persistence failures are logged (not silently ignored)
+   for compliance monitoring.
+
 ## Compliance Checklist
 
 - [x] Data export endpoint (Article 20)
@@ -345,7 +354,9 @@ Tests cover:
 - [x] Retention policies
 - [x] Automated compliance checks
 - [x] API documentation
-- [x] Test coverage
+- [x] Test coverage (28 unit tests)
+- [x] Thread-safe implementation
+- [x] Memory-safe audit log rotation
 - [ ] Integration with storage backend (pending implementation)
 - [ ] Email notifications for export/deletion completion
 - [ ] Admin dashboard for compliance monitoring
