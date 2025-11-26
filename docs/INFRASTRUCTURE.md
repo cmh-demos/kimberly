@@ -347,10 +347,31 @@ required for compliance.
 
 ### Next steps & checklist
 
-1. Add Prometheus + Grafana helm charts to the `local` dev stack.
+1. ~~Add Prometheus + Grafana helm charts to the `local` dev stack.~~ ✅ See
+   `infrastructure/helm/monitoring/`
 2. Add monitoring exporters (Postgres, Redis, Kubernetes metrics-server) in manifests.
 3. Add a GitHub Actions pipeline skeleton for building images and deploying to
 dev/staging clusters.
+
+### Helm Charts
+
+The monitoring stack is available as a Helm chart in `infrastructure/helm/monitoring/`.
+See [Monitoring README](../infrastructure/helm/monitoring/README.md) for installation
+instructions.
+
+Components included:
+
+- **kube-prometheus-stack** - Prometheus, Grafana, Alertmanager
+- **Loki** - Log aggregation
+- **Tempo** - Distributed tracing
+
+Custom Kimberly alerts and dashboards are included for:
+
+- Meditation job monitoring
+- Storage usage alerts
+- API latency and error rates
+- Memory tier quotas
+- Vector search performance
 
 ## Deployment Appendix
 

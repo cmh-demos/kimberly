@@ -60,3 +60,7 @@ htmlcov/
 
 # macOS and editor cruft
 .DS_Store
+
+# Helm chart dependencies (fetched via `helm dependency update`)
+infrastructure/helm/*/charts/
+infrastructure/helm/*/Chart.lock

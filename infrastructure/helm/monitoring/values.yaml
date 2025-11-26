@@ -1,0 +1,182 @@
+---
+# Kimberly Monitoring Stack - Default Values
+# Configures Prometheus, Grafana, Loki, and Tempo for observability.
+
+# Global settings
+global:
+  # Namespace for monitoring components (override at install time if needed)
+  namespace: monitoring
+
+# Prometheus stack (includes Prometheus, Grafana, Alertmanager)
+prometheus:
+  enabled: true
+
+kube-prometheus-stack:
+  # Grafana configuration
+  grafana:
+    enabled: true
+    adminPassword: ""  # Set via --set or secrets in production
+    persistence:
+      enabled: false  # Enable for production
+      size: 10Gi
+    # Default datasources for Loki and Tempo
+    additionalDataSources:
+      - name: Loki
+        type: loki
+        url: http://{{ .Release.Name }}-loki:3100
+        access: proxy
+        isDefault: false
+      - name: Tempo
+        type: tempo
+        url: http://{{ .Release.Name }}-tempo:3100
+        access: proxy
+        isDefault: false
+
+  # Prometheus configuration
+  prometheus:
+    prometheusSpec:
+      retention: 15d
+      retentionSize: ""  # Empty for no size limit
+      resources:
+        requests:
+          memory: 400Mi
+          cpu: 200m
+        limits:
+          memory: 2Gi
+          cpu: 1000m
+      # Storage for metrics (disable for local dev)
+      storageSpec: {}
+      # Enable for production:
+      # storageSpec:
+      #   volumeClaimTemplate:
+      #     spec:
+      #       accessModes: ["ReadWriteOnce"]
+      #       resources:
+      #         requests:
+      #           storage: 50Gi
+
+  # Alertmanager configuration
+  alertmanager:
+    enabled: true
+    alertmanagerSpec:
+      resources:
+        requests:
+          memory: 100Mi
+          cpu: 50m
+        limits:
+          memory: 256Mi
+          cpu: 200m
+      storage: {}
+      # Enable for production:
+      # storage:
+      #   volumeClaimTemplate:
+      #     spec:
+      #       accessModes: ["ReadWriteOnce"]
+      #       resources:
+      #         requests:
+      #           storage: 10Gi
+
+  # Default alerting rules for Kimberly
+  defaultRules:
+    create: true
+    rules:
+      alertmanager: true
+      etcd: false  # Disable if not using etcd
+      general: true
+      k8s: true
+      kubeApiserverAvailability: true
+      kubeApiserverSlos: true
+      kubelet: true
+      kubernetesApps: true
+      kubernetesResources: true
+      kubernetesStorage: true
+      kubernetesSystem: true
+      network: true
+      node: true
+      prometheus: true
+
+  # Node exporter for host metrics
+  nodeExporter:
+    enabled: true
+
+  # Kube-state-metrics for Kubernetes object metrics
+  kubeStateMetrics:
+    enabled: true
+
+# Loki for log aggregation
+loki:
+  enabled: true
+  deploymentMode: SingleBinary
+  loki:
+    auth_enabled: false
+    commonConfig:
+      replication_factor: 1
+    storage:
+      type: filesystem
+    schemaConfig:
+      configs:
+        - from: "2024-01-01"
+          store: tsdb
+          object_store: filesystem
+          schema: v13
+          index:
+            prefix: loki_index_
+            period: 24h
+  singleBinary:
+    replicas: 1
+    resources:
+      requests:
+        memory: 256Mi
+        cpu: 100m
+      limits:
+        memory: 512Mi
+        cpu: 500m
+    persistence:
+      enabled: false  # Enable for production
+      size: 10Gi
+  # Disable components not needed in single binary mode
+  backend:
+    replicas: 0
+  read:
+    replicas: 0
+  write:
+    replicas: 0
+  gateway:
+    enabled: false
+
+# Tempo for distributed tracing
+tempo:
+  enabled: true
+  tempo:
+    resources:
+      requests:
+        memory: 256Mi
+        cpu: 100m
+      limits:
+        memory: 512Mi
+        cpu: 500m
+    storage:
+      trace:
+        backend: local
+        local:
+          path: /var/tempo/traces
+        wal:
+          path: /var/tempo/wal
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: "0.0.0.0:4317"
+          http:
+            endpoint: "0.0.0.0:4318"
+      jaeger:
+        protocols:
+          thrift_http:
+            endpoint: "0.0.0.0:14268"
+          grpc:
+            endpoint: "0.0.0.0:14250"
+      zipkin:
+        endpoint: "0.0.0.0:9411"
+  persistence:
+    enabled: false  # Enable for production
+    size: 10Gi

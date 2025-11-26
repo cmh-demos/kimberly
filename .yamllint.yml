@@ -3,3 +3,5 @@ extends: default
 
 ignore:
   - .github/workflows/
+  # Helm templates use Go template syntax that is not valid YAML
+  - infrastructure/helm/*/templates/
