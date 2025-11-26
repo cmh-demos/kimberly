@@ -5,7 +5,6 @@ import os
 import tempfile
 import unittest
 from pathlib import Path
-from datetime import datetime, timezone
 
 from scripts.security.encryption import DataEncryptor, EncryptedData
 from scripts.security.kms import LocalKMSProvider, KeyMetadata
