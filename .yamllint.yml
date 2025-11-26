@@ -4,3 +4,5 @@ extends: default
 ignore:
   - .github/workflows/
   - infra/helm/charts/**/templates/
+  - node_modules/
+  - out/
