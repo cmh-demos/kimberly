@@ -2,7 +2,9 @@
 
 ## Coding style
 
-prefer snake_case unless it conflicts with linting rules or established conventions in a specific context.
+- prefer snake_case unless it conflicts with linting rules or established
+  conventions in a specific context.
+- run black for python files
 
 ## Indentation
 
@@ -17,9 +19,18 @@ prefer a maximum line length of 80 characters.
 - Prioritize clear, readable code and maintainable solutions.
 - Avoid unnecessary complexity and premature optimization.
 
+## General linting
+
+- Prefer linting
+- Known Linters:
+   - Python: flake8, pylint
+   - markdown: markdownlint
+   - yaml: yamllint
+   - isort for python imports
+
 ## General Preferences
 
-- Do not request 
+- Do not request access tokens, passwords, or sensitive information.
 - Prefer to have all questions answered before proceeding with code generation.
 - When generating code, include comments to explain complex logic or decisions.
 
@@ -32,6 +43,7 @@ interactive suggestions in this VS Code session unless the user explicitly
 accepts and commits edits.
 
 Files to consult (search in this order):
-  1. rules_for_copilot.yml
+
+1. rules_for_copilot.yml
 
 prefer venv when possible
