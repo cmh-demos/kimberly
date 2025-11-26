@@ -21,7 +21,7 @@ prefer a maximum line length of 80 characters.
 
 ## General linting
 
-- Prefer linting
+- Always run appropriate linters for all relevant file types before committing code.
 - Known Linters:
    - Python: flake8, pylint
    - markdown: markdownlint
