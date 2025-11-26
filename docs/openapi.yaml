@@ -402,7 +402,9 @@ components:
       properties:
         agent_id:
           type: string
-          description: ID of the agent to invoke
+          description: >
+            Optional ID of the agent to invoke. If not specified, the system
+            will automatically route the task to the appropriate agent.
         task:
           type: string
           description: The task to perform
