@@ -388,11 +388,21 @@ def _find_actor_id_for_assignable(
     attempts to find a matching login for the candidate. If none match,
     will try reasonable fallbacks (substring / first copilot-like actor).
     """
+    # Use inline fragments for concrete actor types when requesting id.
+    # Some GraphQL schemas do not expose `id` directly on the Actor
+    # interface; requesting `id` inside the concrete fragments avoids
+    # "Field 'id' doesn't exist on type 'Actor'" errors from the
+    # GraphQL API.
     query = (
         "query($owner:String!, $repo:String!) {"
         " repository(owner: $owner, name: $repo) {"
         " suggestedActors(capabilities: [CAN_BE_ASSIGNED], first: 100) {"
-        " nodes { login id __typename } } } }"
+        " nodes { login __typename"
+        " ... on User { id }"
+        " ... on Bot { id }"
+        " ... on Mannequin { id }"
+        " ... on Organization { id }"
+        " } } } }"
     )
     variables = {"owner": owner, "repo": repo}
     data = github_graphql_request(token, query, variables)
