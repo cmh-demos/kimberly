@@ -7,7 +7,7 @@ versatile helper that can handle a wide range of tasks through conversational
 interaction, advanced memory management, and agent delegation. It solves the problem of
 needing a single, intelligent interface for productivity, personalization, and task
 automation across platforms, where current assistants lack depth, memory, or seamless
-integration. Target user: The developer/owner (me), seeking a customized AI companion.
+integration. Target user: The project owner/developer, seeking a customized AI companion.
 
 ## Personas
 
