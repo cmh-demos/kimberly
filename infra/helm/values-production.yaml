@@ -1,0 +1,117 @@
+---
+# Kimberly Production Values
+# Override values for production deployment on Oracle Always Free
+
+global:
+  environment: production
+  domain: kimberly.example.com
+
+# API Service
+kimberly-api:
+  replicaCount: 2
+  image:
+    # Pin to a specific version in production (e.g., "v1.0.0" or "sha-abc123")
+    tag: ""  # Set via CI/CD pipeline or manually
+  ingress:
+    enabled: true
+    className: "nginx"
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      nginx.ingress.kubernetes.io/rate-limit: "100"
+      nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+    hosts:
+      - host: api.kimberly.example.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: kimberly-api-tls
+        hosts:
+          - api.kimberly.example.com
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+# Memory Service
+kimberly-memory:
+  replicaCount: 2
+  image:
+    # Pin to a specific version in production (e.g., "v1.0.0" or "sha-abc123")
+    tag: ""  # Set via CI/CD pipeline or manually
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+# Worker Service
+kimberly-worker:
+  replicaCount: 1
+  image:
+    # Pin to a specific version in production (e.g., "v1.0.0" or "sha-abc123")
+    tag: ""  # Set via CI/CD pipeline or manually
+  meditation:
+    enabled: true
+    schedule: "0 2 * * *"
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+# PostgreSQL (using Bitnami chart)
+postgresql:
+  enabled: true
+  auth:
+    database: kimberly
+    existingSecret: kimberly-db-credentials
+  primary:
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 100m
+        memory: 256Mi
+    persistence:
+      enabled: true
+      size: 20Gi
+  # Enable pgvector extension (pin to specific version for production stability)
+  image:
+    repository: ankane/pgvector
+    tag: v0.7.4-pg16
+
+# Redis (using Bitnami chart)
+redis:
+  enabled: true
+  auth:
+    existingSecret: kimberly-redis-credentials
+  master:
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 50m
+        memory: 64Mi
+    persistence:
+      enabled: true
+      size: 5Gi
+  replica:
+    replicaCount: 0  # Disable replicas for free tier
+
+# Ingress NGINX (optional - enable if not already installed)
+ingress-nginx:
+  enabled: false
+
+# Cert Manager (optional - enable if not already installed)
+cert-manager:
+  enabled: false
