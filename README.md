@@ -150,7 +150,7 @@ need to resolve. Please review it before making architecture or policy decisions
 
 - Start chat: Interact via web interface or API.
 - Voice: Use smart speaker integration.
-- Mobile: Download app (TBD).
+- Mobile: iOS and Android apps are planned for a future release.
 
 ## Contributing
 
