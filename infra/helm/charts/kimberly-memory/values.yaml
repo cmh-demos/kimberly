@@ -1,0 +1,140 @@
+---
+# Default values for kimberly-memory
+# This is a YAML-formatted file.
+
+replicaCount: 2
+
+image:
+  repository: ghcr.io/cmh-demos/kimberly-memory
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "8081"
+  prometheus.io/path: "/metrics"
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8081
+
+# Memory service typically doesn't need external ingress
+# Access is through internal service mesh
+ingress:
+  enabled: false
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 200m
+    memory: 256Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 4
+  targetCPUUtilizationPercentage: 75
+  targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - kimberly-memory
+          topologyKey: kubernetes.io/hostname
+
+# Environment variables
+env:
+  - name: NODE_ENV
+    value: "production"
+  - name: LOG_LEVEL
+    value: "info"
+  - name: PORT
+    value: "8081"
+  - name: MEMORY_TIER_SHORT_TTL
+    value: "3600"
+  - name: MEMORY_TIER_LONG_ENABLED
+    value: "true"
+
+# Database configuration (PostgreSQL with pgvector)
+database:
+  host: "postgres-postgresql"
+  port: 5432
+  name: "kimberly_memory"
+  existingSecret: "kimberly-db-credentials"
+  secretKeys:
+    username: "username"
+    password: "password"
+
+# Redis configuration (short-term memory cache)
+redis:
+  host: "redis-master"
+  port: 6379
+  existingSecret: "kimberly-redis-credentials"
+  secretKey: "password"
+
+# Vector store configuration (optional - uses pgvector by default)
+vectorStore:
+  enabled: false
+  type: "pgvector"  # pgvector, pinecone, weaviate, milvus
+  # For external vector stores:
+  # host: ""
+  # existingSecret: ""
+  # secretKey: ""
+
+# Health checks
+livenessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /health/ready
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+# Extra volumes and mounts
+extraVolumes: []
+extraVolumeMounts: []
