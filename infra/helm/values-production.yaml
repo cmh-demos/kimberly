@@ -10,8 +10,9 @@ global:
 kimberly-api:
   replicaCount: 2
   image:
-    # Pin to a specific version in production (e.g., "v1.0.0" or "sha-abc123")
-    tag: ""  # Set via CI/CD pipeline or manually
+    # IMPORTANT: Override this with a specific version tag in CI/CD
+    # (e.g., "v1.0.0" or "sha-abc123")
+    tag: "latest"  # Default fallback - override in CI/CD for immutable deploys
   ingress:
     enabled: true
     className: "nginx"
@@ -40,8 +41,9 @@ kimberly-api:
 kimberly-memory:
   replicaCount: 2
   image:
-    # Pin to a specific version in production (e.g., "v1.0.0" or "sha-abc123")
-    tag: ""  # Set via CI/CD pipeline or manually
+    # IMPORTANT: Override this with a specific version tag in CI/CD
+    # (e.g., "v1.0.0" or "sha-abc123")
+    tag: "latest"  # Default fallback - override in CI/CD for immutable deploys
   resources:
     limits:
       cpu: 500m
@@ -54,8 +56,9 @@ kimberly-memory:
 kimberly-worker:
   replicaCount: 1
   image:
-    # Pin to a specific version in production (e.g., "v1.0.0" or "sha-abc123")
-    tag: ""  # Set via CI/CD pipeline or manually
+    # IMPORTANT: Override this with a specific version tag in CI/CD
+    # (e.g., "v1.0.0" or "sha-abc123")
+    tag: "latest"  # Default fallback - override in CI/CD for immutable deploys
   meditation:
     enabled: true
     schedule: "0 2 * * *"
