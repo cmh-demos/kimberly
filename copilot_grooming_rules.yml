@@ -19,8 +19,6 @@ grooming_bot_settings:
   # it to the Copilot worker so the groomer automation can move it back
   # into an active column and drive follow-up work.
   assignee_for_needs_work: "copilot"
-  # Who we assign when an item needs work during review (no @)
-  assignee_for_needs_work: "copilot"
   remove_triaged_on_needs_info: true
   move_to_backlog_if_triaged_and_backlog: true
   project_board_integration: true  # Use project_management config
