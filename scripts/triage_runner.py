@@ -1,3 +1,34 @@
+import random
+import time
+# --- Retry/Backoff Decorator ---
+def retry_on_failure(max_retries: int = 5, backoff_factor: float = 2.0, base_delay: float = 1.0):
+    """Decorator to retry a function on failure with exponential backoff and jitter."""
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            last_exception = None
+            for attempt in range(1, max_retries + 1):
+                try:
+                    return func(*args, **kwargs)
+                except (
+                    requests.ConnectionError,
+                    requests.Timeout,
+                    requests.HTTPError,
+                    Exception,
+                ) as e:
+                    last_exception = e
+                    if attempt < max_retries:
+                        sleep_time = base_delay * (backoff_factor ** (attempt - 1))
+                        sleep_time += random.uniform(0, 2)
+                        print(f"Attempt {attempt} failed: {e}. Retrying in {sleep_time:.1f}s...", file=sys.stderr)
+                        time.sleep(sleep_time)
+                    else:
+                        print(f"Max retries ({max_retries}) exceeded for {func.__name__}", file=sys.stderr)
+                        raise last_exception
+            if last_exception is not None:
+                raise last_exception
+            raise RuntimeError("Function failed after retries, but no exception was captured.")
+        return wrapper
+    return decorator
 #!/usr/bin/env python3
 """Minimal Copilot triage runner (Python)
 
@@ -52,6 +83,7 @@ def read_rules_version(path: str) -> str | None:
         return None
 
 
+@retry_on_failure()
 def github_search_issues(
     owner: str,
     repo: str,
@@ -98,6 +130,7 @@ def github_search_issues(
     return items
 
 
+@retry_on_failure()
 def github_get_issue(
     owner: str, repo: str, issue_number: int, token: str | None
 ) -> dict | None:
@@ -113,6 +146,7 @@ def github_get_issue(
     return resp.json()
 
 
+@retry_on_failure()
 def post_label(
     owner: str, repo: str, issue_number: int, label: str, token: str
 ) -> None:
@@ -128,6 +162,7 @@ def post_label(
     resp.raise_for_status()
 
 
+@retry_on_failure()
 def post_comment(
     owner: str, repo: str, issue_number: int, comment_text: str, token: str
 ) -> None:
@@ -143,6 +178,7 @@ def post_comment(
     resp.raise_for_status()
 
 
+@retry_on_failure()
 def get_project_columns(
     owner: str, repo: str, project_id: int, token: str
 ) -> List[dict]:
@@ -159,6 +195,7 @@ def get_project_columns(
     return resp.json()
 
 
+@retry_on_failure()
 def get_column_cards(column_id: int, token: str) -> List[dict]:
     url = f"https://api.github.com/projects/columns/{column_id}/cards"
     headers = {
@@ -177,6 +214,7 @@ def find_card_for_issue(cards: List[dict], issue_url: str) -> dict | None:
     return None
 
 
+@retry_on_failure()
 def move_card(card_id: int, to_column_id: int, token: str) -> None:
     url = f"https://api.github.com/projects/columns/{to_column_id}/moves"
     headers = {
@@ -188,6 +226,7 @@ def move_card(card_id: int, to_column_id: int, token: str) -> None:
     resp.raise_for_status()
 
 
+@retry_on_failure()
 def create_card(column_id: int, issue_id: int, token: str) -> None:
     url = f"https://api.github.com/projects/columns/{column_id}/cards"
     headers = {
@@ -254,6 +293,7 @@ def fetch_related_docs(
     return references
 
 
+@retry_on_failure()
 def assign_triage_owner(
     owner: str, repo: str, issue_number: int, assignee: str, token: str
 ) -> None:

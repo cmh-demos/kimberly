@@ -107,30 +107,32 @@ def sanitize_log_entry(entry: dict) -> dict:
     return sanitized
 
 
-def retry_on_failure(max_retries: int = 3, backoff_factor: float = 2.0):
-    """Decorator to retry a function on failure with exponential backoff."""
-
+def retry_on_failure(max_retries: int = 5, backoff_factor: float = 2.0, base_delay: float = 1.0):
+    """Decorator to retry a function on failure with exponential backoff and jitter."""
     def decorator(func):
         def wrapper(*args, **kwargs):
             last_exception = None
-            for attempt in range(max_retries + 1):
+            for attempt in range(1, max_retries + 1):
                 try:
                     return func(*args, **kwargs)
                 except (
                     requests.ConnectionError,
                     requests.Timeout,
                     requests.HTTPError,
+                    Exception,
                 ) as e:
                     last_exception = e
                     if attempt < max_retries:
-                        wait_time = backoff_factor**attempt
+                        # Exponential backoff with jitter
+                        sleep_time = base_delay * (backoff_factor ** (attempt - 1))
+                        sleep_time += random.uniform(0, 2)
                         logger.warning(
-                            f"Attempt {attempt + 1} failed: {e}. "
-                            f"Retrying in {wait_time:.1f}s..."
+                            f"Attempt {attempt} failed: {e}. "
+                            f"Retrying in {sleep_time:.1f}s..."
                         )
-                        time.sleep(wait_time)
+                        time.sleep(sleep_time)
                     else:
-                        logger.error(f"All {max_retries + 1} attempts failed.")
+                        logger.error(f"Max retries ({max_retries}) exceeded for {func.__name__}")
                         raise last_exception
             if last_exception is not None:
                 raise last_exception
@@ -138,9 +140,7 @@ def retry_on_failure(max_retries: int = 3, backoff_factor: float = 2.0):
                 "Function failed after retries, "
                 "but no exception was captured."
             )
-
         return wrapper
-
     return decorator
 
 
