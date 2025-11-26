@@ -78,6 +78,7 @@ with implementations for:
   for production deployments
 
 Features:
+
 - Key creation, rotation, and deletion
 - Key metadata tracking (creation time, status, description)
 - Envelope encryption for AWS KMS (data keys encrypted by CMK)
@@ -109,6 +110,7 @@ trails for security-critical operations:
 - **Search**: Query audit logs by operation type, user ID, time range
 
 Supported sensitive operations (see `SensitiveOperation` enum):
+
 - `auth.login`, `auth.logout`, `auth.failed`, `auth.token_issued`
 - `data.read`, `data.write`, `data.delete`, `data.export`
 - `memory.create`, `memory.read`, `memory.update`, `memory.delete`
