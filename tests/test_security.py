@@ -621,22 +621,29 @@ class TestGetKMSProviderFactory(unittest.TestCase):
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
         # Save original env vars
-        self._orig_kms_provider = os.environ.get("KMS_PROVIDER")
-        self._orig_local_kms_dir = os.environ.get("LOCAL_KMS_DIR")
+        self._orig_env_vars = {}
+        env_vars_to_save = [
+            "KMS_PROVIDER",
+            "LOCAL_KMS_DIR",
+            "VAULT_ADDR",
+            "VAULT_TOKEN",
+            "VAULT_MOUNT_PATH",
+            "VAULT_KEY_PATH",
+            "SOPS_SECRETS_FILE",
+            "SOPS_AGE_KEY_FILE",
+        ]
+        for var in env_vars_to_save:
+            self._orig_env_vars[var] = os.environ.get(var)
 
     def tearDown(self):
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
         # Restore original env vars
-        if self._orig_kms_provider is not None:
-            os.environ["KMS_PROVIDER"] = self._orig_kms_provider
-        elif "KMS_PROVIDER" in os.environ:
-            del os.environ["KMS_PROVIDER"]
-
-        if self._orig_local_kms_dir is not None:
-            os.environ["LOCAL_KMS_DIR"] = self._orig_local_kms_dir
-        elif "LOCAL_KMS_DIR" in os.environ:
-            del os.environ["LOCAL_KMS_DIR"]
+        for name, value in self._orig_env_vars.items():
+            if value is not None:
+                os.environ[name] = value
+            elif name in os.environ:
+                del os.environ[name]
 
     def test_get_local_provider_default(self):
         from scripts.security.kms import get_kms_provider
@@ -684,9 +691,67 @@ class TestGetKMSProviderFactory(unittest.TestCase):
 
         self.assertIn("AWS_KMS_KEY_ID", str(ctx.exception))
 
+    def test_get_vault_provider_from_env(self):
+        from scripts.security.kms import VaultKMSProvider, get_kms_provider
+
+        os.environ["KMS_PROVIDER"] = "vault"
+        os.environ["VAULT_ADDR"] = "http://vault.example.com:8200"
+        os.environ["VAULT_TOKEN"] = "test-token"
+
+        provider = get_kms_provider()
+        self.assertIsInstance(provider, VaultKMSProvider)
+        self.assertEqual(provider._vault_addr, "http://vault.example.com:8200")
+        self.assertEqual(provider._vault_token, "test-token")
+
+    def test_get_vault_provider_explicit(self):
+        from scripts.security.kms import VaultKMSProvider, get_kms_provider
+
+        os.environ["VAULT_ADDR"] = "http://vault.example.com:8200"
+        os.environ["VAULT_TOKEN"] = "test-token"
+
+        provider = get_kms_provider("vault")
+        self.assertIsInstance(provider, VaultKMSProvider)
+
+    def test_get_sops_provider_from_env(self):
+        from scripts.security.kms import SOPSKMSProvider, get_kms_provider
+
+        os.environ["KMS_PROVIDER"] = "sops"
+        os.environ["SOPS_SECRETS_FILE"] = "test-secrets.enc.yaml"
+
+        provider = get_kms_provider()
+        self.assertIsInstance(provider, SOPSKMSProvider)
+
+    def test_get_sops_provider_explicit(self):
+        from scripts.security.kms import SOPSKMSProvider, get_kms_provider
+
+        os.environ["SOPS_SECRETS_FILE"] = "test-secrets.enc.yaml"
+
+        provider = get_kms_provider("sops")
+        self.assertIsInstance(provider, SOPSKMSProvider)
+
 
 class TestVaultKMSProvider(unittest.TestCase):
     """Tests for VaultKMSProvider (without actual Vault connection)."""
+
+    def setUp(self):
+        # Save original env vars
+        self._orig_vault_addr = os.environ.get("VAULT_ADDR")
+        self._orig_vault_token = os.environ.get("VAULT_TOKEN")
+        self._orig_vault_mount_path = os.environ.get("VAULT_MOUNT_PATH")
+        self._orig_vault_key_path = os.environ.get("VAULT_KEY_PATH")
+
+    def tearDown(self):
+        # Restore original env vars
+        for name, value in [
+            ("VAULT_ADDR", self._orig_vault_addr),
+            ("VAULT_TOKEN", self._orig_vault_token),
+            ("VAULT_MOUNT_PATH", self._orig_vault_mount_path),
+            ("VAULT_KEY_PATH", self._orig_vault_key_path),
+        ]:
+            if value is not None:
+                os.environ[name] = value
+            elif name in os.environ:
+                del os.environ[name]
 
     def test_vault_provider_initialization(self):
         from scripts.security.kms import VaultKMSProvider
@@ -706,19 +771,17 @@ class TestVaultKMSProvider(unittest.TestCase):
     def test_vault_provider_env_vars(self):
         from scripts.security.kms import VaultKMSProvider
 
-        # Temporarily set env vars
+        # Set env vars
         os.environ["VAULT_ADDR"] = "http://vault.example.com:8200"
         os.environ["VAULT_TOKEN"] = "env-token"
+        os.environ["VAULT_MOUNT_PATH"] = "custom-mount"
+        os.environ["VAULT_KEY_PATH"] = "custom-key"
 
-        try:
-            provider = VaultKMSProvider()
-            self.assertEqual(
-                provider._vault_addr, "http://vault.example.com:8200"
-            )
-            self.assertEqual(provider._vault_token, "env-token")
-        finally:
-            del os.environ["VAULT_ADDR"]
-            del os.environ["VAULT_TOKEN"]
+        provider = VaultKMSProvider()
+        self.assertEqual(provider._vault_addr, "http://vault.example.com:8200")
+        self.assertEqual(provider._vault_token, "env-token")
+        self.assertEqual(provider._mount_path, "custom-mount")
+        self.assertEqual(provider._key_name, "custom-key")
 
     def test_vault_create_key(self):
         from scripts.security.kms import VaultKMSProvider

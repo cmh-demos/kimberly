@@ -425,8 +425,8 @@ class VaultKMSProvider(KMSProvider):
         self,
         vault_addr: Optional[str] = None,
         vault_token: Optional[str] = None,
-        mount_path: str = "transit",
-        key_name: str = "kimberly",
+        mount_path: Optional[str] = None,
+        key_name: Optional[str] = None,
     ):
         """
         Initialize Vault KMS provider.
@@ -436,14 +436,20 @@ class VaultKMSProvider(KMSProvider):
           vault_token: Vault authentication token. Defaults to VAULT_TOKEN
                        env var.
           mount_path: Mount path for the Transit secrets engine.
+                      Defaults to VAULT_MOUNT_PATH env var or 'transit'.
           key_name: Name of the encryption key in Vault.
+                    Defaults to VAULT_KEY_PATH env var or 'kimberly'.
         """
         self._vault_addr = vault_addr or os.environ.get(
             "VAULT_ADDR", "http://127.0.0.1:8200"
         )
         self._vault_token = vault_token or os.environ.get("VAULT_TOKEN")
-        self._mount_path = mount_path
-        self._key_name = key_name
+        self._mount_path = mount_path or os.environ.get(
+            "VAULT_MOUNT_PATH", "transit"
+        )
+        self._key_name = key_name or os.environ.get(
+            "VAULT_KEY_PATH", "kimberly"
+        )
         self._client = None
         self._data_keys: Dict[str, bytes] = {}
 
@@ -624,6 +630,7 @@ class SOPSKMSProvider(KMSProvider):
                 text=True,
                 env=env,
                 check=True,
+                timeout=30,
             )
 
             # Lazy import: yaml is optional dependency for SOPS support
