@@ -24,6 +24,13 @@ grooming_bot_settings:
   project_board_integration: true  # Use project_management config
   audit_event_type: "grooming"
   dry_run_support: true  # Respects DRY_RUN env var
+  # Maximum number of Copilot assignments allowed per run (total across
+  # Backlog and In progress stages). Set to 1 to allow a single assign.
+  max_copilot_assigns_per_run: 1
+  # Labels considered groomable (case-insensitive). Issues must be in one
+  # of these statuses to be processed by the groomer (project-card fallback
+  # is used when labels are absent).
+  groomable_status_labels: ["Backlog", "In progress"]
   stale_issue_handling:
     enabled: true
     labels_to_check: ["needs-info"]

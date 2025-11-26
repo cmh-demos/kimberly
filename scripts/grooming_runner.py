@@ -63,6 +63,12 @@ logger = logging.getLogger(__name__)
 MAX_LOG_ENTRIES = 1000  # Maximum entries before rotation
 LOG_ARCHIVE_DIR = "logs/archive"
 
+# Per-run Copilot assignment counter (enforced across stages)
+copilot_assigns_this_run: int = 0
+# Configurable defaults (can be overridden from rules loaded in main)
+MAX_COPILOT_ASSIGN_PER_RUN = 1
+GROOMABLE_STATUS_LABELS = ["Backlog", "In progress"]
+
 
 def validate_github_token(token: str | None) -> bool:
     """Validate GitHub token format (supports multiple token types)."""
@@ -443,6 +449,110 @@ def _assign_issue_via_graphql(
 
 
 @retry_on_failure(logger=logger)
+def get_most_recent_copilot_event(
+    owner: str, repo: str, issue_number: int, token: str
+) -> dict | None:
+    """Return the most recent Copilot-related timeline event for an issue.
+
+    Looks for timeline entries that reference "copilot" (case-insensitive)
+    in textual fields and classifies the most recent matching entry as
+    'start', 'error', 'finished', or 'other'. Also returns the timestamp of
+    the most recent Copilot error if present.
+    """
+    url = (
+        f"https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}/timeline"
+    )
+    headers = {
+        "Accept": "application/vnd.github+json",
+    }
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+
+    nodes: list = []
+    page = 1
+    while True:
+        params = {"per_page": 100, "page": page}
+        resp = requests.get(url, headers=headers, params=params)
+        # If timeline not available (403/404), return None gracefully
+        if resp.status_code in (403, 404):
+            return None
+        resp.raise_for_status()
+        data = resp.json()
+        if isinstance(data, list):
+            nodes.extend(data)
+        else:
+            # Some endpoints may return dict wrapper
+            items = data.get("items") or []
+            nodes.extend(items)
+
+        if len(nodes) < 1 or len(nodes) < (page * 100):
+            break
+        page += 1
+
+    copilot_nodes = []
+    last_error_time = None
+    for n in nodes:
+        # Collect textual fields that may contain Copilot traces
+        text_fields = []
+        for f in ("body", "event", "message", "title"):
+            v = n.get(f)
+            if isinstance(v, str):
+                text_fields.append(v)
+        actor = n.get("actor") or {}
+        if isinstance(actor, dict):
+            login = actor.get("login")
+            if isinstance(login, str):
+                text_fields.append(login)
+
+        joined = " ".join(x for x in text_fields if x).lower()
+        if "copilot" in joined:
+            # classify
+            created = n.get("created_at") or n.get("updated_at")
+            try:
+                created_dt = (
+                    datetime.fromisoformat(created.replace("Z", "+00:00") )
+                    if created
+                    else None
+                )
+            except Exception:
+                created_dt = None
+
+            node_type = "other"
+            if "error" in joined:
+                node_type = "error"
+                if created_dt and (not last_error_time or created_dt > last_error_time):
+                    last_error_time = created_dt
+            elif "finish" in joined or "finished" in joined or "completed" in joined:
+                node_type = "finished"
+            elif "start" in joined or "started" in joined:
+                node_type = "start"
+
+            copilot_nodes.append(
+                {
+                    "type": node_type,
+                    "text": joined,
+                    "created_at": created_dt,
+                    "raw": n,
+                }
+            )
+
+    if not copilot_nodes:
+        return None
+
+    # sort by created_at if available else leave order
+    copilot_nodes_sorted = sorted(
+        copilot_nodes, key=lambda x: x.get("created_at") or datetime.min
+    )
+    last = copilot_nodes_sorted[-1]
+    return {
+        "type": last.get("type"),
+        "text": last.get("text"),
+        "created_at": last.get("created_at"),
+        "last_error_time": last_error_time,
+    }
+
+
+@retry_on_failure(logger=logger)
 def add_label(
     owner: str, repo: str, issue_number: int, label: str, token: str
 ) -> None:
@@ -634,6 +744,33 @@ def process_issue(
         print("Issue is closed, skipping.")
         return audit_entry
 
+    # Status gate: only process issues in configured groomable statuses
+    labels_lower = [l.lower() for l in labels if isinstance(l, str)]
+    groomable_lower = [s.lower() for s in GROOMABLE_STATUS_LABELS]
+    status_allowed = any(l in groomable_lower for l in labels_lower)
+    # Project-card fallback when labels not present or ambiguous
+    if not status_allowed and project_enabled and project_id:
+        try:
+            cols = get_project_columns(owner, repo, project_id, gh_token)
+            # build mapping id->name
+            for c in cols:
+                col_cards = get_column_cards(c.get("id"), gh_token)
+                card = find_card_for_issue(col_cards, issue_url)
+                if card:
+                    # compare to configured backlog/in_progress ids (case-insensitive keys)
+                    in_backlog = bool(backlog_column_id and c.get("id") == backlog_column_id)
+                    in_inprogress = bool(
+                        project_columns.get("in_progress") and c.get("id") == project_columns.get("in_progress")
+                    )
+                    status_allowed = in_backlog or in_inprogress
+                    break
+        except Exception as e:
+            logger.debug(f"Project-card fallback failed for issue #{number}: {e}")
+
+    if not status_allowed:
+        audit_entry["notes"] += "skipped — not in Backlog/In progress"
+        return audit_entry
+
     # Check for stale issues
     if stale_enabled:
         updated_at_str = issue.get("updated_at")
@@ -680,13 +817,58 @@ def process_issue(
         audit_entry["notes"] += "needs-info detected; "
         if not dry_run:
             try:
-                assign_issue(
-                    owner, repo, number, assignee_for_needs_info, gh_token
-                )
-                if remove_triaged_on_needs_info and "Triaged" in labels:
-                    remove_label(owner, repo, number, "Triaged", gh_token)
-                    changed_fields.append("removed Triaged")
-                changed_fields.append(f"assigned to {assignee_for_needs_info}")
+                # Timeline-aware decision: consult most recent Copilot event
+                evt = get_most_recent_copilot_event(owner, repo, number, gh_token)
+                if evt:
+                    etype = (evt.get("type") or "").lower()
+                    last_err = evt.get("last_error_time")
+                    if etype == "finished":
+                        # Move to In Review if possible; do not consume assignment slot
+                        in_review_id = project_columns.get("in_review")
+                        if in_review_id and project_enabled and project_id:
+                            move_issue_to_column(
+                                owner,
+                                repo,
+                                number,
+                                issue_url,
+                                project_id,
+                                in_review_id,
+                                gh_token,
+                            )
+                            changed_fields.append("moved to In Review (copilot finished work)")
+                            audit_entry["notes"] += "moved to In Review (copilot finished); "
+                        else:
+                            audit_entry["notes"] += "would move to In Review (no column configured); "
+                    elif etype == "error":
+                        audit_entry["notes"] += "skipped assign — recent copilot error; "
+                    elif etype == "start" and evt.get("created_at") and last_err and evt.get("created_at") > last_err:
+                        audit_entry["notes"] += "skipped assign — copilot restarted after error; "
+                    else:
+                        # No blocking Copilot event; attempt to assign if slot available
+                        global copilot_assigns_this_run
+                        if copilot_assigns_this_run >= MAX_COPILOT_ASSIGN_PER_RUN:
+                            audit_entry["notes"] += "skipped assign — per-run cap reached; "
+                        else:
+                            copilot_assigns_this_run += 1
+                            assign_issue(
+                                owner, repo, number, assignee_for_needs_info, gh_token
+                            )
+                            if remove_triaged_on_needs_info and "Triaged" in labels:
+                                remove_label(owner, repo, number, "Triaged", gh_token)
+                                changed_fields.append("removed Triaged")
+                            changed_fields.append(f"assigned to {assignee_for_needs_info}")
+                else:
+                    # No Copilot timeline entries — proceed to assign if slot available
+                    global copilot_assigns_this_run
+                    if copilot_assigns_this_run >= MAX_COPILOT_ASSIGN_PER_RUN:
+                        audit_entry["notes"] += "skipped assign — per-run cap reached; "
+                    else:
+                        copilot_assigns_this_run += 1
+                        assign_issue(owner, repo, number, assignee_for_needs_info, gh_token)
+                        if remove_triaged_on_needs_info and "Triaged" in labels:
+                            remove_label(owner, repo, number, "Triaged", gh_token)
+                            changed_fields.append("removed Triaged")
+                        changed_fields.append(f"assigned to {assignee_for_needs_info}")
             except Exception as e:
                 logger.error(f"Failed to update issue #{number}: {e}")
         else:
@@ -701,28 +883,84 @@ def process_issue(
         audit_entry["notes"] += "needs_work detected; "
         if not dry_run:
             try:
-                assign_issue(
-                    owner,
-                    repo,
-                    number,
-                    assignee_for_needs_work,
-                    gh_token,
-                )
-                # Keep label in place until fixes are done
-                changed_fields.append(f"assigned to {assignee_for_needs_work}")
-                # Optionally add guidance comment for the author
-                post_comment(
-                    owner,
-                    repo,
-                    number,
-                    (
-                        "Marked as needs_work — moving back to In progress "
-                        "and assigning to @copilot to help move it forward. "
-                        "Please update when ready for re-review."
-                    ),
-                    gh_token,
-                )
-                changed_fields.append("commented needs_work guidance")
+                evt = get_most_recent_copilot_event(owner, repo, number, gh_token)
+                if evt:
+                    etype = (evt.get("type") or "").lower()
+                    last_err = evt.get("last_error_time")
+                    if etype == "finished":
+                        in_review_id = project_columns.get("in_review")
+                        if in_review_id and project_enabled and project_id:
+                            move_issue_to_column(
+                                owner,
+                                repo,
+                                number,
+                                issue_url,
+                                project_id,
+                                in_review_id,
+                                gh_token,
+                            )
+                            changed_fields.append("moved to In Review (copilot finished work)")
+                            audit_entry["notes"] += "moved to In Review (copilot finished); "
+                        else:
+                            audit_entry["notes"] += "would move to In Review (no column configured); "
+                    elif etype == "error":
+                        audit_entry["notes"] += "skipped assign — recent copilot error; "
+                    elif etype == "start" and evt.get("created_at") and last_err and evt.get("created_at") > last_err:
+                        audit_entry["notes"] += "skipped assign — copilot restarted after error; "
+                    else:
+                        global copilot_assigns_this_run
+                        if copilot_assigns_this_run >= MAX_COPILOT_ASSIGN_PER_RUN:
+                            audit_entry["notes"] += "skipped assign — per-run cap reached; "
+                        else:
+                            copilot_assigns_this_run += 1
+                            assign_issue(
+                                owner,
+                                repo,
+                                number,
+                                assignee_for_needs_work,
+                                gh_token,
+                            )
+                            # Keep label in place until fixes are done
+                            changed_fields.append(f"assigned to {assignee_for_needs_work}")
+                            # Optionally add guidance comment for the author
+                            post_comment(
+                                owner,
+                                repo,
+                                number,
+                                (
+                                    "Marked as needs_work — moving back to In progress "
+                                    "and assigning to @copilot to help move it forward. "
+                                    "Please update when ready for re-review."
+                                ),
+                                gh_token,
+                            )
+                            changed_fields.append("commented needs_work guidance")
+                else:
+                    global copilot_assigns_this_run
+                    if copilot_assigns_this_run >= MAX_COPILOT_ASSIGN_PER_RUN:
+                        audit_entry["notes"] += "skipped assign — per-run cap reached; "
+                    else:
+                        copilot_assigns_this_run += 1
+                        assign_issue(
+                            owner,
+                            repo,
+                            number,
+                            assignee_for_needs_work,
+                            gh_token,
+                        )
+                        changed_fields.append(f"assigned to {assignee_for_needs_work}")
+                        post_comment(
+                            owner,
+                            repo,
+                            number,
+                            (
+                                "Marked as needs_work — moving back to In progress "
+                                "and assigning to @copilot to help move it forward. "
+                                "Please update when ready for re-review."
+                            ),
+                            gh_token,
+                        )
+                        changed_fields.append("commented needs_work guidance")
             except Exception as e:
                 logger.error(f"Failed to assign needs_work for #{number}: {e}")
         else:
@@ -825,6 +1063,146 @@ def process_issue(
     return audit_entry
 
 
+def run_grooming_stages(
+    owner: str,
+    repo: str,
+    gh_token: str,
+    items: List[dict],
+    dry_run: bool,
+    needs_info_variants: list,
+    assignee_for_needs_info: str,
+    remove_triaged_on_needs_info: bool,
+    assignee_for_needs_work: str,
+    project_enabled: bool,
+    project_id: int,
+    backlog_column_id: int,
+    move_to_backlog_if_triaged_and_backlog: bool,
+    stale_enabled: bool,
+    stale_labels: list,
+    stale_days: int,
+    stale_action: str,
+    stale_comment: str,
+    audit_event_type: str,
+    workflow_enabled: bool,
+    transitions: list,
+    project_columns: dict,
+) -> List[dict]:
+    """Run grooming in stages and return audit entries.
+
+    Stage 1: collect triaged open issues
+    Stage 2: process Backlog issues (non-Copilot grooming + at most one Copilot assign)
+    Stage 3: process In progress issues (restart stalled Copilot if slot remains)
+    Stage 4: final non-Copilot cleanup
+    """
+    audit_entries: List[dict] = []
+
+    # Stage 1: filter triaged open issues
+    triaged = []
+    for it in items:
+        if it.get("state") == "closed":
+            continue
+        labels = [l.get("name", "") for l in it.get("labels", []) if isinstance(l, dict)]
+        if any(lbl.lower() == "triaged" for lbl in labels):
+            triaged.append(it)
+
+    # Stage 2: Backlog
+    processed_ids = set()
+    for issue in triaged:
+        labels = [l.get("name", "") for l in issue.get("labels", []) if isinstance(l, dict)]
+        if any(lbl.lower() == "backlog" for lbl in labels):
+            audit = process_issue(
+                issue,
+                owner,
+                repo,
+                gh_token,
+                dry_run,
+                needs_info_variants,
+                assignee_for_needs_info,
+                remove_triaged_on_needs_info,
+                assignee_for_needs_work,
+                project_enabled,
+                project_id,
+                backlog_column_id,
+                move_to_backlog_if_triaged_and_backlog,
+                stale_enabled,
+                stale_labels,
+                stale_days,
+                stale_action,
+                stale_comment,
+                audit_event_type,
+                workflow_enabled,
+                transitions,
+                project_columns,
+            )
+            audit_entries.append(audit)
+            processed_ids.add(issue.get("number"))
+
+    # Stage 3: In progress (exclude ones already processed)
+    for issue in triaged:
+        if issue.get("number") in processed_ids:
+            continue
+        labels = [l.get("name", "") for l in issue.get("labels", []) if isinstance(l, dict)]
+        if any(lbl.lower() == "in progress" for lbl in labels) or any(lbl.lower() == "in-progress" for lbl in labels):
+            audit = process_issue(
+                issue,
+                owner,
+                repo,
+                gh_token,
+                dry_run,
+                needs_info_variants,
+                assignee_for_needs_info,
+                remove_triaged_on_needs_info,
+                assignee_for_needs_work,
+                project_enabled,
+                project_id,
+                backlog_column_id,
+                move_to_backlog_if_triaged_and_backlog,
+                stale_enabled,
+                stale_labels,
+                stale_days,
+                stale_action,
+                stale_comment,
+                audit_event_type,
+                workflow_enabled,
+                transitions,
+                project_columns,
+            )
+            audit_entries.append(audit)
+            processed_ids.add(issue.get("number"))
+
+    # Stage 4: final cleanup for remaining triaged issues
+    for issue in triaged:
+        if issue.get("number") in processed_ids:
+            continue
+        audit = process_issue(
+            issue,
+            owner,
+            repo,
+            gh_token,
+            dry_run,
+            needs_info_variants,
+            assignee_for_needs_info,
+            remove_triaged_on_needs_info,
+            assignee_for_needs_work,
+            project_enabled,
+            project_id,
+            backlog_column_id,
+            move_to_backlog_if_triaged_and_backlog,
+            stale_enabled,
+            stale_labels,
+            stale_days,
+            stale_action,
+            stale_comment,
+            audit_event_type,
+            workflow_enabled,
+            transitions,
+            project_columns,
+        )
+        audit_entries.append(audit)
+
+    return audit_entries
+
+
 def main() -> int:
     triage_rules_path = os.environ.get(
         "TRIAGE_RULES_PATH", "copilot_triage_rules.yml"
@@ -855,6 +1233,17 @@ def main() -> int:
 
     # Get grooming settings
     grooming_settings = grooming_rules.get("grooming_bot_settings", {})
+    # Apply grooming config overrides for Copilot assignment behavior
+    try:
+        global MAX_COPILOT_ASSIGN_PER_RUN, GROOMABLE_STATUS_LABELS
+        MAX_COPILOT_ASSIGN_PER_RUN = int(
+            grooming_settings.get("max_copilot_assigns_per_run", MAX_COPILOT_ASSIGN_PER_RUN)
+        )
+        GROOMABLE_STATUS_LABELS = grooming_settings.get(
+            "groomable_status_labels", GROOMABLE_STATUS_LABELS
+        )
+    except Exception:
+        logger.debug("Failed to parse grooming config overrides; using defaults")
     needs_info_variants = grooming_settings.get(
         "needs_info_variants", ["needs-info"]
     )

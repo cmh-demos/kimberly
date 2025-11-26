@@ -1057,3 +1057,264 @@ class TestAdditionalCoverage(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestTimelineAndFlow(unittest.TestCase):
+    @patch("scripts.grooming_runner.requests.get")
+    def test_get_most_recent_copilot_event_error_only(self, mock_get):
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.raise_for_status.return_value = None
+        mock_resp.json.return_value = [
+            {
+                "body": "Copilot stopped work due to an error: rate limit",
+                "created_at": "2025-11-25T10:00:00Z",
+                "actor": {"login": "copilot-swe-agent"},
+            }
+        ]
+        mock_get.return_value = mock_resp
+
+        res = gr.get_most_recent_copilot_event("owner", "repo", 404, "token")
+        self.assertIsNotNone(res)
+        self.assertEqual(res.get("type"), "error")
+        self.assertIsNotNone(res.get("last_error_time"))
+
+    @patch("scripts.grooming_runner.requests.get")
+    def test_get_most_recent_copilot_event_error_then_start(self, mock_get):
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.raise_for_status.return_value = None
+        mock_resp.json.return_value = [
+            {
+                "body": "Copilot encountered an Error and stopped",
+                "created_at": "2025-11-25T09:00:00Z",
+                "actor": {"login": "copilot"},
+            },
+            {
+                "body": "Copilot started work on behalf of cmh-demos",
+                "created_at": "2025-11-25T11:00:00Z",
+                "actor": {"login": "copilot"},
+            },
+        ]
+        mock_get.return_value = mock_resp
+
+        res = gr.get_most_recent_copilot_event("owner", "repo", 404, "token")
+        self.assertIsNotNone(res)
+        self.assertEqual(res.get("type"), "start")
+        self.assertTrue(res.get("created_at") > res.get("last_error_time"))
+
+    @patch("scripts.grooming_runner.requests.get")
+    def test_get_most_recent_copilot_event_finished(self, mock_get):
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.raise_for_status.return_value = None
+        mock_resp.json.return_value = [
+            {
+                "body": "Copilot finished work on this issue",
+                "created_at": "2025-11-25T12:00:00Z",
+                "actor": {"login": "copilot"},
+            }
+        ]
+        mock_get.return_value = mock_resp
+
+        res = gr.get_most_recent_copilot_event("owner", "repo", 505, "token")
+        self.assertIsNotNone(res)
+        self.assertEqual(res.get("type"), "finished")
+
+    @patch("scripts.grooming_runner.assign_issue")
+    @patch("scripts.grooming_runner.move_issue_to_column")
+    @patch("scripts.grooming_runner.get_most_recent_copilot_event")
+    def test_process_issue_moves_to_in_review_on_finished(self, mock_evt, mock_move, mock_assign):
+        mock_evt.return_value = {"type": "finished", "created_at": datetime(2025,11,25,tzinfo=timezone.utc), "last_error_time": None}
+        issue = {"number": 10, "title": "Done by Copilot", "labels": [{"name": "In progress"}], "url": "url10"}
+
+        res = gr.process_issue(
+            issue,
+            owner="owner",
+            repo="repo",
+            gh_token="token",
+            dry_run=False,
+            needs_info_variants=[],
+            assignee_for_needs_info="",
+            remove_triaged_on_needs_info=False,
+            assignee_for_needs_work="",
+            project_enabled=True,
+            project_id=1,
+            backlog_column_id=2,
+            move_to_backlog_if_triaged_and_backlog=False,
+            stale_enabled=False,
+            stale_labels=[],
+            stale_days=0,
+            stale_action="",
+            stale_comment="",
+            audit_event_type="grooming",
+            workflow_enabled=False,
+            transitions=[],
+            project_columns={"in_review": 999},
+        )
+
+        mock_move.assert_called_once()
+        mock_assign.assert_not_called()
+        self.assertIn("moved to In Review", " ".join(res.get("changed_fields") or []) or res.get("notes"))
+
+    @patch("scripts.grooming_runner.assign_issue")
+    @patch("scripts.grooming_runner.get_most_recent_copilot_event")
+    def test_single_assignment_across_backlog_and_in_progress(self, mock_evt, mock_assign):
+        # Ensure only one assign across Backlog (needs-info) and In progress (needs_work)
+        mock_evt.return_value = None
+        # Backlog issue (triaged + backlog + needs-info)
+        issue1 = {
+            "number": 1,
+            "title": "Backlog Issue",
+            "labels": [{"name": "Triaged"}, {"name": "Backlog"}, {"name": "needs-info"}],
+            "url": "url1",
+        }
+        # In progress issue (triaged + in progress + needs_work)
+        issue2 = {
+            "number": 2,
+            "title": "In Progress Issue",
+            "labels": [{"name": "Triaged"}, {"name": "In progress"}, {"name": "needs_work"}],
+            "url": "url2",
+        }
+
+        # Ensure per-run cap is 1
+        gr.MAX_COPILOT_ASSIGN_PER_RUN = 1
+        gr.copilot_assigns_this_run = 0
+
+        items = [issue1, issue2]
+
+        audits = gr.run_grooming_stages(
+            "owner",
+            "repo",
+            "token",
+            items,
+            dry_run=False,
+            needs_info_variants=["needs-info"],
+            assignee_for_needs_info="copilot",
+            remove_triaged_on_needs_info=True,
+            assignee_for_needs_work="copilot",
+            project_enabled=False,
+            project_id=0,
+            backlog_column_id=0,
+            move_to_backlog_if_triaged_and_backlog=False,
+            stale_enabled=False,
+            stale_labels=[],
+            stale_days=0,
+            stale_action="",
+            stale_comment="",
+            audit_event_type="grooming",
+            workflow_enabled=False,
+            transitions=[],
+            project_columns={},
+        )
+
+        # Only one assign should have occurred
+        self.assertEqual(mock_assign.call_count, 1)
+
+    def test_status_gate_case_insensitive(self):
+        # Lowercase backlog should be allowed
+        issue = {"number": 3, "labels": [{"name": "backlog"}], "url": "u3"}
+        res = gr.process_issue(
+            issue,
+            owner="owner",
+            repo="repo",
+            gh_token="token",
+            dry_run=True,
+            needs_info_variants=[],
+            assignee_for_needs_info="",
+            remove_triaged_on_needs_info=False,
+            assignee_for_needs_work="",
+            project_enabled=False,
+            project_id=0,
+            backlog_column_id=0,
+            move_to_backlog_if_triaged_and_backlog=False,
+            stale_enabled=False,
+            stale_labels=[],
+            stale_days=0,
+            stale_action="",
+            stale_comment="",
+            audit_event_type="grooming",
+            workflow_enabled=False,
+            transitions=[],
+            project_columns={},
+        )
+        self.assertNotIn("skipped — not in Backlog/In progress", res.get("notes", ""))
+
+        # Non-groomable label should be skipped
+        issue2 = {"number": 4, "labels": [{"name": "Other"}], "url": "u4"}
+        res2 = gr.process_issue(
+            issue2,
+            owner="owner",
+            repo="repo",
+            gh_token="token",
+            dry_run=True,
+            needs_info_variants=[],
+            assignee_for_needs_info="",
+            remove_triaged_on_needs_info=False,
+            assignee_for_needs_work="",
+            project_enabled=False,
+            project_id=0,
+            backlog_column_id=0,
+            move_to_backlog_if_triaged_and_backlog=False,
+            stale_enabled=False,
+            stale_labels=[],
+            stale_days=0,
+            stale_action="",
+            stale_comment="",
+            audit_event_type="grooming",
+            workflow_enabled=False,
+            transitions=[],
+            project_columns={},
+        )
+        self.assertIn("skipped — not in Backlog/In progress", res2.get("notes", ""))
+
+    @patch("scripts.grooming_runner.assign_issue")
+    @patch("scripts.grooming_runner.move_issue_to_column")
+    @patch("scripts.grooming_runner.get_most_recent_copilot_event")
+    def test_stage_flow_order_and_non_copilot_steps(self, mock_evt, mock_move, mock_assign):
+        # One issue finished, one backlog eligible for assign
+        def evt_side(owner, repo, num, token):
+            if num == 5:
+                return {"type": "finished", "created_at": datetime(2025,11,25,tzinfo=timezone.utc)}
+            return None
+
+        # Prepare items
+        issue_finished = {"number": 5, "labels": [{"name": "Triaged"}, {"name": "In progress"}], "url": "u5"}
+        issue_backlog = {"number": 6, "labels": [{"name": "Triaged"}, {"name": "Backlog"}, {"name": "needs-info"}], "url": "u6"}
+        items = [issue_finished, issue_backlog]
+
+        mock_evt.side_effect = evt_side
+
+        gr.MAX_COPILOT_ASSIGN_PER_RUN = 1
+        gr.copilot_assigns_this_run = 0
+
+        audits = gr.run_grooming_stages(
+            "owner",
+            "repo",
+            "token",
+            items,
+            dry_run=False,
+            needs_info_variants=["needs-info"],
+            assignee_for_needs_info="copilot",
+            remove_triaged_on_needs_info=False,
+            assignee_for_needs_work="copilot",
+            project_enabled=True,
+            project_id=1,
+            backlog_column_id=2,
+            move_to_backlog_if_triaged_and_backlog=False,
+            stale_enabled=False,
+            stale_labels=[],
+            stale_days=0,
+            stale_action="",
+            stale_comment="",
+            audit_event_type="grooming",
+            workflow_enabled=False,
+            transitions=[],
+            project_columns={"in_review": 999},
+        )
+
+        # move_issue_to_column should be called for finished
+        mock_move.assert_called()
+        # assign should be called for backlog (exactly once)
+        self.assertEqual(mock_assign.call_count, 1)
+
