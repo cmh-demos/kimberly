@@ -465,8 +465,11 @@ def _assign_issue_via_graphql(
 
     issue_id = _get_issue_node_id(owner, repo, issue_number, token)
 
+    # The GraphQL API expects a non-null list of non-null IDs for
+    # actorIds — declare $actorIds as [ID!]! to match the API and avoid
+    # nullability mismatch errors.
     mutation = (
-        "mutation($assignableId: ID!, $actorIds: [ID!]) {"
+        "mutation($assignableId: ID!, $actorIds: [ID!]!) {"
         " replaceActorsForAssignable(input: {assignableId: $assignableId, "
         "actorIds: $actorIds}) { assignable { ... on Issue { id } } } }"
     )
