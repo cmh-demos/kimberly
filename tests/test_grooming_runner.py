@@ -1124,9 +1124,20 @@ class TestTimelineAndFlow(unittest.TestCase):
     @patch("scripts.grooming_runner.assign_issue")
     @patch("scripts.grooming_runner.move_issue_to_column")
     @patch("scripts.grooming_runner.get_most_recent_copilot_event")
-    def test_process_issue_moves_to_in_review_on_finished(self, mock_evt, mock_move, mock_assign):
-        mock_evt.return_value = {"type": "finished", "created_at": datetime(2025,11,25,tzinfo=timezone.utc), "last_error_time": None}
-        issue = {"number": 10, "title": "Done by Copilot", "labels": [{"name": "In progress"}], "url": "url10"}
+    def test_process_issue_moves_to_in_review_on_finished(
+        self, mock_evt, mock_move, mock_assign
+    ):
+        mock_evt.return_value = {
+            "type": "finished",
+            "created_at": datetime(2025, 11, 25, tzinfo=timezone.utc),
+            "last_error_time": None,
+        }
+        issue = {
+            "number": 10,
+            "title": "Done by Copilot",
+            "labels": [{"name": "In progress"}],
+            "url": "url10",
+        }
 
         res = gr.process_issue(
             issue,
@@ -1155,25 +1166,39 @@ class TestTimelineAndFlow(unittest.TestCase):
 
         mock_move.assert_called_once()
         mock_assign.assert_not_called()
-        self.assertIn("moved to In Review", " ".join(res.get("changed_fields") or []) or res.get("notes"))
+        self.assertIn(
+            "moved to In Review",
+            " ".join(res.get("changed_fields") or []) or res.get("notes"),
+        )
 
     @patch("scripts.grooming_runner.assign_issue")
     @patch("scripts.grooming_runner.get_most_recent_copilot_event")
-    def test_single_assignment_across_backlog_and_in_progress(self, mock_evt, mock_assign):
-        # Ensure only one assign across Backlog (needs-info) and In progress (needs_work)
+    def test_single_assignment_across_backlog_and_in_progress(
+        self, mock_evt, mock_assign
+    ):
+        # Ensure only one assign across Backlog (needs-info)
+        # and In progress (needs_work)
         mock_evt.return_value = None
         # Backlog issue (triaged + backlog + needs-info)
         issue1 = {
             "number": 1,
             "title": "Backlog Issue",
-            "labels": [{"name": "Triaged"}, {"name": "Backlog"}, {"name": "needs-info"}],
+            "labels": [
+                {"name": "Triaged"},
+                {"name": "Backlog"},
+                {"name": "needs-info"},
+            ],
             "url": "url1",
         }
         # In progress issue (triaged + in progress + needs_work)
         issue2 = {
             "number": 2,
             "title": "In Progress Issue",
-            "labels": [{"name": "Triaged"}, {"name": "In progress"}, {"name": "needs_work"}],
+            "labels": [
+                {"name": "Triaged"},
+                {"name": "In progress"},
+                {"name": "needs_work"},
+            ],
             "url": "url2",
         }
 
@@ -1183,7 +1208,7 @@ class TestTimelineAndFlow(unittest.TestCase):
 
         items = [issue1, issue2]
 
-        audits = gr.run_grooming_stages(
+        gr.run_grooming_stages(
             "owner",
             "repo",
             "token",
@@ -1238,7 +1263,9 @@ class TestTimelineAndFlow(unittest.TestCase):
             transitions=[],
             project_columns={},
         )
-        self.assertNotIn("skipped — not in Backlog/In progress", res.get("notes", ""))
+        self.assertNotIn(
+            "skipped — not in Backlog/In progress", res.get("notes", "")
+        )
 
         # Non-groomable label should be skipped
         issue2 = {"number": 4, "labels": [{"name": "Other"}], "url": "u4"}
@@ -1266,21 +1293,40 @@ class TestTimelineAndFlow(unittest.TestCase):
             transitions=[],
             project_columns={},
         )
-        self.assertIn("skipped — not in Backlog/In progress", res2.get("notes", ""))
+        self.assertIn(
+            "skipped — not in Backlog/In progress", res2.get("notes", "")
+        )
 
     @patch("scripts.grooming_runner.assign_issue")
     @patch("scripts.grooming_runner.move_issue_to_column")
     @patch("scripts.grooming_runner.get_most_recent_copilot_event")
-    def test_stage_flow_order_and_non_copilot_steps(self, mock_evt, mock_move, mock_assign):
+    def test_stage_flow_order_and_non_copilot_steps(
+        self, mock_evt, mock_move, mock_assign
+    ):
         # One issue finished, one backlog eligible for assign
         def evt_side(owner, repo, num, token):
             if num == 5:
-                return {"type": "finished", "created_at": datetime(2025,11,25,tzinfo=timezone.utc)}
+                return {
+                    "type": "finished",
+                    "created_at": datetime(2025, 11, 25, tzinfo=timezone.utc),
+                }
             return None
 
         # Prepare items
-        issue_finished = {"number": 5, "labels": [{"name": "Triaged"}, {"name": "In progress"}], "url": "u5"}
-        issue_backlog = {"number": 6, "labels": [{"name": "Triaged"}, {"name": "Backlog"}, {"name": "needs-info"}], "url": "u6"}
+        issue_finished = {
+            "number": 5,
+            "labels": [{"name": "Triaged"}, {"name": "In progress"}],
+            "url": "u5",
+        }
+        issue_backlog = {
+            "number": 6,
+            "labels": [
+                {"name": "Triaged"},
+                {"name": "Backlog"},
+                {"name": "needs-info"},
+            ],
+            "url": "u6",
+        }
         items = [issue_finished, issue_backlog]
 
         mock_evt.side_effect = evt_side
@@ -1288,7 +1334,7 @@ class TestTimelineAndFlow(unittest.TestCase):
         gr.MAX_COPILOT_ASSIGN_PER_RUN = 1
         gr.copilot_assigns_this_run = 0
 
-        audits = gr.run_grooming_stages(
+        gr.run_grooming_stages(
             "owner",
             "repo",
             "token",
@@ -1317,4 +1363,3 @@ class TestTimelineAndFlow(unittest.TestCase):
         mock_move.assert_called()
         # assign should be called for backlog (exactly once)
         self.assertEqual(mock_assign.call_count, 1)
-
