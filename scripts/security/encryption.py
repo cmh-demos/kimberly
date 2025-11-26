@@ -153,9 +153,7 @@ class DataEncryptor:
         Returns:
           EncryptedData containing ciphertext and metadata
         """
-        aad_bytes = (
-            associated_data.encode("utf-8") if associated_data else None
-        )
+        aad_bytes = associated_data.encode("utf-8") if associated_data else None
         return self.encrypt(plaintext.encode("utf-8"), aad_bytes)
 
     def decrypt_string(
@@ -173,9 +171,7 @@ class DataEncryptor:
         Returns:
           Decrypted plaintext string
         """
-        aad_bytes = (
-            associated_data.encode("utf-8") if associated_data else None
-        )
+        aad_bytes = associated_data.encode("utf-8") if associated_data else None
         return self.decrypt(encrypted_data, aad_bytes).decode("utf-8")
 
     def encrypt_json(

@@ -287,6 +287,7 @@ class AWSKMSProvider(KMSProvider):
         self._region = region or os.environ.get("AWS_DEFAULT_REGION")
         if self._region is None:
             import logging
+
             logging.getLogger(__name__).warning(
                 "AWS region not specified and AWS_DEFAULT_REGION not set. "
                 "Falling back to 'us-east-1'. Set region explicitly for "
