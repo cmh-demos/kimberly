@@ -777,9 +777,7 @@ class TestSOPSKMSProvider(unittest.TestCase):
         )
 
         self.assertEqual(str(provider._secrets_file), secrets_file)
-        self.assertEqual(
-            provider._age_key_file, "~/.config/sops/age/keys.txt"
-        )
+        self.assertEqual(provider._age_key_file, "~/.config/sops/age/keys.txt")
 
     def test_sops_create_key(self):
         from scripts.security.kms import SOPSKMSProvider

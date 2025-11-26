@@ -611,9 +611,7 @@ class SOPSKMSProvider(KMSProvider):
             return self._cached_secrets
 
         if not self._secrets_file.exists():
-            logger.warning(
-                f"SOPS secrets file not found: {self._secrets_file}"
-            )
+            logger.warning(f"SOPS secrets file not found: {self._secrets_file}")
             return {}
 
         try:
