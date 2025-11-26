@@ -1347,32 +1347,33 @@ def main() -> int:
 
     print(f"Found {len(items)} open issues")
 
-    # Run staged grooming: Stage 1 (scan triaged), Stage 2 (Backlog, assign one),
-    # Stage 3 (In progress restart sharing the same slot), Stage 4 (cleanup)
-    audit_entries = run_grooming_stages(
-        owner,
-        repo,
-        gh_token,
-        items,
-        dry_run,
-        needs_info_variants,
-        assignee_for_needs_info,
-        remove_triaged_on_needs_info,
-        assignee_for_needs_work,
-        project_enabled,
-        project_id,
-        backlog_column_id,
-        move_to_backlog_if_triaged_and_backlog,
-        stale_enabled,
-        stale_labels,
-        stale_days,
-        stale_action,
-        stale_comment,
-        audit_event_type,
-        workflow_enabled,
-        transitions,
-        project_columns,
-    )
+    audit_entries = []
+    for issue in items:
+        audit_entry = process_issue(
+            issue,
+            owner,
+            repo,
+            gh_token,
+            dry_run,
+            needs_info_variants,
+            assignee_for_needs_info,
+            remove_triaged_on_needs_info,
+            assignee_for_needs_work,
+            project_enabled,
+            project_id,
+            backlog_column_id,
+            move_to_backlog_if_triaged_and_backlog,
+            stale_enabled,
+            stale_labels,
+            stale_days,
+            stale_action,
+            stale_comment,
+            audit_event_type,
+            workflow_enabled,
+            transitions,
+            project_columns,
+        )
+        audit_entries.append(audit_entry)
 
     # Record audits in triage_log.json
     log_file = "triage_log.json"

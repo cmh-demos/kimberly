@@ -76,17 +76,42 @@ with implementations for:
   (with optional master key encryption)
 - **AWSKMSProvider**: AWS KMS integration using envelope encryption
   for production deployments
+- **VaultKMSProvider**: HashiCorp Vault integration using Transit
+  secrets engine (enterprise/self-hosted)
+- **SOPSKMSProvider**: Mozilla SOPS for encrypted secrets files
+  (GitOps workflows)
 
 Features:
 
 - Key creation, rotation, and deletion
 - Key metadata tracking (creation time, status, description)
 - Envelope encryption for AWS KMS (data keys encrypted by CMK)
+- Factory function `get_kms_provider()` for environment-based selection
+
+#### Choosing a KMS Provider
+
+| Provider | Use Case | Pros | Cons |
+|----------|----------|------|------|
+| LocalKMS | Development | Simple, no deps | Not secure for prod |
+| AWS KMS | Cloud production | Managed, audit | AWS lock-in, cost |
+| Vault | Self-hosted prod | Flexible, audited | Ops complexity |
+| SOPS | GitOps workflows | Git-versioned | Manual key mgmt |
 
 Example usage:
 
 ```python
-from scripts.security.kms import LocalKMSProvider, AWSKMSProvider
+from scripts.security.kms import (
+    LocalKMSProvider,
+    AWSKMSProvider,
+    VaultKMSProvider,
+    SOPSKMSProvider,
+    get_kms_provider,
+)
+
+# Auto-select based on KMS_PROVIDER environment variable
+kms = get_kms_provider()
+
+# Or explicitly:
 
 # Development: Local file-based KMS
 kms = LocalKMSProvider(keys_dir=".keys")
@@ -95,6 +120,16 @@ encryptor = kms.get_encryptor(key_meta.key_id)
 
 # Production: AWS KMS with envelope encryption
 kms = AWSKMSProvider(kms_key_id="alias/kimberly-cmk")
+
+# Enterprise: HashiCorp Vault
+kms = VaultKMSProvider(
+    vault_addr="https://vault.example.com",
+    mount_path="transit",
+    key_name="kimberly",
+)
+
+# GitOps: SOPS encrypted secrets
+kms = SOPSKMSProvider(secrets_file="secrets.enc.yaml")
 ```
 
 ### Audit Logging for Sensitive Operations
