@@ -675,6 +675,26 @@ class TestAdditionalCoverage(unittest.TestCase):
             with self.assertRaises(RuntimeError):
                 gr.assign_issue("owner", "repo", 1, "copilot", "token")
 
+        @patch.dict(os.environ, {"GROOMING_ACCESS_KEY": "gh_pat_from_env"})
+        @patch("scripts.grooming_runner.requests.patch")
+        def test_assign_issue_prefers_grooming_access_key(self, mock_patch):
+            mock_resp = MagicMock()
+            mock_resp.raise_for_status.return_value = None
+            mock_resp.headers = {"X-RateLimit-Remaining": "10"}
+            mock_patch.return_value = mock_resp
+
+            # Call with a different token value to ensure the env var is used
+            gr.assign_issue("owner", "repo", 1, "assignee", "gh_runtime_token")
+            mock_patch.assert_called_once()
+            args, kwargs = mock_patch.call_args
+            # Confirm authorization header contains the env PAT value
+            self.assertIn(
+                "Authorization", kwargs["headers"]
+            )
+            self.assertEqual(
+                kwargs["headers"]["Authorization"], "Bearer gh_pat_from_env"
+            )
+
     @patch.dict(
         os.environ,
         {"GITHUB_ACTIONS": "true", "GITHUB_TOKEN": "gh_actions_token"},
