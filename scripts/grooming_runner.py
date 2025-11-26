@@ -267,11 +267,17 @@ def github_get_issue(
 def assign_issue(
     owner: str, repo: str, issue_number: int, assignee: str, token: str
 ) -> None:
+    # Allow an explicit grooming PAT (GROOMING_ACCESS_KEY) to override
+    # the provided token for assignment operations — this is helpful
+    # when running in Actions and a runtime GITHUB_TOKEN cannot be used
+    # to assign Copilot coding agents.
+    used_token = os.environ.get("GROOMING_ACCESS_KEY") or token
+
     base = f"https://api.github.com/repos/{owner}/{repo}"
     url = f"{base}/issues/{issue_number}"
     headers = {
         "Accept": "application/vnd.github+json",
-        "Authorization": f"Bearer {token}",
+        "Authorization": f"Bearer {used_token}",
     }
     resp = requests.patch(url, headers=headers, json={"assignees": [assignee]})
     try:
@@ -279,15 +285,22 @@ def assign_issue(
     except requests.HTTPError:
         # Common case: 422 Unprocessable Entity when the requested assignee
         # cannot be added via the REST API (e.g., Copilot coding agent).
-        if resp.status_code == 422 and token:
+        if resp.status_code == 422 and used_token:
             # If we are running inside GitHub Actions with the default
             # GITHUB_TOKEN, this token is a runtime token with limited
             # permissions and can't be used to assign Copilot agents via
             # GraphQL. Avoid retry storms and fail loudly but gracefully
             # by logging and skipping assignment instead of raising.
+            # If we're running in Actions and the token actually being
+            # used is the runtime GITHUB_TOKEN then we know agent
+            # assignments will not work — skip instead of retrying
+            # graphQL. If GROOMING_ACCESS_KEY is present we will use it
+            # and attempt the GraphQL fallback.
             if (
                 os.environ.get("GITHUB_ACTIONS") == "true"
-                and os.environ.get("GITHUB_TOKEN") == token
+                and os.environ.get("GITHUB_TOKEN")
+                and used_token == os.environ.get("GITHUB_TOKEN")
+                and not os.environ.get("GROOMING_ACCESS_KEY")
             ):
                 logger.warning(
                     "Running in GitHub Actions with GITHUB_TOKEN: cannot "
