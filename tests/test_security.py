@@ -6,15 +6,15 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from scripts.security.encryption import DataEncryptor, EncryptedData
-from scripts.security.kms import LocalKMSProvider, KeyMetadata
 from scripts.security.audit import (
-    AuditLogger,
     AuditEvent,
+    AuditLogger,
     SensitiveOperation,
     get_audit_logger,
     set_audit_logger,
 )
+from scripts.security.encryption import DataEncryptor, EncryptedData
+from scripts.security.kms import KeyMetadata, LocalKMSProvider
 
 
 class TestEncryptedData(unittest.TestCase):
