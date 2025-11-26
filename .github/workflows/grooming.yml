@@ -42,10 +42,15 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install dependencies
+      - name: Install dependencies (lightweight groomer deps)
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          if [ -f requirements-groomer.txt ]; then
+            pip install -r requirements-groomer.txt
+          else
+            # fallback to full set if the lightweight file doesn't exist
+            pip install -r requirements.txt
+          fi
 
       - name: Determine dry-run mode
         id: dry_run

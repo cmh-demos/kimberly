@@ -423,6 +423,7 @@ def process_issue(
     needs_info_variants: list,
     assignee_for_needs_info: str,
     remove_triaged_on_needs_info: bool,
+    assignee_for_needs_work: str,
     project_enabled: bool,
     project_id: int,
     backlog_column_id: int,
@@ -436,6 +437,8 @@ def process_issue(
     workflow_enabled: bool,
     transitions: list,
     project_columns: dict,
+    *args,
+    **kwargs,
 ) -> Dict[str, Any]:
     number = issue.get("number")
     title = issue.get("title")
@@ -528,6 +531,33 @@ def process_issue(
                 f"would assign to {assignee_for_needs_info} "
                 f"and remove Triaged"
             )
+
+    # Check for needs_work label (assign to copilot for fixes)
+    if "needs_work" in labels:
+        actions.append("assign to copilot for fixes")
+        audit_entry["notes"] += "needs_work detected; "
+        if not dry_run:
+            try:
+                assign_issue(owner, repo, number, assignee_for_needs_work, gh_token)
+                # Keep label in place until fixes are done
+                changed_fields.append(f"assigned to {assignee_for_needs_work}")
+                # Optionally add guidance comment for the author
+                post_comment(
+                    owner,
+                    repo,
+                    number,
+                    (
+                        "Marked as needs_work — moving this back to In progress "
+                        "and assigning to @copilot to help move it forward. "
+                        "Please update when ready for re-review."
+                    ),
+                    gh_token,
+                )
+                changed_fields.append("commented needs_work guidance")
+            except Exception as e:
+                logger.error(f"Failed to assign needs_work for #{number}: {e}")
+        else:
+            changed_fields.append(f"would assign to {assignee_for_needs_work} and comment")
 
     # Check for Triaged and Backlog
     if (
@@ -663,6 +693,9 @@ def main() -> int:
     remove_triaged_on_needs_info = grooming_settings.get(
         "remove_triaged_on_needs_info", True
     )
+    assignee_for_needs_work = grooming_settings.get(
+        "assignee_for_needs_work", "copilot"
+    )
     move_to_backlog_if_triaged_and_backlog = grooming_settings.get(
         "move_to_backlog_if_triaged_and_backlog", True
     )
@@ -750,6 +783,7 @@ def main() -> int:
             needs_info_variants,
             assignee_for_needs_info,
             remove_triaged_on_needs_info,
+            assignee_for_needs_work,
             project_enabled,
             project_id,
             backlog_column_id,

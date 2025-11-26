@@ -98,6 +98,20 @@ This builds a personalized model over time.
    .venv/bin/activate`
 4. Install dependencies: `pip install -r requirements.txt`
 
+If you only need to run the grooming scripts (for example
+`scripts/grooming_runner.py`) or lightweight developer tooling, use the
+minimal requirements file to avoid heavy ML packages (e.g., PyTorch,
+transformers) which are large and slow to download:
+
+```bash
+pip install -r requirements-groomer.txt
+```
+
+The top-level `requirements.txt` includes ML frameworks (torch,
+transformers, accelerate) that pull very large binary wheels (hundreds
+of MB each) and additional NVIDIA libraries — these are the primary
+reason installs can take a long time or use a lot of disk space.
+
 ## Quickstart
 
 1. Run the app: `python app.py`

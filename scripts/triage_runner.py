@@ -53,23 +53,49 @@ def read_rules_version(path: str) -> str | None:
 
 
 def github_search_issues(
-    owner: str, repo: str, token: str | None, per_page: int = 25
+    owner: str,
+    repo: str,
+    token: str | None,
+    per_page: int = 25,
+    max_pages: int = 10,
 ) -> List[dict]:
+    """Search GitHub issues and return combined items across pages.
+
+    Uses the GitHub Search API's `page` + `per_page` pagination. We cap
+    per_page at 100 and use max_pages to avoid accidentally iterating
+    into huge result sets (GitHub search has a 1000-result cap).
+    """
     query = f'repo:{owner}/{repo} is:issue is:open -label:"Triaged"'
     url = "https://api.github.com/search/issues"
     headers = {"Accept": "application/vnd.github+json"}
     if token:
         headers["Authorization"] = f"Bearer {token}"
 
-    params = {
-        "q": query,
-        "per_page": per_page,
-    }
+    # sanitize per_page and enforce API limits
+    try:
+        per_page = int(per_page)
+    except Exception:
+        per_page = 25
+    if per_page < 1:
+        per_page = 25
+    if per_page > 100:
+        per_page = 100
 
-    resp = requests.get(url, headers=headers, params=params)
-    resp.raise_for_status()
-    data = resp.json()
-    return data.get("items", [])
+    items: List[dict] = []
+    for page in range(1, max_pages + 1):
+        params = {"q": query, "per_page": per_page, "page": page}
+        resp = requests.get(url, headers=headers, params=params)
+        resp.raise_for_status()
+        data = resp.json()
+        page_items = data.get("items", [])
+        if not page_items:
+            break
+        items.extend(page_items)
+        # stop early when fewer than per_page returned
+        if len(page_items) < per_page:
+            break
+
+    return items
 
 
 def github_get_issue(
