@@ -1,0 +1,23 @@
+# Production Terraform Variables Template
+# Copy this file to terraform.tfvars and fill in the values
+# IMPORTANT: Replace placeholder values with your actual configuration
+
+# OCI Authentication
+tenancy_ocid     = "ocid1.tenancy.oc1..example"
+user_ocid        = "ocid1.user.oc1..example"
+fingerprint      = "aa:bb:cc:dd:ee:ff:00:11:22:33:44:55:66:77:88:99"
+private_key_path = "~/.oci/oci_api_key.pem"
+compartment_ocid = "ocid1.compartment.oc1..example"
+region           = "us-ashburn-1"
+
+# SSH Configuration
+ssh_public_key = "ssh-rsa AAAA... user@host"
+
+# Security Configuration (REQUIRED - restrict to your IP for security)
+# Example: "203.0.113.10/32" for a single IP
+# Example: "192.168.1.0/24" for a subnet
+ssh_allowed_cidr     = "YOUR_IP/32"
+k8s_api_allowed_cidr = "YOUR_IP/32"
+
+# K3s Configuration
+k3s_token = "your-secure-random-token-here"
