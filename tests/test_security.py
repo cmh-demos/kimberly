@@ -151,7 +151,11 @@ class TestDataEncryptor(unittest.TestCase):
         encrypted1 = enc1.encrypt(plaintext)
         encrypted2 = enc2.encrypt(plaintext)
 
-        # Same nonce for comparison
+        # TEST ONLY: Force same nonce to verify keys produce different output.
+        # WARNING: Nonce reuse is a critical vulnerability in AES-GCM and must
+        # never be done in production code. This is safe here because we're
+        # only comparing ciphertexts from different keys, not reusing for
+        # encryption.
         encrypted2.nonce = encrypted1.nonce
 
         # Even with same nonce, different keys produce different ciphertext

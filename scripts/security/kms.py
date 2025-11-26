@@ -277,11 +277,22 @@ class AWSKMSProvider(KMSProvider):
 
         Args:
           kms_key_id: AWS KMS Customer Master Key (CMK) ID or ARN
-          region: AWS region (uses default if not specified)
+          region: AWS region. If not specified, uses AWS_DEFAULT_REGION
+                  environment variable. Falls back to us-east-1 for
+                  development convenience but production deployments
+                  should explicitly set the region to match data residency
+                  requirements.
         """
         self._kms_key_id = kms_key_id
-        self._region = region or os.environ.get(
-            "AWS_DEFAULT_REGION", "us-east-1")
+        self._region = region or os.environ.get("AWS_DEFAULT_REGION")
+        if self._region is None:
+            import logging
+            logging.getLogger(__name__).warning(
+                "AWS region not specified and AWS_DEFAULT_REGION not set. "
+                "Falling back to 'us-east-1'. Set region explicitly for "
+                "production deployments to ensure proper data residency."
+            )
+            self._region = "us-east-1"
         self._client = None
         self._data_keys: Dict[str, bytes] = {}
 

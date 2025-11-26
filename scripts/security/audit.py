@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import uuid
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
@@ -153,8 +154,6 @@ class AuditLogger:
 
         # Generate unique logger name if not provided
         if logger_name is None:
-            import uuid
-
             logger_name = f"kimberly.security.audit.{uuid.uuid4().hex[:8]}"
 
         # Set up Python logger with fresh handlers

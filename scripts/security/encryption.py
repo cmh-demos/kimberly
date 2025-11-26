@@ -103,6 +103,8 @@ class DataEncryptor:
         Returns:
           EncryptedData containing ciphertext and metadata
         """
+        # Use OS-provided CSPRNG (cryptographically secure PRNG) for nonces.
+        # AES-GCM security requires unique nonces per encryption operation.
         nonce = os.urandom(self.NONCE_SIZE)
         ciphertext = self._aesgcm.encrypt(nonce, plaintext, associated_data)
 
