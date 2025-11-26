@@ -499,7 +499,9 @@ Mean Time To Recovery (MTTR).
    - Expand PVC or clean up old data:
 
      ```bash
-     kubectl exec -it postgres-0 -- df -h /var/lib/postgresql/data
+     # Get postgres pod name
+     PG_POD=$(kubectl get pods -l app=postgres -o jsonpath='{.items[0].metadata.name}')
+     kubectl exec -it $PG_POD -- df -h /var/lib/postgresql/data
      # If managed DB: use provider console to expand storage
      ```
 
@@ -625,10 +627,16 @@ Mean Time To Recovery (MTTR).
 1. **Check vector store health** (5 min)
 
    ```bash
-   # For pgvector
-   kubectl exec -it postgres-0 -- psql -U postgres -c "SELECT pg_size_pretty(pg_total_relation_size('memory_embeddings'));"
+   # Get the postgres pod name (handles different deployment types)
+   PG_POD=$(kubectl get pods -l app=postgres -o jsonpath='{.items[0].metadata.name}')
+
+   # For pgvector - check table size
+   kubectl exec -it $PG_POD -- psql -U postgres -c \
+     "SELECT pg_size_pretty(pg_total_relation_size('memory_embeddings'));"
+
    # Check index status
-   kubectl exec -it postgres-0 -- psql -U postgres -c "SELECT * FROM pg_stat_user_indexes WHERE relname = 'memory_embeddings';"
+   kubectl exec -it $PG_POD -- psql -U postgres -c \
+     "SELECT * FROM pg_stat_user_indexes WHERE relname = 'memory_embeddings';"
    ```
 
 2. **Review query patterns** (5 min)
@@ -638,8 +646,13 @@ Mean Time To Recovery (MTTR).
 3. **Rebuild index if needed** (30 min)
 
    ```bash
-   # Schedule during low-traffic period
-   kubectl exec -it postgres-0 -- psql -U postgres -c "REINDEX INDEX memory_embeddings_idx CONCURRENTLY;"
+   # First, list available indexes to verify the correct name
+   kubectl exec -it $PG_POD -- psql -U postgres -c \
+     "SELECT indexname FROM pg_indexes WHERE tablename = 'memory_embeddings';"
+
+   # Schedule during low-traffic period and use the correct index name
+   kubectl exec -it $PG_POD -- psql -U postgres -c \
+     "REINDEX INDEX <index_name> CONCURRENTLY;"
    ```
 
 4. **Scale if capacity issue** (10 min)
