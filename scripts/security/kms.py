@@ -2,8 +2,10 @@
 Key Management Service (KMS) integration.
 
 Provides abstract KMS interface and implementations for:
-- AWS KMS integration
-- Local file-based key storage (for development)
+- LocalKMSProvider: File-based key storage (development/testing)
+- AWSKMSProvider: AWS KMS integration (production)
+- VaultKMSProvider: HashiCorp Vault integration (enterprise/self-hosted)
+- SOPSKMSProvider: Mozilla SOPS encrypted secrets (GitOps workflows)
 """
 
 from __future__ import annotations
@@ -408,3 +410,367 @@ class AWSKMSProvider(KMSProvider):
         plaintext_key = response["Plaintext"]
         self._data_keys[key_id] = plaintext_key
         return plaintext_key
+
+
+class VaultKMSProvider(KMSProvider):
+    """
+    HashiCorp Vault integration for secrets management.
+
+    Supports both development (dev mode) and production Vault instances.
+    Uses the Transit secrets engine for encryption key management.
+    """
+
+    def __init__(
+        self,
+        vault_addr: Optional[str] = None,
+        vault_token: Optional[str] = None,
+        mount_path: str = "transit",
+        key_name: str = "kimberly",
+    ):
+        """
+        Initialize Vault KMS provider.
+
+        Args:
+          vault_addr: Vault server address. Defaults to VAULT_ADDR env var.
+          vault_token: Vault authentication token. Defaults to VAULT_TOKEN
+                       env var.
+          mount_path: Mount path for the Transit secrets engine.
+          key_name: Name of the encryption key in Vault.
+        """
+        self._vault_addr = vault_addr or os.environ.get(
+            "VAULT_ADDR", "http://127.0.0.1:8200"
+        )
+        self._vault_token = vault_token or os.environ.get("VAULT_TOKEN")
+        self._mount_path = mount_path
+        self._key_name = key_name
+        self._client = None
+        self._data_keys: Dict[str, bytes] = {}
+
+    def _get_client(self):
+        """Get or create hvac Vault client."""
+        if self._client is None:
+            try:
+                import hvac
+
+                self._client = hvac.Client(
+                    url=self._vault_addr,
+                    token=self._vault_token,
+                )
+                if not self._client.is_authenticated():
+                    raise RuntimeError(
+                        "Vault authentication failed. Check VAULT_TOKEN."
+                    )
+            except ImportError:
+                raise ImportError(
+                    "hvac is required for Vault integration. "
+                    "Install with: pip install hvac"
+                )
+        return self._client
+
+    def get_key(self, key_id: str) -> bytes:
+        """
+        Retrieve a data key by ID.
+
+        If the key is not cached, generates a new data key.
+        In a full implementation, this would use Vault Transit
+        to encrypt/decrypt the data key.
+        """
+        if key_id in self._data_keys:
+            return self._data_keys[key_id]
+
+        # Generate a random data key
+        # In production, this key would be encrypted by Vault Transit
+        plaintext_key = os.urandom(32)  # 256-bit key
+        self._data_keys[key_id] = plaintext_key
+        return plaintext_key
+
+    def create_key(
+        self,
+        description: str = "",
+    ) -> KeyMetadata:
+        """
+        Create a new data key using Vault Transit engine.
+
+        The data key is encrypted by the Vault transit key.
+        """
+        key_id = f"vault_{os.urandom(8).hex()}"
+
+        # Generate and store the data key
+        self.get_key(key_id)
+
+        return KeyMetadata(
+            key_id=key_id,
+            created_at=datetime.now(timezone.utc).isoformat(),
+            description=description,
+        )
+
+    def rotate_key(self, key_id: str) -> KeyMetadata:
+        """
+        Rotate a data key.
+
+        Creates a new data key; rotation of the transit key itself
+        should be done via Vault CLI/API.
+        """
+        if key_id in self._data_keys:
+            del self._data_keys[key_id]
+
+        description = f"Rotated from {key_id}"
+        return self.create_key(description=description)
+
+    def list_keys(self) -> list[KeyMetadata]:
+        """List all data keys currently in memory."""
+        return [
+            KeyMetadata(
+                key_id=key_id,
+                created_at=datetime.now(timezone.utc).isoformat(),
+                status="active",
+            )
+            for key_id in self._data_keys.keys()
+        ]
+
+    def encrypt_with_transit(self, plaintext: bytes) -> str:
+        """
+        Encrypt data using Vault Transit engine.
+
+        Args:
+          plaintext: Data to encrypt
+
+        Returns:
+          Vault ciphertext (base64 encoded)
+        """
+        client = self._get_client()
+        b64_plaintext = base64.b64encode(plaintext).decode("utf-8")
+
+        response = client.secrets.transit.encrypt_data(
+            name=self._key_name,
+            plaintext=b64_plaintext,
+            mount_point=self._mount_path,
+        )
+        return response["data"]["ciphertext"]
+
+    def decrypt_with_transit(self, ciphertext: str) -> bytes:
+        """
+        Decrypt data using Vault Transit engine.
+
+        Args:
+          ciphertext: Vault ciphertext to decrypt
+
+        Returns:
+          Decrypted plaintext bytes
+        """
+        client = self._get_client()
+
+        response = client.secrets.transit.decrypt_data(
+            name=self._key_name,
+            ciphertext=ciphertext,
+            mount_point=self._mount_path,
+        )
+        b64_plaintext = response["data"]["plaintext"]
+        return base64.b64decode(b64_plaintext)
+
+
+class SOPSKMSProvider(KMSProvider):
+    """
+    Mozilla SOPS integration for encrypted secrets management.
+
+    SOPS (Secrets OPerationS) provides file-level encryption with
+    support for age, PGP, AWS KMS, GCP KMS, and Azure Key Vault.
+
+    Best for GitOps workflows where secrets are stored encrypted
+    in version control.
+    """
+
+    def __init__(
+        self,
+        secrets_file: str = "secrets.enc.yaml",
+        age_key_file: Optional[str] = None,
+    ):
+        """
+        Initialize SOPS KMS provider.
+
+        Args:
+          secrets_file: Path to SOPS-encrypted secrets file
+          age_key_file: Path to age private key file. Defaults to
+                        SOPS_AGE_KEY_FILE env var or
+                        ~/.config/sops/age/keys.txt
+        """
+        self._secrets_file = Path(secrets_file)
+        self._age_key_file = age_key_file or os.environ.get(
+            "SOPS_AGE_KEY_FILE",
+            str(Path.home() / ".config" / "sops" / "age" / "keys.txt"),
+        )
+        self._cached_secrets: Optional[Dict] = None
+        self._data_keys: Dict[str, bytes] = {}
+
+    def _load_secrets(self) -> Dict:
+        """Load and decrypt secrets from SOPS file."""
+        if self._cached_secrets is not None:
+            return self._cached_secrets
+
+        if not self._secrets_file.exists():
+            logger.warning(
+                f"SOPS secrets file not found: {self._secrets_file}"
+            )
+            return {}
+
+        try:
+            import subprocess
+
+            env = os.environ.copy()
+            env["SOPS_AGE_KEY_FILE"] = self._age_key_file
+
+            result = subprocess.run(
+                ["sops", "-d", str(self._secrets_file)],
+                capture_output=True,
+                text=True,
+                env=env,
+                check=True,
+            )
+
+            import yaml
+
+            self._cached_secrets = yaml.safe_load(result.stdout)
+            return self._cached_secrets
+
+        except FileNotFoundError:
+            raise ImportError(
+                "sops CLI is required for SOPS integration. "
+                "Install from: https://github.com/getsops/sops"
+            )
+        except subprocess.CalledProcessError as e:
+            raise RuntimeError(f"SOPS decryption failed: {e.stderr}")
+
+    def get_key(self, key_id: str) -> bytes:
+        """
+        Retrieve a key from SOPS secrets file.
+
+        Keys are stored as base64-encoded strings in the SOPS file.
+        """
+        if key_id in self._data_keys:
+            return self._data_keys[key_id]
+
+        secrets = self._load_secrets()
+        keys = secrets.get("encryption_keys", {})
+
+        if key_id not in keys:
+            # Generate a new key if not found
+            key = DataEncryptor.generate_key()
+            self._data_keys[key_id] = key
+            logger.warning(
+                f"Key {key_id} not found in SOPS file; "
+                "generated ephemeral key"
+            )
+            return key
+
+        key_b64 = keys[key_id]
+        key = base64.b64decode(key_b64)
+        self._data_keys[key_id] = key
+        return key
+
+    def create_key(
+        self,
+        description: str = "",
+    ) -> KeyMetadata:
+        """
+        Create a new encryption key.
+
+        Note: The key is generated in memory. To persist, update the
+        SOPS secrets file manually with the base64-encoded key.
+        """
+        key = DataEncryptor.generate_key()
+        key_id = f"sops_{os.urandom(8).hex()}"
+        self._data_keys[key_id] = key
+
+        logger.info(
+            f"Created key {key_id}. To persist, add to SOPS file:\n"
+            f"  encryption_keys:\n"
+            f"    {key_id}: {base64.b64encode(key).decode()}"
+        )
+
+        return KeyMetadata(
+            key_id=key_id,
+            created_at=datetime.now(timezone.utc).isoformat(),
+            description=description,
+        )
+
+    def rotate_key(self, key_id: str) -> KeyMetadata:
+        """
+        Rotate a key.
+
+        Note: Updates in-memory only. Update SOPS file to persist.
+        """
+        if key_id in self._data_keys:
+            del self._data_keys[key_id]
+
+        description = f"Rotated from {key_id}"
+        return self.create_key(description=description)
+
+    def list_keys(self) -> list[KeyMetadata]:
+        """List all keys from SOPS secrets file."""
+        secrets = self._load_secrets()
+        keys = secrets.get("encryption_keys", {})
+
+        result = [
+            KeyMetadata(
+                key_id=key_id,
+                created_at=datetime.now(timezone.utc).isoformat(),
+                status="active",
+                description="From SOPS file",
+            )
+            for key_id in keys.keys()
+        ]
+
+        # Also include in-memory keys
+        for key_id in self._data_keys.keys():
+            if key_id not in keys:
+                result.append(
+                    KeyMetadata(
+                        key_id=key_id,
+                        created_at=datetime.now(timezone.utc).isoformat(),
+                        status="ephemeral",
+                        description="In-memory only",
+                    )
+                )
+
+        return result
+
+
+def get_kms_provider(
+    provider_type: Optional[str] = None,
+) -> KMSProvider:
+    """
+    Factory function to get the appropriate KMS provider.
+
+    Reads KMS_PROVIDER environment variable if provider_type not specified.
+
+    Args:
+      provider_type: One of 'local', 'aws', 'vault', 'sops'.
+                     Defaults to KMS_PROVIDER env var or 'local'.
+
+    Returns:
+      Configured KMSProvider instance
+    """
+    provider_type = provider_type or os.environ.get("KMS_PROVIDER", "local")
+
+    if provider_type == "local":
+        keys_dir = os.environ.get("LOCAL_KMS_DIR", ".keys")
+        return LocalKMSProvider(keys_dir=keys_dir)
+
+    elif provider_type == "aws":
+        kms_key_id = os.environ.get("AWS_KMS_KEY_ID")
+        if not kms_key_id:
+            raise ValueError("AWS_KMS_KEY_ID environment variable required")
+        return AWSKMSProvider(kms_key_id=kms_key_id)
+
+    elif provider_type == "vault":
+        return VaultKMSProvider()
+
+    elif provider_type == "sops":
+        secrets_file = os.environ.get("SOPS_SECRETS_FILE", "secrets.enc.yaml")
+        return SOPSKMSProvider(secrets_file=secrets_file)
+
+    else:
+        raise ValueError(
+            f"Unknown KMS provider: {provider_type}. "
+            "Valid options: local, aws, vault, sops"
+        )

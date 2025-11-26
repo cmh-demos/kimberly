@@ -18,6 +18,9 @@ from scripts.security.kms import (
     AWSKMSProvider,
     KMSProvider,
     LocalKMSProvider,
+    SOPSKMSProvider,
+    VaultKMSProvider,
+    get_kms_provider,
 )
 
 __all__ = [
@@ -26,6 +29,9 @@ __all__ = [
     "KMSProvider",
     "AWSKMSProvider",
     "LocalKMSProvider",
+    "VaultKMSProvider",
+    "SOPSKMSProvider",
+    "get_kms_provider",
     "AuditLogger",
     "AuditEvent",
     "SensitiveOperation",

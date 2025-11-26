@@ -622,5 +622,225 @@ class TestIntegration(unittest.TestCase):
         self.assertEqual(new_key_meta.status, "active")
 
 
+class TestGetKMSProviderFactory(unittest.TestCase):
+    """Tests for get_kms_provider factory function."""
+
+    def setUp(self):
+        self.temp_dir = tempfile.mkdtemp()
+        # Save original env vars
+        self._orig_kms_provider = os.environ.get("KMS_PROVIDER")
+        self._orig_local_kms_dir = os.environ.get("LOCAL_KMS_DIR")
+
+    def tearDown(self):
+        import shutil
+
+        shutil.rmtree(self.temp_dir, ignore_errors=True)
+
+        # Restore original env vars
+        if self._orig_kms_provider is not None:
+            os.environ["KMS_PROVIDER"] = self._orig_kms_provider
+        elif "KMS_PROVIDER" in os.environ:
+            del os.environ["KMS_PROVIDER"]
+
+        if self._orig_local_kms_dir is not None:
+            os.environ["LOCAL_KMS_DIR"] = self._orig_local_kms_dir
+        elif "LOCAL_KMS_DIR" in os.environ:
+            del os.environ["LOCAL_KMS_DIR"]
+
+    def test_get_local_provider_default(self):
+        from scripts.security.kms import get_kms_provider
+
+        os.environ["LOCAL_KMS_DIR"] = self.temp_dir
+        if "KMS_PROVIDER" in os.environ:
+            del os.environ["KMS_PROVIDER"]
+
+        provider = get_kms_provider()
+        self.assertIsInstance(provider, LocalKMSProvider)
+
+    def test_get_local_provider_explicit(self):
+        from scripts.security.kms import get_kms_provider
+
+        os.environ["LOCAL_KMS_DIR"] = self.temp_dir
+        provider = get_kms_provider("local")
+        self.assertIsInstance(provider, LocalKMSProvider)
+
+    def test_get_local_provider_from_env(self):
+        from scripts.security.kms import get_kms_provider
+
+        os.environ["KMS_PROVIDER"] = "local"
+        os.environ["LOCAL_KMS_DIR"] = self.temp_dir
+
+        provider = get_kms_provider()
+        self.assertIsInstance(provider, LocalKMSProvider)
+
+    def test_get_invalid_provider(self):
+        from scripts.security.kms import get_kms_provider
+
+        with self.assertRaises(ValueError) as ctx:
+            get_kms_provider("invalid_provider")
+
+        self.assertIn("Unknown KMS provider", str(ctx.exception))
+
+    def test_get_aws_provider_missing_key_id(self):
+        from scripts.security.kms import get_kms_provider
+
+        # Remove AWS_KMS_KEY_ID if set
+        if "AWS_KMS_KEY_ID" in os.environ:
+            del os.environ["AWS_KMS_KEY_ID"]
+
+        with self.assertRaises(ValueError) as ctx:
+            get_kms_provider("aws")
+
+        self.assertIn("AWS_KMS_KEY_ID", str(ctx.exception))
+
+
+class TestVaultKMSProvider(unittest.TestCase):
+    """Tests for VaultKMSProvider (without actual Vault connection)."""
+
+    def test_vault_provider_initialization(self):
+        from scripts.security.kms import VaultKMSProvider
+
+        provider = VaultKMSProvider(
+            vault_addr="http://127.0.0.1:8200",
+            vault_token="test-token",
+            mount_path="transit",
+            key_name="test-key",
+        )
+
+        self.assertEqual(provider._vault_addr, "http://127.0.0.1:8200")
+        self.assertEqual(provider._vault_token, "test-token")
+        self.assertEqual(provider._mount_path, "transit")
+        self.assertEqual(provider._key_name, "test-key")
+
+    def test_vault_provider_env_vars(self):
+        from scripts.security.kms import VaultKMSProvider
+
+        # Temporarily set env vars
+        os.environ["VAULT_ADDR"] = "http://vault.example.com:8200"
+        os.environ["VAULT_TOKEN"] = "env-token"
+
+        try:
+            provider = VaultKMSProvider()
+            self.assertEqual(
+                provider._vault_addr, "http://vault.example.com:8200"
+            )
+            self.assertEqual(provider._vault_token, "env-token")
+        finally:
+            del os.environ["VAULT_ADDR"]
+            del os.environ["VAULT_TOKEN"]
+
+    def test_vault_create_key(self):
+        from scripts.security.kms import VaultKMSProvider
+
+        provider = VaultKMSProvider(vault_token="test")
+        metadata = provider.create_key(description="Test key")
+
+        self.assertTrue(metadata.key_id.startswith("vault_"))
+        self.assertEqual(metadata.description, "Test key")
+
+    def test_vault_get_key_generates_key(self):
+        from scripts.security.kms import VaultKMSProvider
+
+        provider = VaultKMSProvider(vault_token="test")
+        key = provider.get_key("test_key_id")
+
+        self.assertEqual(len(key), 32)  # 256-bit key
+
+    def test_vault_list_keys(self):
+        from scripts.security.kms import VaultKMSProvider
+
+        provider = VaultKMSProvider(vault_token="test")
+        provider.create_key(description="Key 1")
+        provider.create_key(description="Key 2")
+
+        keys = provider.list_keys()
+        self.assertEqual(len(keys), 2)
+
+    def test_vault_rotate_key(self):
+        from scripts.security.kms import VaultKMSProvider
+
+        provider = VaultKMSProvider(vault_token="test")
+        original = provider.create_key()
+        rotated = provider.rotate_key(original.key_id)
+
+        self.assertNotEqual(original.key_id, rotated.key_id)
+        self.assertIn("Rotated from", rotated.description)
+
+
+class TestSOPSKMSProvider(unittest.TestCase):
+    """Tests for SOPSKMSProvider (without actual SOPS execution)."""
+
+    def setUp(self):
+        self.temp_dir = tempfile.mkdtemp()
+
+    def tearDown(self):
+        import shutil
+
+        shutil.rmtree(self.temp_dir, ignore_errors=True)
+
+    def test_sops_provider_initialization(self):
+        from scripts.security.kms import SOPSKMSProvider
+
+        secrets_file = os.path.join(self.temp_dir, "secrets.enc.yaml")
+        provider = SOPSKMSProvider(
+            secrets_file=secrets_file,
+            age_key_file="~/.config/sops/age/keys.txt",
+        )
+
+        self.assertEqual(str(provider._secrets_file), secrets_file)
+        self.assertEqual(
+            provider._age_key_file, "~/.config/sops/age/keys.txt"
+        )
+
+    def test_sops_create_key(self):
+        from scripts.security.kms import SOPSKMSProvider
+
+        secrets_file = os.path.join(self.temp_dir, "secrets.enc.yaml")
+        provider = SOPSKMSProvider(secrets_file=secrets_file)
+
+        metadata = provider.create_key(description="Test SOPS key")
+
+        self.assertTrue(metadata.key_id.startswith("sops_"))
+        self.assertEqual(metadata.description, "Test SOPS key")
+
+    def test_sops_get_key_generates_ephemeral(self):
+        from scripts.security.kms import SOPSKMSProvider
+
+        secrets_file = os.path.join(self.temp_dir, "secrets.enc.yaml")
+        provider = SOPSKMSProvider(secrets_file=secrets_file)
+
+        key = provider.get_key("nonexistent_key")
+
+        # Should generate ephemeral key
+        self.assertEqual(len(key), 32)
+
+    def test_sops_list_keys(self):
+        from scripts.security.kms import SOPSKMSProvider
+
+        secrets_file = os.path.join(self.temp_dir, "secrets.enc.yaml")
+        provider = SOPSKMSProvider(secrets_file=secrets_file)
+
+        provider.create_key(description="Key 1")
+        provider.create_key(description="Key 2")
+
+        keys = provider.list_keys()
+
+        # Both should be ephemeral since no SOPS file
+        self.assertEqual(len(keys), 2)
+        for key in keys:
+            self.assertEqual(key.status, "ephemeral")
+
+    def test_sops_rotate_key(self):
+        from scripts.security.kms import SOPSKMSProvider
+
+        secrets_file = os.path.join(self.temp_dir, "secrets.enc.yaml")
+        provider = SOPSKMSProvider(secrets_file=secrets_file)
+
+        original = provider.create_key()
+        rotated = provider.rotate_key(original.key_id)
+
+        self.assertNotEqual(original.key_id, rotated.key_id)
+
+
 if __name__ == "__main__":
     unittest.main()
