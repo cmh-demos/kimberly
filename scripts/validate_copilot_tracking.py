@@ -26,9 +26,12 @@ def main():
         print("copilot_tracking.json is valid")
         return 0
     except ValidationError as e:
+        path_str = ""
+        if hasattr(e, "json_path") and e.json_path:
+            path_str = f" at {e.json_path}"
         print(
             f"Validation error in misc/copilot_tracking.json"
-            f"{' at ' + str(e.json_path) if hasattr(e, 'json_path') and e.json_path else ''}: {e.message}"
+            f"{path_str}: {e.message}"
         )
         return 1
 
