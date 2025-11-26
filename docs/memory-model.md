@@ -132,9 +132,9 @@ Component detectors and signals:
   agent
 tasks (0..1)
 - emotional_weight: sentiment + explicit user signals (0..1)
-- predictive_value: past-match usability (did similar items lead to useful
-  actions?)
-(0..1)
+- predictive_value: historical match rate from user feedback — computed as the
+  ratio of positive feedback (thumbs_up, rating >= 4) to total feedback events
+  for similar items retrieved in past sessions (0..1)
 - recency_freq: frequency and recency normalized (0..1)
 
 Pruning rules (cost-aware):
