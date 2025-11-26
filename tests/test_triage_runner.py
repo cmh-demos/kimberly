@@ -1,6 +1,6 @@
 import os
 import unittest
-from unittest.mock import mock_open, patch
+from unittest.mock import MagicMock, mock_open, patch
 
 import yaml
 
@@ -86,9 +86,15 @@ class TestTriageRunnerHelpers(unittest.TestCase):
         docs = tr.fetch_related_docs("owner", "repo", "token", "body", "title")
         self.assertEqual(len(docs), 1)
 
-    def test_move_card(self):
+    @patch("scripts.triage_runner.requests.post")
+    def test_move_card(self, mock_post):
+        mock_resp = MagicMock()
+        mock_resp.raise_for_status.return_value = None
+        mock_resp.headers = {"X-RateLimit-Remaining": "10"}
+        mock_post.return_value = mock_resp
         # Stub function, just check it doesn't error
-        tr.move_card("owner", "repo", 1, "token", "column")
+        tr.move_card(1, 2, "token")
+        mock_post.assert_called_once()
 
     @patch("scripts.triage_runner.requests.get")
     def test_github_search_issues_failure(self, mock_get):
@@ -247,7 +253,13 @@ class TestSmokeRunner(unittest.TestCase):
     @patch("builtins.open", new_callable=mock_open)
     @patch("scripts.triage_runner.json.dump")
     def test_main_with_low_severity(
-        self, mock_dump, mock_file, mock_assign, mock_comment, mock_label, mock_search
+        self,
+        mock_dump,
+        mock_file,
+        mock_assign,
+        mock_comment,
+        mock_label,
+        mock_search,
     ):
         mock_search.return_value = [
             {"number": 1, "title": "minor bug", "body": "body", "labels": []}
@@ -265,7 +277,13 @@ class TestSmokeRunner(unittest.TestCase):
     @patch("builtins.open", new_callable=mock_open)
     @patch("scripts.triage_runner.json.dump")
     def test_main_with_typo_severity(
-        self, mock_dump, mock_file, mock_assign, mock_comment, mock_label, mock_search
+        self,
+        mock_dump,
+        mock_file,
+        mock_assign,
+        mock_comment,
+        mock_label,
+        mock_search,
     ):
         mock_search.return_value = [
             {"number": 1, "title": "typo in code", "body": "body", "labels": []}
@@ -314,10 +332,21 @@ class TestSmokeRunner(unittest.TestCase):
     @patch("builtins.open", new_callable=mock_open)
     @patch("scripts.triage_runner.json.dump")
     def test_main_with_missing_fields(
-        self, mock_dump, mock_file, mock_assign, mock_comment, mock_label, mock_search
+        self,
+        mock_dump,
+        mock_file,
+        mock_assign,
+        mock_comment,
+        mock_label,
+        mock_search,
     ):
         mock_search.return_value = [
-            {"number": 1, "title": "Test", "body": "description: test", "labels": []}
+            {
+                "number": 1,
+                "title": "Test",
+                "body": "description: test",
+                "labels": [],
+            }
         ]
         rv = tr.main()
         self.assertEqual(rv, 0)
@@ -332,9 +361,18 @@ class TestSmokeRunner(unittest.TestCase):
     @patch("builtins.open", new_callable=mock_open)
     @patch("scripts.triage_runner.json.dump")
     def test_main_backlog_added(
-        self, mock_dump, mock_file, mock_assign, mock_comment, mock_label, mock_search
+        self,
+        mock_dump,
+        mock_file,
+        mock_assign,
+        mock_comment,
+        mock_label,
+        mock_search,
     ):
-        body = "summary: test\nrepro_steps: steps\nexpected_behavior: expected\nactual_behavior: actual\nsize_estimate: small"
+        body = (
+            "summary: test\nrepro_steps: steps\nexpected_behavior: expected\n"
+            "actual_behavior: actual\nsize_estimate: small"
+        )
         mock_search.return_value = [
             {"number": 1, "title": "Test", "body": body, "labels": []}
         ]
@@ -351,10 +389,21 @@ class TestSmokeRunner(unittest.TestCase):
     @patch("builtins.open", new_callable=mock_open)
     @patch("scripts.triage_runner.json.dump")
     def test_main_with_critical_issue(
-        self, mock_dump, mock_file, mock_assign, mock_comment, mock_label, mock_search
+        self,
+        mock_dump,
+        mock_file,
+        mock_assign,
+        mock_comment,
+        mock_label,
+        mock_search,
     ):
         mock_search.return_value = [
-            {"number": 1, "title": "Data loss bug", "body": "body", "labels": []}
+            {
+                "number": 1,
+                "title": "Data loss bug",
+                "body": "body",
+                "labels": [],
+            }
         ]
         rv = tr.main()
         self.assertEqual(rv, 0)
@@ -379,7 +428,10 @@ class TestSmokeRunner(unittest.TestCase):
         mock_label,
         mock_search,
     ):
-        body = "summary: test\nrepro_steps: steps\nexpected_behavior: expected\nactual_behavior: actual\nsize_estimate: small"
+        body = (
+            "summary: test\nrepro_steps: steps\nexpected_behavior: expected\n"
+            "actual_behavior: actual\nsize_estimate: small"
+        )
         mock_search.return_value = [
             {
                 "number": 1,
@@ -451,13 +503,13 @@ class TestSmokeRunner(unittest.TestCase):
                 "number": 1,
                 "title": "Test",
                 "body": "body",
-                "labels": [{"name": "feature-request"}],
+                "labels": [{"name": "enhancement"}],
             }
         ]
         # Mock label refresh
         mock_resp = mock_get.return_value
         mock_resp.ok = True
-        mock_resp.json.return_value = {"labels": [{"name": "feature-request"}]}
+        mock_resp.json.return_value = {"labels": [{"name": "enhancement"}]}
         rv = tr.main()
         self.assertEqual(rv, 0)
 
@@ -471,7 +523,13 @@ class TestSmokeRunner(unittest.TestCase):
     @patch("builtins.open", new_callable=mock_open)
     @patch("scripts.triage_runner.json.dump")
     def test_main_live_action_failure(
-        self, mock_dump, mock_file, mock_assign, mock_comment, mock_label, mock_search
+        self,
+        mock_dump,
+        mock_file,
+        mock_assign,
+        mock_comment,
+        mock_label,
+        mock_search,
     ):
         mock_search.return_value = [
             {"number": 1, "title": "Test", "body": "body", "labels": []}

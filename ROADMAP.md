@@ -122,7 +122,7 @@ estimate: 4 days
 
 ### Next steps I can take (select 1)
 
-- Create GitHub issues for each story with labels and owners.
+- Create GitHub issues for each story with labels (see .github/labels.yml for standard labels) and owners.
 - Open PRs for Quickstart README + CI changes.
 - Break down stories into sub-tasks and acceptance criteria.
 

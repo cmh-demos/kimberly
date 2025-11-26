@@ -4,6 +4,7 @@ about: Template for tracking work items, features, bugs, or tasks in the Kimberl
 issue must be assigned to someone from the roles list in roles.md, and must include an estimate.
 Upon completion, add actual time spent.
 title: "[TYPE] - Brief description of the work"
+# Default labels: see .github/labels.yml for full list of standard labels
 labels: ["work-tracking"]
 assignees: ""
 ---
@@ -72,6 +73,6 @@ issue must have an assignee.
 - **Time Tracking**: Provide an estimate at creation. When the issue is resolved, update the "Actual
   Time Spent" field in the issue description or comments for tracking purposes.
 - **Labels**: Use appropriate labels (e.g., "bug", "feature", "backend") in addition to "work-
-  tracking".
+  tracking" (see .github/labels.yml for full list of standard labels).
 - **Closing**: Ensure acceptance criteria are met before closing. Update actual time and any
   retrospective notes.
