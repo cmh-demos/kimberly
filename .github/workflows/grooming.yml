@@ -1,0 +1,74 @@
+---
+name: Grooming Runner
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Run in dry-run mode (overrides branch default)'
+        required: false
+        default: 'auto'
+        type: choice
+        options:
+          - 'auto'
+          - 'true'
+          - 'false'
+
+jobs:
+  groom:
+    runs-on: ubuntu-latest
+    # Limit the GITHUB_TOKEN to the least privilege needed by the
+    # grooming script. It reads repo contents locally (checkout) and
+    # needs write access to issues and projects to modify and move
+    # items on the board. All other scopes are implicitly set to none.
+    permissions:
+      contents: read
+      issues: write
+      # Note: 'projects' isn't currently a valid workflow permissions
+      # key in the Actions schema used by this repository's tooling.
+      # If the grooming runner needs to move project cards at runtime
+      # you have two options:
+      # 1) Use a repository/organization default that allows project
+      #    operations for GITHUB_TOKEN, or
+      # 2) Provide a fine-grained PAT or GitHub App token (stored in
+      #    secrets) with the "Projects" permission and use that token
+      #    instead of GITHUB_TOKEN when calling project endpoints.
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Determine dry-run mode
+        id: dry_run
+        run: |
+          if [ "${{ github.event.inputs.dry_run }}" != "auto" ]; then
+            echo "DRY_RUN=${{ github.event.inputs.dry_run }}" >> $GITHUB_ENV
+          elif [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "DRY_RUN=false" >> $GITHUB_ENV
+          else
+            echo "DRY_RUN=true" >> $GITHUB_ENV
+          fi
+
+      - name: Run grooming script
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          DRY_RUN: ${{ env.DRY_RUN }}
+        run: |
+          python scripts/grooming_runner.py
+
+      - name: Upload triage log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: triage-log-${{ github.run_id }}
+          path: triage_log.json

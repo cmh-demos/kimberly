@@ -23,6 +23,7 @@ secrets.json
 # Logs and sensitive files
 *.log
 misc/copilot_tracking.json  # If sensitive, otherwise remove
+logs/archive/  # Log rotation archive directory
 
 # Python bytecode and test caches
 # ignore compiled Python files

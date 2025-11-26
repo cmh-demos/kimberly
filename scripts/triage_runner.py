@@ -90,7 +90,10 @@ def github_get_issue(
 def post_label(
     owner: str, repo: str, issue_number: int, label: str, token: str
 ) -> None:
-    url = f"https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}/labels"
+    url = (
+        "https://api.github.com/repos/"
+        f"{owner}/{repo}/issues/{issue_number}/labels"
+    )
     headers = {
         "Accept": "application/vnd.github+json",
         "Authorization": f"Bearer {token}",
@@ -102,7 +105,10 @@ def post_label(
 def post_comment(
     owner: str, repo: str, issue_number: int, comment_text: str, token: str
 ) -> None:
-    url = f"https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}/comments"
+    url = (
+        "https://api.github.com/repos/"
+        f"{owner}/{repo}/issues/{issue_number}/comments"
+    )
     headers = {
         "Accept": "application/vnd.github+json",
         "Authorization": f"Bearer {token}",
@@ -114,7 +120,10 @@ def post_comment(
 def get_project_columns(
     owner: str, repo: str, project_id: int, token: str
 ) -> List[dict]:
-    url = f"https://api.github.com/repos/{owner}/{repo}/projects/{project_id}/columns"
+    url = (
+        "https://api.github.com/repos/"
+        f"{owner}/{repo}/projects/{project_id}/columns"
+    )
     headers = {
         "Authorization": f"Bearer {token}",
         "Accept": "application/vnd.github+json",
@@ -199,7 +208,9 @@ def fetch_related_docs(
     references = []
     # Simple implementation: search for keywords in docs/ folder via GitHub API
     # This is a placeholder; in practice, use GitHub search or local search
-    keywords = re.findall(r"\w+", issue_title + " " + issue_body)[:10]  # top 10 words
+    keywords = re.findall(r"\w+", issue_title + " " + issue_body)[
+        :10
+    ]  # top 10 words
     query = f'repo:{owner}/{repo} path:docs/ {" ".join(keywords[:5])}'
     try:
         resp = requests.get(
@@ -215,15 +226,6 @@ def fetch_related_docs(
         # Placeholder implementation: silently ignore API errors
         pass
     return references
-
-
-def move_card(
-    owner: str, repo: str, issue_number: int, token: str, column_name: str
-) -> None:
-    """Move issue to project card column. Placeholder - requires project board setup."""
-    # GitHub Projects API is complex; this is a stub
-    # In practice, find project, card, move to column
-    print(f"[stub] Would move issue #{issue_number} to column: {column_name}")
 
 
 def assign_triage_owner(
@@ -242,7 +244,8 @@ def assign_triage_owner(
 def detect_pii(text: str) -> bool:
     if not text:
         return False
-    # default PII patterns; runner will try to use patterns from rules when available
+    # default PII patterns; runner will try to use patterns from
+    # rules when available
     patterns = [
         re.compile(r"api[_-]?key\s*[:=]\s*\S+", re.I),
         re.compile(r"secret\s*[:=]\s*\S+", re.I),
@@ -299,7 +302,8 @@ def main() -> int:
                 dup_cfg = s["detect_duplicates"]
                 if isinstance(dup_cfg, dict):
                     duplicate_similarity_threshold = dup_cfg.get(
-                        "similarity_threshold", DEFAULT_DUPLICATE_SIMILARITY_THRESHOLD
+                        "similarity_threshold",
+                        DEFAULT_DUPLICATE_SIMILARITY_THRESHOLD,
                     )
             # fallback older style keys
         # also check for pii_handling.detect_patterns
@@ -323,7 +327,9 @@ def main() -> int:
     if not dry_run_env:
         ref = os.environ.get("GITHUB_REF", "")
         current_branch = (
-            ref.replace("refs/heads/", "") if ref.startswith("refs/heads/") else ""
+            ref.replace("refs/heads/", "")
+            if ref.startswith("refs/heads/")
+            else ""
         )
         dry_run = current_branch not in protected_branches
     else:
@@ -333,13 +339,22 @@ def main() -> int:
     gh_token = os.environ.get("GITHUB_TOKEN")
 
     if not gh_repo:
-        print("No GITHUB_REPOSITORY environment — running in local simulation mode")
-        print("Runner exits after parsing rules (no API calls without repository).")
+        print(
+            "No GITHUB_REPOSITORY environment — running in local "
+            "simulation mode"
+        )
+        print(
+            "Runner exits after parsing rules (no API calls without "
+            "repository)."
+        )
         return 0
 
     owner, repo = gh_repo.split("/")
     if not gh_token:
-        print("No GITHUB_TOKEN present — will operate in dry-run only", file=sys.stderr)
+        print(
+            "No GITHUB_TOKEN present — will operate in dry-run only",
+            file=sys.stderr,
+        )
         dry_run = True
 
     print(f"Dry-run: {dry_run}")
@@ -379,7 +394,9 @@ def main() -> int:
         changed_fields: List[str] = []
         audit_entry: Dict[str, Any] = {
             "issue_number": number,
-            "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "timestamp": datetime.now(timezone.utc).strftime(
+                "%Y-%m-%dT%H:%M:%SZ"
+            ),
             "event_type": "initial_triage",
             "triage_owner": default_owner,
             "severity": None,
@@ -410,7 +427,8 @@ def main() -> int:
 
         if missing_fields:
             actions.append(
-                f"would add label: needs-info (missing: {','.join(missing_fields)})"
+                f"would add label: needs-info (missing: "
+                f"{','.join(missing_fields)})"
             )
             audit_entry["notes"] += f"missing_fields={missing_fields}; "
             audit_entry["changed_fields"].append("needs_info")
@@ -438,8 +456,11 @@ def main() -> int:
         # 3) Duplicate detection (basic title/title similarity)
         duplicates = []
         try:
-            # perform a lightweight search for issues with similar words from title
-            title_terms = [w.lower() for w in re.findall(r"\w+", title) if len(w) > 2]
+            # perform a lightweight search for issues with similar
+            # words from title
+            title_terms = [
+                w.lower() for w in re.findall(r"\w+", title) if len(w) > 2
+            ]
             if title_terms:
                 q = " ".join(title_terms[:6])
                 q_full = f"repo:{owner}/{repo} is:issue is:open {q}"
@@ -460,7 +481,9 @@ def main() -> int:
                 for c in cand:
                     if c.get("number") == number:
                         continue
-                    s = SequenceMatcher(None, title.lower(), c.get("title", "").lower())
+                    s = SequenceMatcher(
+                        None, title.lower(), c.get("title", "").lower()
+                    )
                     ratio = s.ratio()
                     if ratio >= duplicate_similarity_threshold:
                         duplicates.append(
@@ -474,11 +497,14 @@ def main() -> int:
             duplicates = []
 
         if duplicates:
-            actions.append("would mark as duplicate and link to canonical issue(s)")
+            actions.append(
+                "would mark as duplicate and link to canonical issue(s)"
+            )
             audit_entry["notes"] += f"duplicates={duplicates}; "
         # 4) Title sanitization: remove priority tags from title when present
         sanitized_title = re.sub(
-            r"\s*\[\s*(Top Priority|High Priority|Medium Priority|Low Priority|P0|P1|P2|P3|Other)\s*\]\s*",
+            r"\s*\[\s*(Top Priority|High Priority|Medium Priority|"
+            r"Low Priority|P0|P1|P2|P3|Other)\s*\]\s*",
             " ",
             title,
             flags=re.I,
@@ -496,9 +522,13 @@ def main() -> int:
         priority = None
         # map label names to severity if present
         labels_list = [
-            lbl.get("name") for lbl in issue.get("labels", []) if isinstance(lbl, dict)
+            lbl.get("name")
+            for lbl in issue.get("labels", [])
+            if isinstance(lbl, dict)
         ]
-        label_to_sev = rules.get("label_mappings", {}).get("label_to_severity", {})
+        label_to_sev = rules.get("label_mappings", {}).get(
+            "label_to_severity", {}
+        )
         for lbl in labels_list:
             if lbl in label_to_sev:
                 severity = label_to_sev[lbl]
@@ -513,7 +543,9 @@ def main() -> int:
                 or "security" in labels_list
             ):
                 severity = "critical"
-            elif "block" in text or "broken for many" in text or "major" in text:
+            elif (
+                "block" in text or "broken for many" in text or "major" in text
+            ):
                 severity = "high"
             elif "minor" in text or "typo" in text:
                 severity = "low"
@@ -521,27 +553,28 @@ def main() -> int:
                 severity = "medium"
 
         # compute priority from labels or fallback
-        label_to_pr = rules.get("label_mappings", {}).get("label_to_priority", {})
+        label_to_pr = rules.get("label_mappings", {}).get(
+            "label_to_priority", {}
+        )
         for lbl in labels_list:
             if lbl in label_to_pr:
                 priority = label_to_pr[lbl]
                 break
         if not priority:
             # simple mapping based on severity
-            priority_map = {"critical": "p0", "high": "p1", "medium": "p2", "low": "p3"}
+            priority_map = {
+                "critical": "p0",
+                "high": "p1",
+                "medium": "p2",
+                "low": "p3",
+            }
             priority = priority_map.get(severity, "p3")
 
         audit_entry["severity"] = severity
         audit_entry["priority"] = priority
 
-        # 6) Backlog gating logic: check required 'size_estimate' and product-approved for features
+        # 6) Backlog gating logic: check required 'size_estimate'
         backlog_actions: List[str] = []
-        # detect feature-request label
-        if "feature-request" in labels_list:
-            product_ok = "product-approved" in labels_list
-        else:
-            product_ok = True
-
         # check if size_estimate found in body and allowed values
         size_est_match = re.search(r"size_estimate\s*[:=]\s*(\w+)", body, re.I)
         size_est_value: Optional[str] = (
@@ -555,7 +588,9 @@ def main() -> int:
             if size_est_value not in allowed_sizes:
                 # invalid size estimate
                 backlog_actions.append("invalid_size_estimate")
-                actions.append("would add label: needs-info (invalid size_estimate)")
+                actions.append(
+                    "would add label: needs-info (invalid size_estimate)"
+                )
         else:
             backlog_actions.append("missing_size_estimate")
 
@@ -563,7 +598,8 @@ def main() -> int:
             # live mode processing
             print("[live] performing actions...")
             try:
-                # apply PII handling: add security label and post secure intake instructions
+                # apply PII handling: add security label and post secure
+                # intake instructions
                 if pii_found:
                     if "security" not in labels_list:
                         post_label(owner, repo, number, "security", gh_token)
@@ -582,11 +618,15 @@ def main() -> int:
                     )
 
                 # sanitize title if needed
-                if audit_entry["title_sanitized"] and audit_entry["original_title"]:
+                if (
+                    audit_entry["title_sanitized"]
+                    and audit_entry["original_title"]
+                ):
                     # update title via issue edit
                     new_title = sanitized_title.strip()
                     resp = requests.patch(
-                        f"https://api.github.com/repos/{owner}/{repo}/issues/{number}",
+                        "https://api.github.com/repos/"
+                        + f"{owner}/{repo}/issues/{number}",
                         headers={
                             "Authorization": f"Bearer {gh_token}",
                             "Accept": "application/vnd.github+json",
@@ -609,34 +649,30 @@ def main() -> int:
                     )
                     post_comment(owner, repo, number, comment_text, gh_token)
 
-                # add Triaged label and short comment if triaging complete
-                if "Triaged" not in labels_list:
-                    post_label(owner, repo, number, "Triaged", gh_token)
-                    post_comment(
-                        owner,
-                        repo,
-                        number,
-                        rules.get("bot_comment_templates", {}).get(
-                            "triaged_backlog_notice",
-                            "This issue has been marked Triaged and placed in Backlog.",
-                        ),
-                        gh_token,
-                    )
-                    changed_fields.append("Triaged")
-
-                # Assign triage owner
-                assign_triage_owner(owner, repo, number, default_owner, gh_token)
-
                 # backlog gating
                 can_add_backlog = True
                 if "missing_size_estimate" in backlog_actions:
                     can_add_backlog = False
                 if "invalid_size_estimate" in backlog_actions:
                     can_add_backlog = False
-                if "feature-request" in labels_list and not product_ok:
-                    can_add_backlog = False
 
                 if can_add_backlog:
+                    # add Triaged label and short comment if triaging complete
+                    if "Triaged" not in labels_list:
+                        post_label(owner, repo, number, "Triaged", gh_token)
+                        post_comment(
+                            owner,
+                            repo,
+                            number,
+                            rules.get("bot_comment_templates", {}).get(
+                                "triaged_backlog_notice",
+                                "This issue has been marked Triaged and "
+                                "placed in Backlog.",
+                            ),
+                            gh_token,
+                        )
+                        changed_fields.append("Triaged")
+
                     if "Backlog" not in labels_list:
                         post_label(owner, repo, number, "Backlog", gh_token)
                         post_comment(
@@ -651,11 +687,6 @@ def main() -> int:
                         changed_fields.append("Backlog")
                 else:
                     # gate failed
-                    if "needs-product-review" not in labels_list:
-                        post_label(
-                            owner, repo, number, "needs-product-review", gh_token
-                        )
-                        changed_fields.append("needs-product-review")
                     if "needs_work" not in labels_list:
                         post_label(owner, repo, number, "needs_work", gh_token)
                         changed_fields.append("needs_work")
@@ -671,7 +702,10 @@ def main() -> int:
                     )
 
                 # escalate when critical / security
-                if audit_entry["severity"] == "critical" or "security" in labels_list:
+                if (
+                    audit_entry["severity"] == "critical"
+                    or "security" in labels_list
+                ):
                     post_comment(
                         owner,
                         repo,
@@ -684,14 +718,19 @@ def main() -> int:
                     changed_fields.append("escalation")
 
                 # Pair enforcement & triaged_to_backlog/backlog_to_triaged
-                pair_cfg = rules.get("label_policy", {}).get("pair_enforcement", {})
+                pair_cfg = rules.get("label_policy", {}).get(
+                    "pair_enforcement", {}
+                )
                 if isinstance(pair_cfg, dict):
                     pair = pair_cfg.get("pair", ["Triaged", "Backlog"])
                     if "Triaged" in pair and "Backlog" in pair:
-                        skip_labels = set(pair_cfg.get("skip_if_any_present", []))
+                        skip_labels = set(
+                            pair_cfg.get("skip_if_any_present", [])
+                        )
                         # refresh labels_list from API
                         lbls_resp = requests.get(
-                            f"https://api.github.com/repos/{owner}/{repo}/issues/{number}",
+                            "https://api.github.com/repos/"
+                            + f"{owner}/{repo}/issues/{number}",
                             headers={
                                 "Accept": "application/vnd.github+json",
                                 "Authorization": f"Bearer {gh_token}",
@@ -700,9 +739,9 @@ def main() -> int:
                         if lbls_resp.ok:
                             latest = lbls_resp.json()
                             latest_labels = [
-                                l.get("name")
-                                for l in latest.get("labels", [])
-                                if isinstance(l, dict)
+                                label.get("name")
+                                for label in latest.get("labels", [])
+                                if isinstance(label, dict)
                             ]
                         else:
                             latest_labels = labels_list
@@ -711,14 +750,17 @@ def main() -> int:
                             print(f"Issue #{number} already triaged, skipping")
                             continue
 
-                        # When Triaged is present and Backlog missing -> add Backlog
+                        # When Triaged is present and Backlog missing ->
+                        # add Backlog
                         if (
                             "Triaged" in latest_labels
                             and "Backlog" not in latest_labels
                             and not (set(latest_labels) & skip_labels)
                         ):
-                            # respect grace_period_hours: if recently modified by a human, skip
-                            # (not implemented full recent human action detection here)
+                            # respect grace_period_hours: if recently
+                            # modified by a human, skip
+                            # (not implemented full recent human action
+                            # detection here)
                             post_label(owner, repo, number, "Backlog", gh_token)
                             post_comment(
                                 owner,
@@ -730,9 +772,17 @@ def main() -> int:
                                 gh_token,
                             )
                             changed_fields.append("Backlog")
-                            # Move to Backlog column if project management is enabled
-                            if project_enabled and project_id and backlog_column_id:
-                                issue_url = f"https://api.github.com/repos/{owner}/{repo}/issues/{number}"
+                            # Move to Backlog column if project management is
+                            # enabled
+                            if (
+                                project_enabled
+                                and project_id
+                                and backlog_column_id
+                            ):
+                                issue_url = (
+                                    "https://api.github.com/repos/"
+                                    + f"{owner}/{repo}/issues/{number}"
+                                )
                                 try:
                                     move_issue_to_backlog_column(
                                         owner,
@@ -745,11 +795,13 @@ def main() -> int:
                                     )
                                 except Exception as e:
                                     print(
-                                        f"Failed to move issue to Backlog column: {e}",
+                                        f"Failed to move issue to Backlog "
+                                        f"column: {e}",
                                         file=sys.stderr,
                                     )
 
-                        # When Backlog is present and Triaged missing -> add Triaged
+                        # When Backlog is present and Triaged missing ->
+                        # add Triaged
                         if (
                             "Backlog" in latest_labels
                             and "Triaged" not in latest_labels
@@ -769,7 +821,8 @@ def main() -> int:
 
                 # triaged_if: deterministic triage completion
                 triaged_if = rules.get("triaged_if") or []
-                # Basic evaluation: required_fields_present, triage_owner_assigned, severity_assigned
+                # Basic evaluation: required_fields_present,
+                # triage_owner_assigned, severity_assigned
                 triage_complete = True
                 if isinstance(triaged_if, list):
                     for condition in triaged_if:
@@ -801,7 +854,9 @@ def main() -> int:
                     if "Needs Triage" in latest_labels:
                         # remove label via issues API
                         requests.delete(
-                            f"https://api.github.com/repos/{owner}/{repo}/issues/{number}/labels/Needs%20Triage",
+                            "https://api.github.com/repos/"
+                            + f"{owner}/{repo}/issues/{number}/"
+                            "labels/Needs%20Triage",
                             headers={
                                 "Authorization": f"Bearer {gh_token}",
                                 "Accept": "application/vnd.github+json",
@@ -820,7 +875,8 @@ def main() -> int:
             print("[dry-run] " + ", ".join(actions))
         # end issue processing (live branch already handled above)
 
-        # record audit in triage_log.json (local). On live runs we would also push or append via API.
+        # record audit in triage_log.json (local). On live runs we would
+        # also push or append via API.
         log_entry = audit_entry
         log_file = (
             rules.get("log_triage_event", {}).get("path", "triage_log.json")

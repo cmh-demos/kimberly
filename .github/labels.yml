@@ -1,0 +1,127 @@
+---
+# Standard GitHub Labels for Repository
+# This file defines the standard set of labels used across issues, triage,
+# and workflows.
+# Labels are categorized for clarity. Colors are chosen for visual
+# distinction.
+# Reference: https://docs.github.com/en/repositories/managing-your-repositorys-
+# settings-and-features/customizing-your-repository/classifying-your-repository-with-topics
+
+labels:
+  # Issue Types
+  - name: bug
+    description: For bug reports and unexpected behavior
+    color: d73a49  # Red
+
+  - name: enhancement
+    description: For feature requests and improvements
+    color: a2eeef  # Light blue
+
+  - name: chore
+    description: For maintenance tasks and non-feature work
+    color: fbca04  # Yellow
+
+  - name: documentation
+    description: Improvements or additions to documentation
+    color: 0075ca  # Blue-gray
+
+  # Status and Workflow
+  - name: needs-triage
+    description: Default label for new issues awaiting triage
+    color: ffffff  # White
+
+  - name: Triaged
+    description: Issue has been triaged and processed
+    color: 0e8a16  # Green
+
+  - name: Backlog
+    description: Triaged issue ready for backlog prioritization
+    color: c2e0c6  # Light green
+
+  - name: ready
+    description: Issue prepared and ready for active work
+    color: 0e8a16  # Green
+
+  - name: in-progress
+    description: Work on the issue has started; team is actively working
+    color: fbca04  # Yellow
+
+  - name: in-review
+    description: Issue is under code review or testing
+    color: d93f0b  # Orange
+
+  - name: done
+    description: Issue completed and closed
+    color: 0e8a16  # Green
+
+  - name: blocked
+    description: Issue stalled due to dependencies or external factors
+    color: b60205  # Red
+
+  - name: needs-info
+    description: Issue requires additional information from reporter
+    color: fef2c0  # Light yellow
+
+  - name: needs_work
+    description: Issue blocked or needs further work before backlog
+    color: d93f0b  # Orange
+
+  # Special Cases
+  - name: security
+    description: Security-sensitive issue or PII detected
+    color: b60205  # Dark red
+
+  - name: manual-triage
+    description: Exempts issue from automated triage; allows human overrides
+    color: 5319e7  # Purple
+
+  - name: no-triage
+    description: Skips triage automation entirely
+    color: e4e669  # Light yellow-green
+
+  - name: dry-run
+    description: Added during dry-run executions for testing
+    color: ffffff  # White
+
+  # Work Tracking
+  - name: work-tracking
+    description: For tracking work items and progress
+    color: 1d76db  # Blue
+
+  # Component/Area Labels
+  - name: backend
+    description: Related to backend components
+    color: 0052cc  # Blue
+
+  - name: frontend
+    description: Related to frontend components
+    color: 84b6eb  # Light blue
+
+  - name: core
+    description: Core functionality or critical path
+    color: d73a49  # Red
+
+  - name: memory
+    description: Memory-related issues or optimizations
+    color: fbca04  # Yellow
+
+  # Priority/Product Labels
+  - name: MVP
+    description: Minimum viable product features
+    color: 0e8a16  # Green
+
+  - name: P0
+    description: Critical priority (highest urgency)
+    color: b60205  # Dark red
+
+  - name: P1
+    description: High priority
+    color: d73a49  # Red
+
+  - name: P2
+    description: Medium priority
+    color: fbca04  # Yellow
+
+  - name: P3
+    description: Low priority
+    color: fef2c0  # Light yellow

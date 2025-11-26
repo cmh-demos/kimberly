@@ -2,6 +2,7 @@
 name: Task / chore
 about: Routine task, maintenance, or small change
 title: 'chore: '
+# Default labels: see .github/labels.yml for full list of standard labels
 labels: chore, needs-triage
 assignees: ''
 ---

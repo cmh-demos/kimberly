@@ -36,12 +36,16 @@ class MemoryScorer:
         """
         components = self._calculate_components(memory_item)
 
-        score = sum(self.weights[comp] * value for comp, value in components.items())
+        score = sum(
+            self.weights[comp] * value for comp, value in components.items()
+        )
 
         # Normalize to 0-1 range
         return min(max(score, 0.0), 1.0)
 
-    def _calculate_components(self, memory_item: Dict[str, Any]) -> Dict[str, float]:
+    def _calculate_components(
+        self, memory_item: Dict[str, Any]
+    ) -> Dict[str, float]:
         """Calculate individual scoring components."""
         metadata = memory_item.get("metadata", {})
         created_at = datetime.fromisoformat(
@@ -76,7 +80,9 @@ class MemoryScorer:
         # Predictive value: Based on recency
         days_since_created = (now - created_at).days
         days_since_seen = (now - last_seen).days
-        recency_score = 1.0 / (days_since_seen + 1)  # Higher if recently accessed
+        recency_score = 1.0 / (
+            days_since_seen + 1
+        )  # Higher if recently accessed
         predictive = min(recency_score, 1.0)
 
         # Recency and frequency: Combined metric
@@ -150,7 +156,9 @@ class MeditationEngine:
             "scored_items": scored_items,
             "to_prune": to_prune,
             "tier_usage": tier_usage,
-            "summary": f"Scored {len(scored_items)} items, pruning {len(to_prune)}",
+            "summary": (
+                f"Scored {len(scored_items)} items, pruning {len(to_prune)}"
+            ),
         }
 
 

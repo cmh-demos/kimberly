@@ -2,6 +2,7 @@
 name: Feature request
 about: Propose a new feature or improvement
 title: 'feat: '
+# Default labels: see .github/labels.yml for full list of standard labels
 labels: enhancement, needs-triage
 assignees: ''
 ---
