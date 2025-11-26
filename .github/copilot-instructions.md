@@ -23,10 +23,9 @@ prefer a maximum line length of 80 characters.
 
 - Always run appropriate linters for all relevant file types before committing code.
 - Known Linters:
-   - Python: flake8, pylint
+   - Python: flake8, pylint, isort
    - markdown: markdownlint
    - yaml: yamllint
-   - isort for python imports
 
 ## General Preferences
 
