@@ -538,7 +538,13 @@ def process_issue(
         audit_entry["notes"] += "needs_work detected; "
         if not dry_run:
             try:
-                assign_issue(owner, repo, number, assignee_for_needs_work, gh_token)
+                assign_issue(
+                    owner,
+                    repo,
+                    number,
+                    assignee_for_needs_work,
+                    gh_token,
+                )
                 # Keep label in place until fixes are done
                 changed_fields.append(f"assigned to {assignee_for_needs_work}")
                 # Optionally add guidance comment for the author
@@ -547,7 +553,7 @@ def process_issue(
                     repo,
                     number,
                     (
-                        "Marked as needs_work — moving this back to In progress "
+                        "Marked as needs_work — moving back to In progress "
                         "and assigning to @copilot to help move it forward. "
                         "Please update when ready for re-review."
                     ),
@@ -557,7 +563,9 @@ def process_issue(
             except Exception as e:
                 logger.error(f"Failed to assign needs_work for #{number}: {e}")
         else:
-            changed_fields.append(f"would assign to {assignee_for_needs_work} and comment")
+            changed_fields.append(
+                f"would assign to {assignee_for_needs_work} and comment"
+            )
 
     # Check for Triaged and Backlog
     if (

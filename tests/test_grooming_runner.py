@@ -663,7 +663,7 @@ class TestAdditionalCoverage(unittest.TestCase):
             "url": "url2",
         }
 
-        result = gr.process_issue(
+        gr.process_issue(
             issue,
             owner="owner",
             repo="repo",
@@ -688,7 +688,9 @@ class TestAdditionalCoverage(unittest.TestCase):
             project_columns={},
         )
 
-        mock_assign.assert_called_once_with("owner", "repo", 2, "copilot", "token")
+        mock_assign.assert_called_once_with(
+            "owner", "repo", 2, "copilot", "token"
+        )
         mock_post.assert_called_once()
 
     def test_process_issue_needs_work_dry_run(self):
@@ -724,7 +726,9 @@ class TestAdditionalCoverage(unittest.TestCase):
         )
 
         # dry run should not actually call APIs; we check the changed_fields
-        self.assertIn("would assign to copilot and comment", result["changed_fields"])
+        self.assertIn(
+            "would assign to copilot and comment", result["changed_fields"]
+        )
 
     @patch("scripts.grooming_runner.requests.get")
     def test_github_get_issue_with_token(self, mock_get):
