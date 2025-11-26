@@ -150,7 +150,7 @@ need to resolve. Please review it before making architecture or policy decisions
 
 - Start chat: Interact via web interface or API.
 - Voice: Use smart speaker integration.
-- Mobile: Download app (TBD).
+- Mobile: Use the Progressive Web App (PWA) for iOS and Android.
 
 ## Contributing
 
