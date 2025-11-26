@@ -1,3 +1,4 @@
+---
 apiVersion: v2
 name: kimberly-worker
 description: Helm chart for Kimberly Worker (background jobs and meditation)

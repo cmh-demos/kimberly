@@ -1,3 +1,4 @@
+---
 apiVersion: v2
 name: kimberly-memory
 description: Helm chart for Kimberly Memory service (tiered memory API)

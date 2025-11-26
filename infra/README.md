@@ -5,7 +5,7 @@ Oracle Cloud Always Free tier and production Kubernetes environments.
 
 ## Directory Structure
 
-```
+```text
 infra/
 ├── terraform/
 │   ├── modules/
@@ -42,6 +42,7 @@ The Oracle Always Free tier includes:
 - **Network**: VCN, load balancers, and egress
 
 Our configuration uses:
+
 - 1 master node (2 OCPU, 12 GB RAM)
 - 1 worker node (2 OCPU, 12 GB RAM)
 - 100 GB block volume for persistent storage
@@ -168,12 +169,12 @@ EOF
 
 ## Resource Allocation (Always Free Limits)
 
-| Component | OCPUs | Memory | Storage |
-|-----------|-------|--------|---------|
-| K3s Master | 2 | 12 GB | 50 GB boot |
-| K3s Worker | 2 | 12 GB | 50 GB boot |
-| Data Volume | - | - | 100 GB |
-| **Total** | **4** | **24 GB** | **200 GB** |
+| Component    | OCPUs | Memory    | Storage      |
+|--------------|-------|-----------|--------------|
+| K3s Master   | 2     | 12 GB     | 50 GB boot   |
+| K3s Worker   | 2     | 12 GB     | 50 GB boot   |
+| Data Volume  | -     | -         | 100 GB       |
+| **Total**    | **4** | **24 GB** | **200 GB**   |
 
 ## Security Considerations
 

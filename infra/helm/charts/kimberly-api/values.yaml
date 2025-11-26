@@ -1,3 +1,4 @@
+---
 # Default values for kimberly-api
 # This is a YAML-formatted file.
 
@@ -99,8 +100,10 @@ env:
 
 # Secret environment variables (reference existing secrets)
 envFrom: []
-  # - secretRef:
-  #     name: kimberly-api-secrets
+# Example:
+# envFrom:
+#   - secretRef:
+#       name: kimberly-api-secrets
 
 # Database configuration
 database:

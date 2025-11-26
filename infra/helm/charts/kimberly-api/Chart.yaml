@@ -1,3 +1,4 @@
+---
 apiVersion: v2
 name: kimberly-api
 description: Helm chart for Kimberly API service
