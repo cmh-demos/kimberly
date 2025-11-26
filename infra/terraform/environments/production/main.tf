@@ -43,10 +43,11 @@ module "oracle_infra" {
   }
 
   # Network Configuration
-  vcn_cidr            = "10.0.0.0/16"
-  public_subnet_cidr  = "10.0.1.0/24"
-  private_subnet_cidr = "10.0.2.0/24"
-  ssh_allowed_cidr    = var.ssh_allowed_cidr
+  vcn_cidr             = "10.0.0.0/16"
+  public_subnet_cidr   = "10.0.1.0/24"
+  private_subnet_cidr  = "10.0.2.0/24"
+  ssh_allowed_cidr     = var.ssh_allowed_cidr
+  k8s_api_allowed_cidr = var.k8s_api_allowed_cidr
 
   # Compute Configuration (Always Free limits)
   # Total: 4 OCPUs, 24GB RAM across all A1 instances

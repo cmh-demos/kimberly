@@ -120,7 +120,7 @@ resource "oci_core_security_list" "public_sl" {
   # Allow Kubernetes API (6443)
   ingress_security_rules {
     protocol  = "6"
-    source    = var.ssh_allowed_cidr
+    source    = var.k8s_api_allowed_cidr
     stateless = false
 
     tcp_options {

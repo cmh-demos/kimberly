@@ -9,7 +9,8 @@ global:
 kimberly-api:
   replicaCount: 2
   image:
-    tag: "latest"
+    # Pin to a specific version in production (e.g., "v1.0.0" or "sha-abc123")
+    tag: ""  # Set via CI/CD pipeline or manually
   ingress:
     enabled: true
     className: "nginx"
@@ -38,7 +39,8 @@ kimberly-api:
 kimberly-memory:
   replicaCount: 2
   image:
-    tag: "latest"
+    # Pin to a specific version in production (e.g., "v1.0.0" or "sha-abc123")
+    tag: ""  # Set via CI/CD pipeline or manually
   resources:
     limits:
       cpu: 500m
@@ -51,7 +53,8 @@ kimberly-memory:
 kimberly-worker:
   replicaCount: 1
   image:
-    tag: "latest"
+    # Pin to a specific version in production (e.g., "v1.0.0" or "sha-abc123")
+    tag: ""  # Set via CI/CD pipeline or manually
   meditation:
     enabled: true
     schedule: "0 2 * * *"
@@ -80,10 +83,10 @@ postgresql:
     persistence:
       enabled: true
       size: 20Gi
-  # Enable pgvector extension
+  # Enable pgvector extension (pin to specific version for production stability)
   image:
     repository: ankane/pgvector
-    tag: latest
+    tag: v0.7.4-pg16
 
 # Redis (using Bitnami chart)
 redis:

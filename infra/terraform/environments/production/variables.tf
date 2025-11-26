@@ -38,9 +38,13 @@ variable "ssh_public_key" {
 }
 
 variable "ssh_allowed_cidr" {
-  description = "CIDR block allowed for SSH access"
+  description = "CIDR block allowed for SSH access (restrict to your IP)"
   type        = string
-  default     = "0.0.0.0/0"
+}
+
+variable "k8s_api_allowed_cidr" {
+  description = "CIDR block allowed for Kubernetes API access"
+  type        = string
 }
 
 # K3s Configuration (required)

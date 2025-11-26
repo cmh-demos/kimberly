@@ -68,9 +68,15 @@ variable "private_subnet_cidr" {
 }
 
 variable "ssh_allowed_cidr" {
-  description = "CIDR block allowed for SSH access"
+  description = "CIDR block allowed for SSH access (restrict to your IP for security)"
   type        = string
-  default     = "0.0.0.0/0"
+  default     = null  # Force user to provide a value
+}
+
+variable "k8s_api_allowed_cidr" {
+  description = "CIDR block allowed for Kubernetes API access (6443)"
+  type        = string
+  default     = null  # Force user to provide a value
 }
 
 # Compute Configuration (Always Free Tier - Ampere A1)
