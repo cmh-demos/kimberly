@@ -98,6 +98,8 @@ MemoryItem (canonical JSON schema)
 
 Notes (free-mode):
 
+- size_bytes: computed as len(content) + metadata overhead (JSON-serialized
+  metadata size). Used for quota enforcement and retention calculations.
 - Keep content small; avoid storing large files and transcripts by default. If
 - Sensitive content: flag metadata.sensitive=true and use local encryption;
   avoid paid
