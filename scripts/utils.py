@@ -66,11 +66,5 @@ def retry_on_failure(
                         else:
                             print(msg, file=sys.stderr)
                         raise last_exception
-            if last_exception is not None:
-                raise last_exception
-            raise RuntimeError(
-                "Function failed after retries, "
-                "but no exception was captured."
-            )
         return wrapper
     return decorator
