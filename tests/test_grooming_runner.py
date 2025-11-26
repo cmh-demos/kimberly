@@ -609,6 +609,92 @@ class TestAdditionalCoverage(unittest.TestCase):
             json={"assignees": ["assignee"]},
         )
 
+    @patch("scripts.grooming_runner.requests.patch")
+    @patch("scripts.grooming_runner.requests.post")
+    def test_assign_issue_graphql_fallback(self, mock_post, mock_patch):
+        # Simulate REST patch failing with 422, then GraphQL calls succeed
+        resp_patch = MagicMock()
+        resp_patch.raise_for_status.side_effect = requests.HTTPError("422")
+        resp_patch.status_code = 422
+        resp_patch.headers = {"X-RateLimit-Remaining": "10"}
+        mock_patch.return_value = resp_patch
+
+        # GraphQL suggestedActors result
+        resp_gql1 = MagicMock()
+        resp_gql1.raise_for_status.return_value = None
+        resp_gql1.json.return_value = {
+            "data": {
+                "repository": {
+                    "suggestedActors": {
+                        "nodes": [
+                            {
+                                "login": "copilot-swe-agent",
+                                "id": "BOT_ID",
+                                "__typename": "Bot",
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+
+        # GraphQL issue id response
+        resp_gql2 = MagicMock()
+        resp_gql2.raise_for_status.return_value = None
+        resp_gql2.json.return_value = {
+            "data": {"repository": {"issue": {"id": "ISSUE_ID"}}}
+        }
+
+        # GraphQL mutation response
+        resp_gql3 = MagicMock()
+        resp_gql3.raise_for_status.return_value = None
+        resp_gql3.json.return_value = {
+            "data": {"replaceActorsForAssignable": {}}
+        }
+
+        mock_post.side_effect = [resp_gql1, resp_gql2, resp_gql3]
+
+        # Should not raise; fallback path assigns via GraphQL
+        gr.assign_issue("owner", "repo", 1, "copilot", "token")
+        self.assertGreaterEqual(mock_post.call_count, 2)
+
+    @patch("scripts.grooming_runner.requests.patch")
+    def test_assign_issue_graphql_fallback_missing_actor(self, mock_patch):
+        # REST returns 422 and GraphQL has no matching actor
+        resp_patch = MagicMock()
+        resp_patch.raise_for_status.side_effect = requests.HTTPError("422")
+        resp_patch.status_code = 422
+        mock_patch.return_value = resp_patch
+
+        with patch(
+            "scripts.grooming_runner.github_graphql_request"
+        ) as mock_gql:
+            mock_gql.return_value = {
+                "repository": {"suggestedActors": {"nodes": []}}
+            }
+            with self.assertRaises(RuntimeError):
+                gr.assign_issue("owner", "repo", 1, "copilot", "token")
+
+    @patch.dict(
+        os.environ,
+        {"GITHUB_ACTIONS": "true", "GITHUB_TOKEN": "gh_actions_token"},
+    )
+    @patch("scripts.grooming_runner.requests.patch")
+    def test_assign_issue_in_actions_skips_graphql(self, mock_patch):
+        # Simulate REST returning 422; when running in Actions with the
+        # default GITHUB_TOKEN we should skip GraphQL fallback and not raise.
+        resp_patch = MagicMock()
+        resp_patch.raise_for_status.side_effect = requests.HTTPError("422")
+        resp_patch.status_code = 422
+        mock_patch.return_value = resp_patch
+
+        # Use the same token value as the environment to emulate the
+        # Actions runtime token behavior
+        token = "gh_actions_token"
+
+        # Ensure this doesn't raise
+        gr.assign_issue("owner", "repo", 1, "copilot", token)
+
     @patch("time.sleep")
     @patch("sys.stderr", new_callable=StringIO)
     @patch("scripts.grooming_runner.requests.patch")
