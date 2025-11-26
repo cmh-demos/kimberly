@@ -303,7 +303,7 @@ requirements and cost.
 
 - Availability (for the API): 99.9% for paid / production; 99% for small free-tier
 deployments
-- Memory retrieval latency: p95 < 150ms (pgvector small-scale), tightens if using
+- Memory retrieval latency: p95 < 150ms (pgvector small-scale), improves if using
 managed vector DB
 - Meditation success rate: daily runs should complete within a configured window (e.g.,
 <= 10 minutes)
