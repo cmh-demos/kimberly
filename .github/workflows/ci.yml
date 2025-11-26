@@ -79,7 +79,7 @@ jobs:
         with:
           python-version: '3.10'
       - name: Install jsonschema
-        run: pip install jsonschema
+        run: pip install jsonschema==4.19.2
       - name: Validate copilot_tracking.json
         run: python scripts/validate_copilot_tracking.py
 
