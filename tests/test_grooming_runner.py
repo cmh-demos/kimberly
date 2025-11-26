@@ -18,6 +18,14 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
         rules = gr.load_rules(self.rules_path)
         self.assertIsInstance(rules, dict)
 
+    def test_grooming_rules_have_needs_work_assignee(self):
+        # Ensure the repository grooming rules explicitly set the
+        # assignee for needs_work so automation assigns to @copilot
+        rules = gr.load_rules(self.rules_path)
+        grooming = rules.get("grooming_bot_settings", {})
+        self.assertIn("assignee_for_needs_work", grooming)
+        self.assertEqual(grooming.get("assignee_for_needs_work"), "copilot")
+
     def test_load_rules_not_found(self):
         rules = gr.load_rules("nonexistent.yml")
         self.assertIsNone(rules)
@@ -399,26 +407,27 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
 
         result = gr.process_issue(
             issue,
-            "owner",
-            "repo",
-            "token",
-            False,
-            ["needs-info"],
-            "bot",
-            True,
-            True,
-            1,
-            2,
-            True,
-            True,
-            ["needs-info"],
-            14,
-            "close",
-            "Close comment",
-            "grooming",
-            False,
-            [],
-            {},
+            owner="owner",
+            repo="repo",
+            gh_token="token",
+            dry_run=False,
+            needs_info_variants=["needs-info"],
+            assignee_for_needs_info="bot",
+            remove_triaged_on_needs_info=True,
+            assignee_for_needs_work="copilot",
+            project_enabled=True,
+            project_id=1,
+            backlog_column_id=2,
+            move_to_backlog_if_triaged_and_backlog=True,
+            stale_enabled=True,
+            stale_labels=["needs-info"],
+            stale_days=14,
+            stale_action="close",
+            stale_comment="Close comment",
+            audit_event_type="grooming",
+            workflow_enabled=False,
+            transitions=[],
+            project_columns={},
         )
 
         mock_assign.assert_called_once_with("owner", "repo", 1, "bot", "token")
@@ -449,26 +458,27 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
 
         result = gr.process_issue(
             issue,
-            "owner",
-            "repo",
-            "token",
-            False,
-            ["needs-info"],
-            "bot",
-            True,
-            True,
-            1,
-            2,
-            True,
-            True,
-            ["needs-info"],
-            14,
-            "comment",
-            "Comment",
-            "grooming",
-            False,
-            [],
-            {},
+            owner="owner",
+            repo="repo",
+            gh_token="token",
+            dry_run=False,
+            needs_info_variants=["needs-info"],
+            assignee_for_needs_info="bot",
+            remove_triaged_on_needs_info=True,
+            assignee_for_needs_work="copilot",
+            project_enabled=True,
+            project_id=1,
+            backlog_column_id=2,
+            move_to_backlog_if_triaged_and_backlog=True,
+            stale_enabled=True,
+            stale_labels=["needs-info"],
+            stale_days=14,
+            stale_action="comment",
+            stale_comment="Comment",
+            audit_event_type="grooming",
+            workflow_enabled=False,
+            transitions=[],
+            project_columns={},
         )
 
         mock_assign.assert_called_once_with("owner", "repo", 1, "bot", "token")
@@ -498,26 +508,27 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
 
         result = gr.process_issue(
             issue,
-            "owner",
-            "repo",
-            "token",
-            False,
-            ["needs-info"],
-            "bot",
-            True,
-            True,
-            1,
-            2,
-            True,
-            True,
-            ["needs-info"],
-            14,
-            "close",
-            "Close",
-            "grooming",
-            False,
-            [],
-            {},
+            owner="owner",
+            repo="repo",
+            gh_token="token",
+            dry_run=False,
+            needs_info_variants=["needs-info"],
+            assignee_for_needs_info="bot",
+            remove_triaged_on_needs_info=True,
+            assignee_for_needs_work="copilot",
+            project_enabled=True,
+            project_id=1,
+            backlog_column_id=2,
+            move_to_backlog_if_triaged_and_backlog=True,
+            stale_enabled=True,
+            stale_labels=["needs-info"],
+            stale_days=14,
+            stale_action="close",
+            stale_comment="Close",
+            audit_event_type="grooming",
+            workflow_enabled=False,
+            transitions=[],
+            project_columns={},
         )
 
         mock_assign.assert_called_once_with("owner", "repo", 1, "bot", "token")
@@ -643,6 +654,82 @@ class TestAdditionalCoverage(unittest.TestCase):
         gr.remove_label("owner", "repo", 1, "label", "token")
         # Sleep is called to avoid hanging
 
+    @patch("scripts.grooming_runner.assign_issue")
+    @patch("scripts.grooming_runner.post_comment")
+    def test_process_issue_needs_work_assigns(self, mock_post, mock_assign):
+        issue = {
+            "number": 2,
+            "labels": [{"name": "needs_work"}, {"name": "in-review"}],
+            "url": "url2",
+        }
+
+        gr.process_issue(
+            issue,
+            owner="owner",
+            repo="repo",
+            gh_token="token",
+            dry_run=False,
+            needs_info_variants=[],
+            assignee_for_needs_info="",
+            remove_triaged_on_needs_info=False,
+            assignee_for_needs_work="copilot",
+            project_enabled=False,
+            project_id=0,
+            backlog_column_id=0,
+            move_to_backlog_if_triaged_and_backlog=False,
+            stale_enabled=False,
+            stale_labels=[],
+            stale_days=0,
+            stale_action="",
+            stale_comment="",
+            audit_event_type="grooming",
+            workflow_enabled=False,
+            transitions=[],
+            project_columns={},
+        )
+
+        mock_assign.assert_called_once_with(
+            "owner", "repo", 2, "copilot", "token"
+        )
+        mock_post.assert_called_once()
+
+    def test_process_issue_needs_work_dry_run(self):
+        issue = {
+            "number": 3,
+            "labels": [{"name": "needs_work"}],
+            "url": "url3",
+        }
+
+        result = gr.process_issue(
+            issue,
+            owner="owner",
+            repo="repo",
+            gh_token="token",
+            dry_run=True,
+            needs_info_variants=[],
+            assignee_for_needs_info="",
+            remove_triaged_on_needs_info=False,
+            assignee_for_needs_work="copilot",
+            project_enabled=False,
+            project_id=0,
+            backlog_column_id=0,
+            move_to_backlog_if_triaged_and_backlog=False,
+            stale_enabled=False,
+            stale_labels=[],
+            stale_days=0,
+            stale_action="",
+            stale_comment="",
+            audit_event_type="grooming",
+            workflow_enabled=False,
+            transitions=[],
+            project_columns={},
+        )
+
+        # dry run should not actually call APIs; we check the changed_fields
+        self.assertIn(
+            "would assign to copilot and comment", result["changed_fields"]
+        )
+
     @patch("scripts.grooming_runner.requests.get")
     def test_github_get_issue_with_token(self, mock_get):
         mock_resp = MagicMock()
@@ -689,26 +776,27 @@ class TestAdditionalCoverage(unittest.TestCase):
         with patch("scripts.grooming_runner.logger") as mock_logger:
             gr.process_issue(
                 issue,
-                "owner",
-                "repo",
-                "token",
-                False,
-                ["needs-info"],
-                "bot",
-                True,
-                False,
-                0,
-                0,
-                False,
-                False,
-                [],
-                0,
-                "",
-                "",
-                "grooming",
-                False,
-                [],
-                {},
+                owner="owner",
+                repo="repo",
+                gh_token="token",
+                dry_run=False,
+                needs_info_variants=["needs-info"],
+                assignee_for_needs_info="bot",
+                remove_triaged_on_needs_info=True,
+                assignee_for_needs_work="copilot",
+                project_enabled=False,
+                project_id=0,
+                backlog_column_id=0,
+                move_to_backlog_if_triaged_and_backlog=False,
+                stale_enabled=False,
+                stale_labels=[],
+                stale_days=0,
+                stale_action="",
+                stale_comment="",
+                audit_event_type="grooming",
+                workflow_enabled=False,
+                transitions=[],
+                project_columns={},
             )
             mock_assign.assert_called_once()
             mock_logger.error.assert_called_once()
@@ -731,6 +819,7 @@ class TestAdditionalCoverage(unittest.TestCase):
             [],
             "",
             False,
+            "",
             False,
             0,
             0,
@@ -766,6 +855,7 @@ class TestAdditionalCoverage(unittest.TestCase):
             [],
             "",
             False,
+            "",
             False,
             0,
             0,
