@@ -522,7 +522,7 @@ When embeddings are required and enabled via self-hosted mode, the recommended
 model is **SentenceTransformers MiniLM** (`all-MiniLM-L6-v2`). This model offers:
 
 - CPU-friendly inference suitable for developer laptops and small VPS
-- 384-dimensional embeddings (compact storage footprint)
+- 384-dimensional embeddings (~80 MB model, compact storage footprint)
 - Good semantic quality for English text at minimal resource cost
 - MIT license and fully open-source
 
@@ -530,15 +530,13 @@ Installation and usage example:
 
 ```bash
 pip install -U sentence-transformers
-python3 -c "from sentence_transformers import SentenceTransformer; \
-  model = SentenceTransformer('all-MiniLM-L6-v2'); \
-  print(model.encode(['hello world']))"
+python3 -c "from sentence_transformers import SentenceTransformer; m=SentenceTransformer('all-MiniLM-L6-v2'); print(m.encode(['hello world']))"
 ```
 
 Alternative lightweight models (if MiniLM does not meet requirements):
 
-- `paraphrase-MiniLM-L3-v2` — smaller/faster, slightly lower quality
-- `all-mpnet-base-v2` — higher quality, but larger and slower
+- `paraphrase-MiniLM-L3-v2` — 384 dims, ~17 MB model, faster but lower quality
+- `all-mpnet-base-v2` — 768 dims, ~420 MB model, higher quality but slower
 
 Always batch embedding generation and run offline to minimize CPU load.
 
