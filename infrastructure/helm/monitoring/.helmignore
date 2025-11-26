@@ -1,0 +1,17 @@
+# Patterns to ignore when building packages.
+.DS_Store
+.git/
+.gitignore
+*.swp
+*.bak
+*.tmp
+*.orig
+*~
+.project
+.idea/
+*.tmproj
+.vscode/
+
+# Dependencies fetched via helm dependency update
+charts/
+Chart.lock

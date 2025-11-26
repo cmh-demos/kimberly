@@ -1,0 +1,164 @@
+{{- if .Values.prometheus.enabled }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ .Release.Name }}-kimberly-alerts
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: kimberly
+    release: {{ .Release.Name }}
+spec:
+  groups:
+    - name: kimberly.meditation
+      rules:
+        - alert: MeditationJobFailed
+          expr: |
+            kube_job_status_failed{job_name=~".*meditation.*"} > 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Meditation job failed"
+            description: >-
+              Meditation job {{ "{{ $labels.job_name }}" }} has failed.
+              Check job logs for details.
+
+        - alert: MeditationJobHighLatency
+          expr: |
+            (time() - kube_job_status_start_time{job_name=~".*meditation.*"})
+            > 600
+            and on(job_name)
+            kube_job_status_active{job_name=~".*meditation.*"} > 0
+          for: 1m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Meditation job running too long"
+            description: >-
+              Meditation job {{ "{{ $labels.job_name }}" }} has been running
+              for more than 10 minutes.
+
+    - name: kimberly.storage
+      rules:
+        - alert: PostgresStorageWarning
+          expr: |
+            (kubelet_volume_stats_used_bytes
+              / kubelet_volume_stats_capacity_bytes)
+            * 100 > 80
+            and on(persistentvolumeclaim)
+            kube_persistentvolumeclaim_labels{
+              label_app=~".*postgres.*"
+            }
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Postgres storage > 80%"
+            description: >-
+              Postgres PVC {{ "{{ $labels.persistentvolumeclaim }}" }} is
+              {{ "{{ $value | humanize }}" }}% full.
+
+        - alert: PostgresStorageCritical
+          expr: |
+            (kubelet_volume_stats_used_bytes
+              / kubelet_volume_stats_capacity_bytes)
+            * 100 > 90
+            and on(persistentvolumeclaim)
+            kube_persistentvolumeclaim_labels{
+              label_app=~".*postgres.*"
+            }
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Postgres storage > 90%"
+            description: >-
+              Postgres PVC {{ "{{ $labels.persistentvolumeclaim }}" }} is
+              critically full at {{ "{{ $value | humanize }}" }}%.
+
+    - name: kimberly.queue
+      rules:
+        - alert: QueueBacklogHigh
+          expr: |
+            sum(rabbitmq_queue_messages_ready) > 1000
+            or sum(kafka_consumergroup_lag) > 10000
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Message queue backlog is high"
+            description: >-
+              Queue backlog has exceeded threshold for more than 10 minutes.
+
+    - name: kimberly.api
+      rules:
+        - alert: APIHighErrorRate
+          expr: |
+            sum(rate(http_requests_total{status=~"5.."}[5m]))
+            / sum(rate(http_requests_total[5m])) > 0.05
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "API error rate > 5%"
+            description: >-
+              API is returning errors at a rate of
+              {{ "{{ $value | humanizePercentage }}" }}.
+
+        - alert: APIHighLatency
+          expr: |
+            histogram_quantile(0.95,
+              sum(rate(http_request_duration_seconds_bucket[5m]))
+              by (le)) > 1
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "API p95 latency > 1s"
+            description: >-
+              API p95 latency is {{ "{{ $value | humanizeDuration }}" }}.
+
+    - name: kimberly.memory
+      rules:
+        - alert: MemoryTierQuotaExceeded
+          expr: |
+            kimberly_memory_items_total > kimberly_memory_quota_limit
+          for: 1m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Memory tier quota exceeded"
+            description: >-
+              User {{ "{{ $labels.user_id }}" }} has exceeded their
+              {{ "{{ $labels.tier }}" }} memory quota.
+
+        - alert: VectorSearchHighLatency
+          expr: |
+            histogram_quantile(0.99,
+              sum(rate(
+                kimberly_vector_search_duration_seconds_bucket[5m]
+              )) by (le)) > 0.5
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Vector search p99 latency > 500ms"
+            description: >-
+              Vector search p99 latency is
+              {{ "{{ $value | humanizeDuration }}" }}.
+
+    - name: kimberly.backup
+      rules:
+        - alert: BackupJobFailed
+          expr: |
+            kube_job_status_failed{job_name=~".*backup.*"} > 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Backup job failed"
+            description: >-
+              Backup job {{ "{{ $labels.job_name }}" }} has failed.
+              Verify backup integrity immediately.
+{{- end }}

@@ -1,0 +1,83 @@
+---
+# Kimberly Monitoring Stack - Production Values
+# Override default values for production deployments.
+
+# Prometheus stack production settings
+kube-prometheus-stack:
+  grafana:
+    # Use a strong password set via secrets
+    adminPassword: ""  # Set via external secret or --set
+    persistence:
+      enabled: true
+      size: 20Gi
+      storageClassName: ""  # Use cluster default
+
+  prometheus:
+    prometheusSpec:
+      retention: 30d
+      retentionSize: "45GB"
+      replicas: 2
+      resources:
+        requests:
+          memory: 1Gi
+          cpu: 500m
+        limits:
+          memory: 4Gi
+          cpu: 2000m
+      storageSpec:
+        volumeClaimTemplate:
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 50Gi
+
+  alertmanager:
+    alertmanagerSpec:
+      replicas: 2
+      resources:
+        requests:
+          memory: 200Mi
+          cpu: 100m
+        limits:
+          memory: 512Mi
+          cpu: 500m
+      storage:
+        volumeClaimTemplate:
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 10Gi
+
+# Loki production settings
+loki:
+  deploymentMode: SimpleScalable
+  loki:
+    commonConfig:
+      replication_factor: 2
+  backend:
+    replicas: 2
+  read:
+    replicas: 2
+  write:
+    replicas: 2
+  singleBinary:
+    replicas: 0
+    persistence:
+      enabled: true
+      size: 50Gi
+
+# Tempo production settings
+tempo:
+  tempo:
+    resources:
+      requests:
+        memory: 512Mi
+        cpu: 250m
+      limits:
+        memory: 1Gi
+        cpu: 1000m
+  persistence:
+    enabled: true
+    size: 50Gi
