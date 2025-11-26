@@ -688,9 +688,7 @@ class TestAdditionalCoverage(unittest.TestCase):
             mock_patch.assert_called_once()
             args, kwargs = mock_patch.call_args
             # Confirm authorization header contains the env PAT value
-            self.assertIn(
-                "Authorization", kwargs["headers"]
-            )
+            self.assertIn("Authorization", kwargs["headers"])
             self.assertEqual(
                 kwargs["headers"]["Authorization"], "Bearer gh_pat_from_env"
             )
