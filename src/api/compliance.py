@@ -14,12 +14,17 @@ All operations are logged for compliance auditing.
 from __future__ import annotations
 
 import json
+import logging
+import threading
 import uuid
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
+
+# Configure logging for audit operations
+_logger = logging.getLogger(__name__)
 
 
 class ExportStatus(str, Enum):
@@ -211,6 +216,9 @@ class ComplianceCheckResult(BaseModel):
 
 # Service Classes
 
+# Maximum number of audit log entries to keep in memory per user
+MAX_AUDIT_LOGS_IN_MEMORY = 10000
+
 
 class AuditLogger:
   """Service for logging audit events."""
@@ -218,6 +226,7 @@ class AuditLogger:
   def __init__(self, storage_path: str = "audit_logs.json"):
     self._storage_path = storage_path
     self._logs: List[AuditLogEntry] = []
+    self._lock = threading.Lock()
 
   def log(
     self,
@@ -241,8 +250,12 @@ class AuditLogger:
       ip_address=ip_address,
       user_agent=user_agent,
     )
-    self._logs.append(entry)
-    self._persist()
+    with self._lock:
+      self._logs.append(entry)
+      # Rotate logs if exceeding max limit to prevent memory exhaustion
+      if len(self._logs) > MAX_AUDIT_LOGS_IN_MEMORY:
+        self._logs = self._logs[-MAX_AUDIT_LOGS_IN_MEMORY:]
+      self._persist()
     return entry
 
   def query(
@@ -255,7 +268,8 @@ class AuditLogger:
     per_page: int = 50,
   ) -> AuditLogResponse:
     """Query audit logs with filters."""
-    filtered = [log for log in self._logs if log.user_id == user_id]
+    with self._lock:
+      filtered = [log for log in self._logs if log.user_id == user_id]
 
     if action:
       filtered = [log for log in filtered if log.action == action]
@@ -282,13 +296,21 @@ class AuditLogger:
     )
 
   def _persist(self) -> None:
-    """Persist logs to storage."""
+    """Persist logs to storage.
+
+    Note: In production, this should use a proper database backend.
+    For this PoC, we persist to JSON with error logging.
+    """
     try:
       with open(self._storage_path, "w", encoding="utf-8") as f:
         logs_data = [log.model_dump(mode="json") for log in self._logs]
         json.dump(logs_data, f, indent=2, default=str)
-    except Exception:
-      pass  # Silently fail persistence in PoC
+    except Exception as e:
+      # Log the error but don't crash - audit persistence failure
+      # should be monitored but not block the main operation
+      _logger.error(
+        f"Failed to persist audit logs to {self._storage_path}: {e}"
+      )
 
 
 class DataExportService:
@@ -629,44 +651,62 @@ _deletion_service: Optional[DataDeletionService] = None
 _retention_service: Optional[RetentionPolicyService] = None
 _compliance_checker: Optional[ComplianceChecker] = None
 
+# Individual locks to prevent deadlocks when services depend on each other
+_audit_logger_lock = threading.Lock()
+_export_service_lock = threading.Lock()
+_deletion_service_lock = threading.Lock()
+_retention_service_lock = threading.Lock()
+_compliance_checker_lock = threading.Lock()
+
 
 def get_audit_logger() -> AuditLogger:
-  """Get the audit logger singleton."""
+  """Get the audit logger singleton (thread-safe)."""
   global _audit_logger
   if _audit_logger is None:
-    _audit_logger = AuditLogger()
+    with _audit_logger_lock:
+      # Double-check locking pattern
+      if _audit_logger is None:
+        _audit_logger = AuditLogger()
   return _audit_logger
 
 
 def get_export_service() -> DataExportService:
-  """Get the data export service singleton."""
+  """Get the data export service singleton (thread-safe)."""
   global _export_service
   if _export_service is None:
-    _export_service = DataExportService(get_audit_logger())
+    with _export_service_lock:
+      if _export_service is None:
+        _export_service = DataExportService(get_audit_logger())
   return _export_service
 
 
 def get_deletion_service() -> DataDeletionService:
-  """Get the data deletion service singleton."""
+  """Get the data deletion service singleton (thread-safe)."""
   global _deletion_service
   if _deletion_service is None:
-    _deletion_service = DataDeletionService(get_audit_logger())
+    with _deletion_service_lock:
+      if _deletion_service is None:
+        _deletion_service = DataDeletionService(get_audit_logger())
   return _deletion_service
 
 
 def get_retention_service() -> RetentionPolicyService:
-  """Get the retention policy service singleton."""
+  """Get the retention policy service singleton (thread-safe)."""
   global _retention_service
   if _retention_service is None:
-    _retention_service = RetentionPolicyService(get_audit_logger())
+    with _retention_service_lock:
+      if _retention_service is None:
+        _retention_service = RetentionPolicyService(get_audit_logger())
   return _retention_service
 
 
 def get_compliance_checker() -> ComplianceChecker:
-  """Get the compliance checker singleton."""
+  """Get the compliance checker singleton (thread-safe)."""
   global _compliance_checker
   if _compliance_checker is None:
-    _compliance_checker = ComplianceChecker(
-      get_audit_logger(), get_retention_service()
-    )
+    with _compliance_checker_lock:
+      if _compliance_checker is None:
+        _compliance_checker = ComplianceChecker(
+          get_audit_logger(), get_retention_service()
+        )
   return _compliance_checker
