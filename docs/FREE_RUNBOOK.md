@@ -68,13 +68,50 @@ Use a small batch script to produce embeddings and upload with POST /memory/embe
 Enforcing free-mode in development / CI --------------------------------------
 
 - Make embedding provider disabled by default in the config (e.g.
-EMBEDDING_PROVIDER=None).
+  EMBEDDING_PROVIDER=None).
 - Add tests to prevent PRs from enabling paid providers without review.
   - The lighthouse test: ensure estimate(..., free_mode=True) returns zero
-    embedding
-- Add a CI policy to fail the build if new code references typical paid providers
-  (simple grep for "openai|pinecone|replicate|cohere" in the changed files).
-costs.
+    embedding costs.
+- CI enforces free-mode via automated paid API detection (see below).
+
+### CI Paid API Detection
+
+The repository includes automated CI checks that scan for paid API usage in
+Python files. This prevents accidental introduction of paid services.
+
+**Blocked providers include:**
+
+- OpenAI (openai, gpt-4, gpt-3.5, ChatGPT)
+- Anthropic (anthropic, Claude)
+- Cohere
+- Pinecone (paid vector database)
+- Replicate
+- Google Vertex AI / Generative AI
+- AWS Bedrock
+- Azure OpenAI
+
+**Running locally:**
+
+```bash
+python scripts/check_paid_apis.py --path .
+```
+
+**How it works:**
+
+1. The script scans all `.py` files in the repository
+2. Documentation files (README.md, etc.) are excluded to allow references
+3. Comment lines are ignored
+4. If any paid API patterns are found, CI fails with details
+
+**Excluding files:**
+
+Use `--exclude` to skip specific files:
+
+```bash
+python scripts/check_paid_apis.py --exclude vendor/ --exclude legacy.py
+```
+
+See `.github/workflows/security.yml` for the CI integration.
 
 Monitoring & operational suggestions ----------------------------------
 
@@ -97,13 +134,11 @@ you will need resources (paid services or supported self-hosted infra).
 Next steps ----------
 
 - Implement a simple CLI to generate and upload embeddings locally (optional),
-  plus a
-demo script for the free-mode API.
-- Add CI grep rules to prevent accidental introduction of paid providers.
+  plus a demo script for the free-mode API.
+- ~~Add CI grep rules to prevent accidental introduction of paid providers.~~
+  (Done - see `scripts/check_paid_apis.py`)
 
 If you'd like, I can:
 
 - Implement the free-mode CLI embeddings generator and demo (all-local), or
-- Add CI rules to block external provider usage and add a few end-to-end tests
-  that
-cover free-mode workflows.
+- Add end-to-end tests that cover free-mode workflows.
