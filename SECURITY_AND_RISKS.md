@@ -16,8 +16,7 @@ If you discover a security vulnerability, please report it
 responsibly:
 
 - **Do not** create public GitHub issues for vulnerabilities.
-- Email: <security@kimberly.ai> (placeholder; replace with actual
-  contact).
+- Contact the repository owner directly via GitHub.
 - Response time: Within 48 hours.
 - Include details: Description, impact, reproduction steps, and any
   proposed

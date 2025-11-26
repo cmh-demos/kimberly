@@ -1,10 +1,10 @@
 # Kimberly — AI Memory Model (final)
 
-STATUS: Canonical source of truth for the memory model — EDIT THIS FILE. Owner:
-<docs- <team@kimberly.local>> (primary), <infra@kimberly.local> (infra
-implementer), <backend@kimberly.local> (code owner) How to regenerate derived
-artifacts: run `scripts/refine_memory_model.py` which will produce generated
-outputs in `docs/generated/` (do not edit generated files).
+STATUS: Canonical source of truth for the memory model — EDIT THIS FILE.
+Owner: See repository maintainers.
+How to regenerate derived artifacts: run `scripts/refine_memory_model.py`
+which will produce generated outputs in `docs/generated/` (do not edit
+generated files).
 
 **Note**: For discussions and updates, see the Memory Model Wiki Page:
 
