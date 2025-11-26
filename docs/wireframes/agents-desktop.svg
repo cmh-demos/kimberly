@@ -29,7 +29,7 @@
 
   <!-- Logs / history -->
   <rect x="580" y="310" width="612" height="338" rx="8" fill="#fff" stroke="#e1e6f0"/>
-  <text x="600" y="340" class="title">Run history & logs</text>
-  <text x="600" y="364" class="muted">Recent runs with safe-preview & effect summary (memory touched)</text>
+  <text x="600" y="340" class="title">Run history &amp; logs</text>
+  <text x="600" y="364" class="muted">Recent runs with safe-preview &amp; effect summary (memory touched)</text>
 
 </svg>
