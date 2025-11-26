@@ -63,19 +63,19 @@ deprioritize certain types of memories.
 
 | Check | Description | Frequency | Owner |
 |-------|-------------|-----------|-------|
-| Model Fairness Audit | Evaluate LLM outputs against fairness benchmarks (e.g., BOLD, RealToxicityPrompts) | Pre-release | @ml |
-| Scoring Algorithm Review | Validate meditation weights don't discriminate | Quarterly | @backend-dev |
-| Response Filter Testing | Test content moderation for false positives/negatives | Pre-release | @qa |
-| Demographic Parity Check | Ensure similar outcomes across demographic groups | Quarterly | @ml |
+| Model Fairness Audit | Evaluate LLM outputs against fairness benchmarks (e.g., BOLD, RealToxicityPrompts) | Pre-release | @ml-engineer |
+| Scoring Algorithm Review | Validate meditation weights don't discriminate | Quarterly | @backend-developer |
+| Response Filter Testing | Test content moderation for false positives/negatives | Pre-release | @qa-engineer |
+| Demographic Parity Check | Ensure similar outcomes across demographic groups | Quarterly | @ml-engineer |
 
 ### Runtime Monitoring
 
 | Monitor | Description | Alert Threshold | Owner |
 |---------|-------------|-----------------|-------|
-| Toxicity Detection | Flag potentially harmful responses | >0.1% flagged | @ml |
-| Sentiment Skew | Detect unusual sentiment patterns in responses | >2 std dev | @backend-dev |
-| User Feedback Analysis | Track negative feedback patterns | >5% negative | @product |
-| Memory Retention Audit | Ensure balanced memory retention across topics | Monthly review | @backend-dev |
+| Toxicity Detection | Flag potentially harmful responses | >0.1% flagged | @ml-engineer |
+| Sentiment Skew | Detect unusual sentiment patterns in responses | >2 std dev | @backend-developer |
+| User Feedback Analysis | Track negative feedback patterns | >5% negative | @product-manager |
+| Memory Retention Audit | Ensure balanced memory retention across topics | Monthly review | @backend-developer |
 
 ### Fairness Audits
 
@@ -122,10 +122,10 @@ Test Categories:
 
 | Severity | Description | Response Time | Escalation |
 |----------|-------------|---------------|------------|
-| Critical | Explicit discriminatory output | Immediate | @engineering, @legal |
-| High | Pattern of biased responses | 24 hours | @ml, @product |
-| Medium | Single biased response (reported) | 48 hours | @backend-dev |
-| Low | Potential bias in test data | 1 week | @qa |
+| Critical | Explicit discriminatory output | Immediate | @engineering-lead, @legal-advisor |
+| High | Pattern of biased responses | 24 hours | @ml-engineer, @product |
+| Medium | Single biased response (reported) | 48 hours | @backend-developer |
+| Low | Potential bias in test data | 1 week | @qa-engineer |
 
 ### Remediation Process
 
