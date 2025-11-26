@@ -9,11 +9,11 @@ from jsonschema import ValidationError, validate
 def main():
     """Validate copilot_tracking.json against its JSON schema."""
     # Load schema
-    with open("misc/copilot_tracking.schema.json") as f:
+    with open("misc/copilot_tracking.schema.json", encoding="utf-8") as f:
         schema = json.load(f)
 
     # Load data (handle empty file)
-    with open("misc/copilot_tracking.json") as f:
+    with open("misc/copilot_tracking.json", encoding="utf-8") as f:
         content = f.read().strip()
         if not content:
             data = []
