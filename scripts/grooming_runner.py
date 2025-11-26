@@ -51,6 +51,8 @@ from typing import Any, Dict, List
 import requests
 import yaml
 
+from scripts.utils import retry_on_failure
+
 # Set up logging
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -107,44 +109,7 @@ def sanitize_log_entry(entry: dict) -> dict:
     return sanitized
 
 
-def retry_on_failure(max_retries: int = 3, backoff_factor: float = 2.0):
-    """Decorator to retry a function on failure with exponential backoff."""
-
-    def decorator(func):
-        def wrapper(*args, **kwargs):
-            last_exception = None
-            for attempt in range(max_retries + 1):
-                try:
-                    return func(*args, **kwargs)
-                except (
-                    requests.ConnectionError,
-                    requests.Timeout,
-                    requests.HTTPError,
-                ) as e:
-                    last_exception = e
-                    if attempt < max_retries:
-                        wait_time = backoff_factor**attempt
-                        logger.warning(
-                            f"Attempt {attempt + 1} failed: {e}. "
-                            f"Retrying in {wait_time:.1f}s..."
-                        )
-                        time.sleep(wait_time)
-                    else:
-                        logger.error(f"All {max_retries + 1} attempts failed.")
-                        raise last_exception
-            if last_exception is not None:
-                raise last_exception
-            raise RuntimeError(
-                "Function failed after retries, "
-                "but no exception was captured."
-            )
-
-        return wrapper
-
-    return decorator
-
-
-@retry_on_failure()
+@retry_on_failure(logger=logger)
 def close_issue(owner: str, repo: str, issue_number: int, token: str) -> None:
     base = f"https://api.github.com/repos/{owner}/{repo}"
     url = f"{base}/issues/{issue_number}"
@@ -160,7 +125,7 @@ def close_issue(owner: str, repo: str, issue_number: int, token: str) -> None:
     handle_rate_limit(resp)
 
 
-@retry_on_failure()
+@retry_on_failure(logger=logger)
 def post_comment(
     owner: str, repo: str, issue_number: int, comment: str, token: str
 ) -> None:
@@ -190,7 +155,7 @@ def load_rules(path: str) -> dict | None:
         return None
 
 
-@retry_on_failure()
+@retry_on_failure(logger=logger)
 def github_search_issues(
     owner: str,
     repo: str,
@@ -236,7 +201,7 @@ def github_search_issues(
     return all_items
 
 
-@retry_on_failure()
+@retry_on_failure(logger=logger)
 def github_get_issue(
     owner: str, repo: str, issue_number: int, token: str | None
 ) -> dict | None:
@@ -263,7 +228,7 @@ def github_get_issue(
     return resp.json()
 
 
-@retry_on_failure()
+@retry_on_failure(logger=logger)
 def assign_issue(
     owner: str, repo: str, issue_number: int, assignee: str, token: str
 ) -> None:
@@ -351,7 +316,7 @@ def assign_issue(
         )
 
 
-@retry_on_failure()
+@retry_on_failure(logger=logger)
 def github_graphql_request(
     token: str, query: str, variables: dict | None = None
 ) -> dict:
@@ -378,7 +343,7 @@ def github_graphql_request(
     return body.get("data", {})
 
 
-@retry_on_failure()
+@retry_on_failure(logger=logger)
 def _find_actor_id_for_assignable(
     owner: str, repo: str, token: str, candidate: str
 ) -> str | None:
@@ -431,7 +396,7 @@ def _find_actor_id_for_assignable(
     return None
 
 
-@retry_on_failure()
+@retry_on_failure(logger=logger)
 def _get_issue_node_id(
     owner: str, repo: str, issue_number: int, token: str
 ) -> str:
@@ -448,7 +413,7 @@ def _get_issue_node_id(
     return issue_id
 
 
-@retry_on_failure()
+@retry_on_failure(logger=logger)
 def _assign_issue_via_graphql(
     owner: str, repo: str, issue_number: int, assignee: str, token: str
 ) -> None:
@@ -477,7 +442,7 @@ def _assign_issue_via_graphql(
     github_graphql_request(token, mutation, variables)
 
 
-@retry_on_failure()
+@retry_on_failure(logger=logger)
 def add_label(
     owner: str, repo: str, issue_number: int, label: str, token: str
 ) -> None:
@@ -497,7 +462,7 @@ def add_label(
     handle_rate_limit(resp)
 
 
-@retry_on_failure()
+@retry_on_failure(logger=logger)
 def remove_label(
     owner: str, repo: str, issue_number: int, label: str, token: str
 ) -> None:
@@ -516,7 +481,7 @@ def remove_label(
     handle_rate_limit(resp)
 
 
-@retry_on_failure()
+@retry_on_failure(logger=logger)
 def get_project_columns(
     owner: str, repo: str, project_id: int, token: str
 ) -> List[dict]:
@@ -543,7 +508,7 @@ def get_project_columns(
     return resp.json()
 
 
-@retry_on_failure()
+@retry_on_failure(logger=logger)
 def get_column_cards(column_id: int, token: str) -> List[dict]:
     url = f"https://api.github.com/projects/columns/{column_id}/cards"
     headers = {
@@ -572,7 +537,7 @@ def find_card_for_issue(cards: List[dict], issue_url: str) -> dict | None:
     return None
 
 
-@retry_on_failure()
+@retry_on_failure(logger=logger)
 def move_card(card_id: int, to_column_id: int, token: str) -> None:
     url = f"https://api.github.com/projects/columns/{to_column_id}/moves"
     headers = {

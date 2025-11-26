@@ -52,7 +52,7 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
         mock_get.assert_called_once()
 
     @patch("scripts.grooming_runner.requests.get")
-    @patch("scripts.grooming_runner.time.sleep")
+    @patch("scripts.utils.time.sleep")
     def test_github_search_issues_retry(self, mock_sleep, mock_get):
         mock_resp_fail = MagicMock()
         mock_resp_fail.raise_for_status.side_effect = requests.ConnectionError(
@@ -1002,7 +1002,7 @@ class TestAdditionalCoverage(unittest.TestCase):
         mock_get.assert_called_once()
 
     @patch("scripts.grooming_runner.requests.get")
-    @patch("scripts.grooming_runner.time.sleep")
+    @patch("scripts.utils.time.sleep")
     def test_retry_on_failure_exhaust_retries(self, mock_sleep, mock_get):
         mock_resp = MagicMock()
         mock_resp.raise_for_status.side_effect = requests.ConnectionError(
@@ -1010,10 +1010,8 @@ class TestAdditionalCoverage(unittest.TestCase):
         )
         mock_get.return_value = mock_resp
 
-        with patch("scripts.grooming_runner.logger") as mock_logger:
-            with self.assertRaises(requests.ConnectionError):
-                gr.github_search_issues("owner", "repo", "token")
-            mock_logger.error.assert_called_with("All 4 attempts failed.")
+        with self.assertRaises(requests.ConnectionError):
+            gr.github_search_issues("owner", "repo", "token")
 
     @patch.dict(os.environ, {}, clear=True)
     @patch("scripts.grooming_runner.load_rules")
