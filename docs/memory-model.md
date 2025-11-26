@@ -49,28 +49,58 @@ components. self-hosted embeddings only when explicitly enabled.
 --------------------
 All tiers are configurable per-user but offer sane defaults.
 
-- Default quota: 1 MB per user (cost-first default — adjust for heavy users)
+Quota Hierarchy: The system enforces a two-level quota hierarchy where
+**total quota > tier quotas**.
+
+- **Total user quota**: The maximum storage allowed per user across all tiers
+  combined. Default: 3 MB per user (free-mode ceiling).
+- **Tier quotas**: Each tier has an individual quota that constrains storage
+  within that tier. The sum of tier quotas may exceed the total quota, but
+  actual usage across all tiers must not exceed the total user quota.
+
+Enforcement order:
+
+1. **Total quota check first**: If a user's combined storage (short-term +
+   long-term + permanent) exceeds the total user quota, the system triggers
+   cross-tier pruning—archiving lowest-scoring items from any tier until total
+   usage is under the limit.
+2. **Tier quota check second**: After the total quota is satisfied, each tier
+   is checked individually. If a specific tier exceeds its quota, only items
+   from that tier are pruned.
+
+Over-quota handling behavior:
+
+| Quota Exceeded     | Action                                               |
+|--------------------|------------------------------------------------------|
+| Total user quota   | Prune lowest-scoring items across all tiers          |
+| Short-term tier    | Prune lowest-scoring short-term items only           |
+| Long-term tier     | Prune lowest-scoring long-term items only            |
+| Permanent tier     | Prune lowest-scoring permanent items (with warning)  |
+
+This hierarchy ensures the total storage ceiling is respected while allowing
+flexibility within tier allocations.
+
+Tier Definitions and Quotas:
+
 -- Short-term (session / ephemeral)
+
 - Default quota: 512 KB per user (aggressively conservative for free-mode)
 - Lifetime: ~24 hours (rotated nightly), or until session end
 - Purpose: immediate context, conversation state, transient observations
 - Access: highest priority for active sessions, cached in Redis for low latency
 
-- Default quota: 10 MB per user (conservative default to reduce persistent
-  storage)
 -- Long-term (personalization/ongoing state)
+
 - Default quota: 2 MB per user (embed only explicitly-marked high-value items)
 - Lifetime: rolling retention that depends on score (weekly baseline)
 - Purpose: preferences, habits, project context, frequently useful items
 - Access: used during cold-start and background agent reasoning; stored in DB +
-  vector
-store
+  vector store
 
-- Default quota: 100 MB per user (useful for critical facts but limited to avoid
-  high
-per-user storage growth)
+-- Permanent (canonical/trusted data)
+
 - Default quota: 10 MB per user (keep permanent storage small; encourage user
-export/backup) -- Permanent (canonical/trusted data)
+  export/backup)
 - Lifetime: persistent but subject to rotation when quota is exceeded
 - Purpose: canonical facts, credentials (encrypted), user-defined notes
 - Access: read-optimized, prioritized for factual responses
@@ -137,18 +167,20 @@ tasks (0..1)
 (0..1)
 - recency_freq: frequency and recency normalized (0..1)
 
-Pruning rules (cost-aware):
+Pruning rules (cost-aware, respecting quota hierarchy):
 
-1. For each tier, compute current_size vs quota.
-2. If over quota, sort items by ascending score; move lowest-scoring items into
-   an
-3. After a configurable grace window (e.g., 30d), items still low-scoring and
-   archived
-4. Special-case protection: always retain items explicitly marked 'permanent' or
-   flagged
-'archived-for-grace-period' bucket (retained but excluded from active
-retrieval). are deleted permanently (unless user-saved or manually rescued). by
-user overrides.
+1. **Total quota check**: Compute total_size = sum of all tiers. If total_size
+   exceeds the total user quota, sort all items by ascending score across tiers
+   and archive lowest-scoring items until total_size is within the limit.
+2. **Tier quota check**: For each tier, compute current_size vs tier quota. If
+   over quota, sort items in that tier by ascending score and archive
+   lowest-scoring items until the tier is within its limit.
+3. **Grace period**: Archived items move to an 'archived-for-grace-period'
+   bucket (retained but excluded from active retrieval). After a configurable
+   grace window (e.g., 30d), items still low-scoring and archived are deleted
+   permanently (unless user-saved or manually rescued).
+4. **Special-case protection**: Always retain items explicitly marked
+   'permanent' or flagged by user overrides.
 
 Free-mode specifics:
 
@@ -349,13 +381,17 @@ Nightly meditation (simplified):
 1. For each user: retrieve candidate memory items (all tiers or subset)
 2. Compute signals for each (goals match, sentiment, predictive value, recency)
 3. Compute score = normalize(weighted sum) and store score
-4. If tier over quota: archive lowest scoring items until under quota; mark for
-   deletion
-after grace period — run pruning in small batches to spread cost.
+4. **Enforce quota hierarchy**: First check total user quota (archive
+   lowest-scoring items across all tiers until under total limit), then check
+   each tier quota individually (archive lowest-scoring items within that tier)
+5. Mark archived items for deletion after grace period — run pruning in small
+   batches to spread cost.
 
-5. Retention & rotation algorithm (detailed pseudocode, cost controlled)
+6. Retention & rotation algorithm (detailed pseudocode, cost controlled)
 
 --------------------
+
+```python
 function run_meditation(user_id):
   items = fetch_user_memory(user_id)
   for item in items:
@@ -363,11 +399,23 @@ function run_meditation(user_id):
     item.score = compute_score(signals)
     persist_score(item)
 
-for tier in [short-term, long-term, permanent]: bucket = filter(items, item.tier
-== tier and not item.protected) current_size = sum(item.size_bytes for item in
-bucket) while current_size > quota[tier]: candidate = min(bucket, key=lambda i:
-(i.score, i.created_at)) archive(candidate)   # move to archived state, start
-grace window current_size -= candidate.size_bytes
+  # Step 1: Enforce total user quota (total > tier sums)
+  all_items = filter(items, not item.protected)
+  total_size = sum(item.size_bytes for item in all_items)
+  while total_size > total_quota[user_id]:
+    candidate = min(all_items, key=lambda i: (i.score, i.created_at))
+    archive(candidate)
+    total_size -= candidate.size_bytes
+
+  # Step 2: Enforce per-tier quotas
+  for tier in [short-term, long-term, permanent]:
+    bucket = filter(items, item.tier == tier and not item.protected)
+    current_size = sum(item.size_bytes for item in bucket)
+    while current_size > tier_quota[tier]:
+      candidate = min(bucket, key=lambda i: (i.score, i.created_at))
+      archive(candidate)  # move to archived state, start grace window
+      current_size -= candidate.size_bytes
+```
 
 Optimization: apply a daily cap on how much data can be pruned per run to
 prevent spikes in I/O and compute.
