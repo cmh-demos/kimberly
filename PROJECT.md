@@ -33,7 +33,13 @@ integration. Target user: The developer/owner (me), seeking a customized AI comp
 - **Interoperability**: RESTful APIs for seamless third-party integrations.
 - **Auditability**: Comprehensive logging and audit trails for debugging.
 - **Future-proofing**: Modular design to accommodate AI model upgrades.
-- **Ethics**: Bias mitigation and fair AI practices.
+- **Ethics**: Bias mitigation and fair AI practices. See
+  [`docs/threat-model.md`](docs/threat-model.md) for specific techniques including:
+  - Quarterly fairness audits using BOLD and RealToxicityPrompts benchmarks
+  - Memory scoring algorithm reviews for demographic parity
+  - Runtime toxicity detection with <0.1% threshold
+  - Agent decision audit trails and bias monitoring
+  - User feedback analysis for bias indicators
 - **Cost**: Budget constraints for development and hosting.
 - **Compliance**: Adherence to AI industry standards and regulations.
 - **Scalability**: Support 10,000+ daily interactions with auto-scaling.
@@ -53,7 +59,9 @@ integration. Target user: The developer/owner (me), seeking a customized AI comp
 - Agent Limits: Max 3 concurrent with isolation protocols.
 - UI Latency: <500ms for voice responses.
 - API Specs: RESTful with OAuth for integrations.
-- Security Audits: Regular bias and privacy checks.
+- Security Audits: Regular bias and privacy checks including quarterly fairness
+  audits, annual external AI ethics reviews, and continuous toxicity monitoring.
+  See [`docs/threat-model.md`](docs/threat-model.md) for audit checklists.
 - Scalability Caps: Personal scale (e.g., 10k interactions/user).
 - Testing Coverage: 95% + AI validation.
 - Roadmap Details: Q2 2026 agent delegation.
