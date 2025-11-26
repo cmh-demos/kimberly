@@ -38,6 +38,112 @@ vulnerabilities.
 - **Encryption**: End-to-end encryption for user data (as per design).
 - **Access Control**: JWT authentication, RBAC for agents.
 
+### Encryption-at-Rest (AES-256-GCM)
+
+The `scripts/security/encryption.py` module provides AES-256-GCM
+encryption for sensitive data at rest:
+
+- **Algorithm**: AES-256-GCM with 96-bit nonces for authenticated
+  encryption
+- **Key Size**: 256 bits (32 bytes)
+- **Features**:
+  - Encrypt/decrypt bytes, strings, and JSON objects
+  - Associated Authenticated Data (AAD) support
+  - Unique random nonces per encryption operation
+
+Example usage:
+
+```python
+from scripts.security.encryption import DataEncryptor
+
+key = DataEncryptor.generate_key()
+encryptor = DataEncryptor(key, key_id="my_key")
+
+# Encrypt JSON data
+data = {"user_id": "123", "preferences": {"theme": "dark"}}
+encrypted = encryptor.encrypt_json(data)
+
+# Decrypt later
+decrypted = encryptor.decrypt_json(encrypted)
+```
+
+### Key Management Service (KMS) Integration
+
+The `scripts/security/kms.py` module provides abstract KMS interface
+with implementations for:
+
+- **LocalKMSProvider**: File-based key storage for development/testing
+  (with optional master key encryption)
+- **AWSKMSProvider**: AWS KMS integration using envelope encryption
+  for production deployments
+
+Features:
+
+- Key creation, rotation, and deletion
+- Key metadata tracking (creation time, status, description)
+- Envelope encryption for AWS KMS (data keys encrypted by CMK)
+
+Example usage:
+
+```python
+from scripts.security.kms import LocalKMSProvider, AWSKMSProvider
+
+# Development: Local file-based KMS
+kms = LocalKMSProvider(keys_dir=".keys")
+key_meta = kms.create_key(description="User data encryption")
+encryptor = kms.get_encryptor(key_meta.key_id)
+
+# Production: AWS KMS with envelope encryption
+kms = AWSKMSProvider(kms_key_id="alias/kimberly-cmk")
+```
+
+### Audit Logging for Sensitive Operations
+
+The `scripts/security/audit.py` module provides comprehensive audit
+trails for security-critical operations:
+
+- **Covered Operations**: Authentication, data access, memory CRUD,
+  encryption/decryption, key management, agent invocations, admin actions
+- **PII Sanitization**: Automatic redaction of passwords, tokens,
+  emails, SSNs, and credit card numbers
+- **Log Rotation**: Configurable max entries with automatic archiving
+- **Search**: Query audit logs by operation type, user ID, time range
+
+Supported sensitive operations (see `SensitiveOperation` enum):
+
+- `auth.login`, `auth.logout`, `auth.failed`, `auth.token_issued`
+- `data.read`, `data.write`, `data.delete`, `data.export`
+- `memory.create`, `memory.read`, `memory.update`, `memory.delete`
+- `encrypt.data`, `decrypt.data`
+- `key.create`, `key.rotate`, `key.delete`, `key.access`
+- `agent.invoke`, `agent.complete`, `agent.error`
+- `security.alert`, `security.violation`
+
+Example usage:
+
+```python
+from scripts.security.audit import get_audit_logger, SensitiveOperation
+
+audit = get_audit_logger()
+
+# Log authentication
+audit.log_auth_success(user_id="user_123", source_ip="192.168.1.1")
+
+# Log data access
+audit.log_data_access(
+    user_id="user_123",
+    resource_id="mem_456",
+    resource_type="memory",
+    action="read"
+)
+
+# Log key operation
+audit.log_key_operation("create", key_id="key_abc", user_id="admin")
+
+# Search audit log
+events = audit.search(operation="auth.login", user_id="user_123")
+```
+
 ## Known Security Considerations
 
 - Agent sandboxing is in development; avoid running untrusted agents
