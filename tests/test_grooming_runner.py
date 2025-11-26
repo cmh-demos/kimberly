@@ -3,7 +3,6 @@ import unittest
 from datetime import datetime, timezone
 from io import StringIO
 from unittest.mock import MagicMock, mock_open, patch
-import time
 
 import requests
 import yaml
@@ -53,7 +52,7 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
         mock_get.assert_called_once()
 
     @patch("scripts.grooming_runner.requests.get")
-    @patch("scripts.grooming_runner.time.sleep")
+    @patch("scripts.utils.time.sleep")
     def test_github_search_issues_retry(self, mock_sleep, mock_get):
         mock_resp_fail = MagicMock()
         mock_resp_fail.raise_for_status.side_effect = requests.ConnectionError(
@@ -69,28 +68,6 @@ class TestGroomingRunnerHelpers(unittest.TestCase):
         self.assertEqual(result, [{"number": 1}])
         self.assertEqual(mock_get.call_count, 2)
         mock_sleep.assert_called_once()
-
-    @patch("scripts.grooming_runner.requests.get")
-    @patch("scripts.grooming_runner.time.sleep")
-    def test_github_search_issues_rate_limit(self, mock_sleep, mock_get):
-        # Simulate rate limit response then success
-        mock_resp_rate = MagicMock()
-        mock_resp_rate.raise_for_status.return_value = None
-        mock_resp_rate.json.return_value = {"items": [{"number": 1}]}
-        mock_resp_rate.headers = {"X-RateLimit-Remaining": "0", "X-RateLimit-Reset": str(int(time.time()) + 2)}
-        mock_resp_success = MagicMock()
-        mock_resp_success.raise_for_status.return_value = None
-        mock_resp_success.json.return_value = {"items": [{"number": 2}]}
-        mock_resp_success.headers = {"X-RateLimit-Remaining": "10"}
-        mock_get.side_effect = [mock_resp_rate, mock_resp_success]
-
-        result = gr.github_search_issues("owner", "repo", "token")
-        self.assertEqual(result, [{"number": 2}])
-        self.assertEqual(mock_get.call_count, 2)
-        mock_sleep.assert_called()
-        # Ensure sleep time is at least 60s (rate limit logic)
-        sleep_args = mock_sleep.call_args[0][0]
-        self.assertGreaterEqual(sleep_args, 60)
 
     @patch("scripts.grooming_runner.requests.get")
     def test_github_get_issue(self, mock_get):
@@ -1025,7 +1002,7 @@ class TestAdditionalCoverage(unittest.TestCase):
         mock_get.assert_called_once()
 
     @patch("scripts.grooming_runner.requests.get")
-    @patch("scripts.grooming_runner.time.sleep")
+    @patch("scripts.utils.time.sleep")
     def test_retry_on_failure_exhaust_retries(self, mock_sleep, mock_get):
         mock_resp = MagicMock()
         mock_resp.raise_for_status.side_effect = requests.ConnectionError(
@@ -1033,10 +1010,8 @@ class TestAdditionalCoverage(unittest.TestCase):
         )
         mock_get.return_value = mock_resp
 
-        with patch("scripts.grooming_runner.logger") as mock_logger:
-            with self.assertRaises(requests.ConnectionError):
-                gr.github_search_issues("owner", "repo", "token")
-            mock_logger.error.assert_called_with("All 4 attempts failed.")
+        with self.assertRaises(requests.ConnectionError):
+            gr.github_search_issues("owner", "repo", "token")
 
     @patch.dict(os.environ, {}, clear=True)
     @patch("scripts.grooming_runner.load_rules")

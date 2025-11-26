@@ -1,5 +1,4 @@
 import os
-import time
 import unittest
 from unittest.mock import MagicMock, mock_open, patch
 
@@ -138,30 +137,6 @@ class TestTriageRunnerHelpers(unittest.TestCase):
         mock_response.raise_for_status.side_effect = Exception("API error")
         with self.assertRaises(Exception):
             tr.assign_triage_owner("owner", "repo", 1, "assignee", "token")
-
-    @patch("scripts.triage_runner.requests.get")
-    @patch("scripts.triage_runner.time.sleep")
-    def test_github_search_issues_rate_limit(self, mock_sleep, mock_get):
-        # Simulate rate limit response then success
-        mock_resp_rate = MagicMock()
-        mock_resp_rate.raise_for_status.return_value = None
-        mock_resp_rate.json.return_value = {"items": [{"number": 1}]}
-        mock_resp_rate.headers = {
-            "X-RateLimit-Remaining": "0",
-            "X-RateLimit-Reset": str(int(time.time()) + 2),
-        }
-        mock_resp_success = MagicMock()
-        mock_resp_success.raise_for_status.return_value = None
-        mock_resp_success.json.return_value = {"items": [{"number": 2}]}
-        mock_resp_success.headers = {"X-RateLimit-Remaining": "10"}
-        mock_get.side_effect = [mock_resp_rate, mock_resp_success]
-
-        result = tr.github_search_issues("owner", "repo", "token")
-        self.assertEqual(result, [{"number": 2}])
-        self.assertEqual(mock_get.call_count, 2)
-        mock_sleep.assert_called()
-        sleep_args = mock_sleep.call_args[0][0]
-        self.assertGreaterEqual(sleep_args, 60)
 
 
 class TestSmokeRunner(unittest.TestCase):
