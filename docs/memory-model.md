@@ -196,6 +196,127 @@ search.
   re-
 quantized to reduce RAM usage. ranking.
 
+## Lexical-First Retrieval (SQLite FTS5)
+
+"Lexical-first retrieval" refers to full-text search using SQLite's FTS5
+(Full-Text Search version 5) extension as the primary retrieval mechanism
+before considering embeddings or vector similarity. This approach uses
+keyword matching, tokenization, and ranking algorithms (BM25) rather than
+semantic embeddings to find relevant memory items.
+
+**Why lexical-first?**
+
+- Zero cost: no paid embedding APIs required
+- Fast: FTS5 uses inverted indices for sub-millisecond lookups
+- Interpretable: users can understand why results matched (keyword hits)
+- Offline-capable: runs entirely on local SQLite with no network calls
+
+**SQLite FTS5 Setup Example:**
+
+```sql
+-- Create a virtual FTS5 table for memory content search
+CREATE VIRTUAL TABLE memory_fts USING fts5(
+  content,
+  tags,
+  content=memory_items,
+  content_rowid=id
+);
+
+-- Populate the FTS index from existing memory items
+INSERT INTO memory_fts(rowid, content, tags)
+SELECT id, content, json_extract(metadata, '$.tags')
+FROM memory_items;
+```
+
+**Query Examples:**
+
+```sql
+-- Basic keyword search: find memories containing "coffee" or "preference"
+SELECT m.*, bm25(memory_fts) AS rank
+FROM memory_fts f
+JOIN memory_items m ON f.rowid = m.id
+WHERE memory_fts MATCH 'coffee OR preference'
+ORDER BY rank
+LIMIT 10;
+
+-- Phrase search: find exact phrase matches
+SELECT m.*, bm25(memory_fts) AS rank
+FROM memory_fts f
+JOIN memory_items m ON f.rowid = m.id
+WHERE memory_fts MATCH '"black coffee"'
+ORDER BY rank;
+
+-- Prefix search: find memories starting with "pref"
+SELECT m.*, bm25(memory_fts) AS rank
+FROM memory_fts f
+JOIN memory_items m ON f.rowid = m.id
+WHERE memory_fts MATCH 'pref*'
+ORDER BY rank;
+
+-- Combined with metadata filter: search within a specific tier
+SELECT m.*, bm25(memory_fts) AS rank
+FROM memory_fts f
+JOIN memory_items m ON f.rowid = m.id
+WHERE memory_fts MATCH 'meeting notes'
+  AND m.type = 'long-term'
+  AND json_extract(m.metadata, '$.tags') LIKE '%work%'
+ORDER BY rank
+LIMIT 5;
+```
+
+**Python Integration Example:**
+
+```python
+import sqlite3
+
+def lexical_search(query: str, tier: str = None, limit: int = 10):
+    """
+    Perform lexical-first retrieval using SQLite FTS5.
+
+    Args:
+        query: Search terms (supports FTS5 syntax: AND, OR, phrases, prefixes)
+        tier: Optional filter by memory tier (short-term, long-term, permanent)
+        limit: Maximum results to return
+
+    Returns:
+        List of matching memory items ranked by BM25 relevance
+    """
+    conn = sqlite3.connect('kimberly.db')
+    conn.row_factory = sqlite3.Row
+
+    sql = """
+        SELECT m.*, bm25(memory_fts) AS relevance_score
+        FROM memory_fts f
+        JOIN memory_items m ON f.rowid = m.id
+        WHERE memory_fts MATCH ?
+    """
+    params = [query]
+
+    if tier:
+        sql += " AND m.type = ?"
+        params.append(tier)
+
+    sql += " ORDER BY relevance_score LIMIT ?"
+    params.append(limit)
+
+    results = conn.execute(sql, params).fetchall()
+    conn.close()
+    return [dict(row) for row in results]
+
+# Usage examples:
+# lexical_search("coffee preference")  # find memories about coffee preferences
+# lexical_search("meeting AND project", tier="long-term")  # meetings in long-term tier
+# lexical_search('"API design"', limit=5)  # exact phrase match
+```
+
+**When to use embeddings instead:**
+
+Lexical search works well for exact keywords and phrases but may miss
+semantically similar content (e.g., "beverage" won't match "coffee"). If
+higher recall is needed and self-hosted embeddings are enabled, use lexical
+search for initial candidate retrieval, then re-rank using vector similarity
+as described in the hybrid scoring section above.
+
 1. Storage & architecture (cheap-by-default stack)
 
 --------------------
