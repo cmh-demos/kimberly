@@ -29,6 +29,13 @@ Environment Variables:
         (default: copilot_triage_rules.yml)
 
 This is a manual stage, activated on demand or via automation.
+
+Note about assignments in GitHub Actions:
+    The default Actions-provided GITHUB_TOKEN is a runtime token and
+    often cannot be used to assign Copilot coding agents (they require a
+    user token PAT or a user-to-server token with GraphQL access). When
+    running in Actions you should provide a PAT in secrets and use that
+    instead of the default GITHUB_TOKEN in order to assign Copilot.
 """
 
 from __future__ import annotations
@@ -267,7 +274,43 @@ def assign_issue(
         "Authorization": f"Bearer {token}",
     }
     resp = requests.patch(url, headers=headers, json={"assignees": [assignee]})
-    resp.raise_for_status()
+    try:
+        resp.raise_for_status()
+    except requests.HTTPError:
+        # Common case: 422 Unprocessable Entity when the requested assignee
+        # cannot be added via the REST API (e.g., Copilot coding agent).
+        if resp.status_code == 422 and token:
+            # If we are running inside GitHub Actions with the default
+            # GITHUB_TOKEN, this token is a runtime token with limited
+            # permissions and can't be used to assign Copilot agents via
+            # GraphQL. Avoid retry storms and fail loudly but gracefully
+            # by logging and skipping assignment instead of raising.
+            if (
+                os.environ.get("GITHUB_ACTIONS") == "true"
+                and os.environ.get("GITHUB_TOKEN") == token
+            ):
+                logger.warning(
+                    "Running in GitHub Actions with GITHUB_TOKEN: cannot "
+                    "assign Copilot agents; skipping assign for issue %s",
+                    issue_number,
+                )
+                return
+            logger.warning(
+                "REST assignment failed with 422 - attempting GraphQL "
+                "assign fallback for assignee '%s'",
+                assignee,
+            )
+            # Try GraphQL fallback to assign agents like Copilot. If that
+            # fails, re-raise the original exception so callers know.
+            try:
+                _assign_issue_via_graphql(
+                    owner, repo, issue_number, assignee, token
+                )
+                return
+            except Exception:
+                logger.exception("GraphQL assign fallback failed")
+                raise
+        raise
 
     # Check rate limit
     remaining = int(resp.headers.get("X-RateLimit-Remaining", 0))
@@ -277,6 +320,119 @@ def assign_issue(
             f"Consider pausing.",
             file=sys.stderr,
         )
+
+
+@retry_on_failure()
+def github_graphql_request(
+    token: str, query: str, variables: dict | None = None
+) -> dict:
+    """Send a GraphQL query to the GitHub API and return the parsed json.
+
+    Raises HTTPError on non-OK responses or GraphQL errors.
+    """
+    url = "https://api.github.com/graphql"
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "Authorization": f"Bearer {token}",
+    }
+    payload = {"query": query}
+    if variables:
+        payload["variables"] = variables
+
+    resp = requests.post(url, headers=headers, json=payload)
+    resp.raise_for_status()
+    body = resp.json()
+    if body.get("errors"):
+        raise requests.HTTPError(
+            "GraphQL API returned errors: %s" % body.get("errors")
+        )
+    return body.get("data", {})
+
+
+@retry_on_failure()
+def _find_actor_id_for_assignable(
+    owner: str, repo: str, token: str, candidate: str
+) -> str | None:
+    """Return a GraphQL node id for a suggested actor able to be assigned.
+
+    The query uses suggestedActors(capabilities: [CAN_BE_ASSIGNED]) and
+    attempts to find a matching login for the candidate. If none match,
+    will try reasonable fallbacks (substring / first copilot-like actor).
+    """
+    query = (
+        "query($owner:String!, $repo:String!) {"
+        " repository(owner: $owner, name: $repo) {"
+        " suggestedActors(capabilities: [CAN_BE_ASSIGNED], first: 100) {"
+        " nodes { login id __typename } } } }"
+    )
+    variables = {"owner": owner, "repo": repo}
+    data = github_graphql_request(token, query, variables)
+    nodes = (
+        data.get("repository", {}).get("suggestedActors", {}).get("nodes") or []
+    )
+
+    # Try exact login match
+    for n in nodes:
+        if n.get("login") == candidate:
+            return n.get("id")
+
+    # Try lowercased substring match
+    candidate_low = candidate.lower()
+    for n in nodes:
+        login = n.get("login", "")
+        if candidate_low in login.lower():
+            return n.get("id")
+
+    # Final fallback: find a copilot-like actor
+    for n in nodes:
+        login = n.get("login", "")
+        if "copilot" in login.lower():
+            return n.get("id")
+
+    return None
+
+
+@retry_on_failure()
+def _get_issue_node_id(
+    owner: str, repo: str, issue_number: int, token: str
+) -> str:
+    query = (
+        "query($owner:String!, $repo:String!, $num:Int!) {"
+        " repository(owner: $owner, name: $repo) {"
+        " issue(number: $num) { id } } }"
+    )
+    variables = {"owner": owner, "repo": repo, "num": issue_number}
+    data = github_graphql_request(token, query, variables)
+    issue_id = data.get("repository", {}).get("issue", {}).get("id")
+    if not issue_id:
+        raise RuntimeError("Unable to fetch issue node id via GraphQL")
+    return issue_id
+
+
+@retry_on_failure()
+def _assign_issue_via_graphql(
+    owner: str, repo: str, issue_number: int, assignee: str, token: str
+) -> None:
+    """Assign an existing issue to an actor (eg. Copilot) via GraphQL.
+
+    This implements the flow described in GitHub docs:
+    1) Find the assignable actor ID using suggestedActors
+    2) Fetch the issue node ID
+    3) Call replaceActorsForAssignable to assign by actor id
+    """
+    actor_id = _find_actor_id_for_assignable(owner, repo, token, assignee)
+    if not actor_id:
+        raise RuntimeError("No assignable actor found for '%s'" % assignee)
+
+    issue_id = _get_issue_node_id(owner, repo, issue_number, token)
+
+    mutation = (
+        "mutation($assignableId: ID!, $actorIds: [ID!]) {"
+        " replaceActorsForAssignable(input: {assignableId: $assignableId, "
+        "actorIds: $actorIds}) { assignable { ... on Issue { id } } } }"
+    )
+    variables = {"assignableId": issue_id, "actorIds": [actor_id]}
+    github_graphql_request(token, mutation, variables)
 
 
 @retry_on_failure()
@@ -735,6 +891,21 @@ def main() -> int:
             "Invalid GitHub token format. " "Ensure it's a valid GitHub token."
         )
         return 1
+
+    # Warn if running in Actions with the default GITHUB_TOKEN — this
+    # token cannot be used to assign Copilot agents via GraphQL. Users
+    # should supply a PAT with the required scopes in repository secrets
+    # if they want the groomer to assign Copilot agents.
+    if (
+        os.environ.get("GITHUB_ACTIONS") == "true"
+        and gh_token
+        and gh_token == os.environ.get("GITHUB_TOKEN")
+    ):
+        logger.warning(
+            "Using the Actions-provided GITHUB_TOKEN. Copilot agent "
+            "assignments require a user token (PAT) — assignment may "
+            "fail or be skipped. Consider supplying a PAT via secrets."
+        )
 
     if not gh_repo:
         print(
