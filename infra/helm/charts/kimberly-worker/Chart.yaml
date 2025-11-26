@@ -1,0 +1,14 @@
+apiVersion: v2
+name: kimberly-worker
+description: Helm chart for Kimberly Worker (background jobs and meditation)
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - kimberly
+  - worker
+  - jobs
+  - meditation
+maintainers:
+  - name: Kimberly Team
+home: https://github.com/cmh-demos/kimberly

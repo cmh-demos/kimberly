@@ -1,0 +1,14 @@
+apiVersion: v2
+name: kimberly-memory
+description: Helm chart for Kimberly Memory service (tiered memory API)
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - kimberly
+  - memory
+  - vector
+  - pgvector
+maintainers:
+  - name: Kimberly Team
+home: https://github.com/cmh-demos/kimberly
