@@ -142,8 +142,8 @@ Pruning rules (cost-aware):
 1. For each tier, compute current_size vs quota.
 2. If over quota, sort items by ascending score; move lowest-scoring items into
    an
-3. After a configurable grace window (e.g., 30d), items still low-scoring and
-   archived
+3. After a configurable grace window (default: 30 days), items still low-scoring
+   and archived
 4. Special-case protection: always retain items explicitly marked 'permanent' or
    flagged
 'archived-for-grace-period' bucket (retained but excluded from active
