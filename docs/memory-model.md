@@ -126,6 +126,101 @@ score = normalize( w1 \*relevance_to_goals + w2\* emotional_weight + w3
 Suggested weights (configurable per user/system): w1=0.40, w2=0.30, w3=0.20,
 w4=0.10
 
+### Weight Tuning Guide
+
+Tuning scoring weights is challenging because the optimal values depend on
+user behavior, use case, and desired memory retention patterns. This section
+provides guidance for adjusting weights to match specific needs.
+
+#### Understanding Each Weight Component
+
+| Weight | Component | What It Measures | When to Increase | When to Decrease |
+|--------|-----------|------------------|------------------|------------------|
+| w1 | relevance_to_goals | How well the memory aligns with user's active goals, projects, and tasks | Task-focused users who want memories tied to current work | Users who value serendipitous or exploratory content |
+| w2 | emotional_weight | User sentiment and explicit feedback (thumbs up/down, ratings) | Users who provide frequent feedback; want personalized retention | Users who rarely provide feedback or prefer objective scoring |
+| w3 | predictive_value | Historical usefulness (did similar memories lead to helpful actions?) | Power users with established patterns; want predictive assistance | New users or those with changing preferences |
+| w4 | recency_freq | How recently and frequently the memory was accessed | Users with fast-changing contexts; want fresh information | Users who value long-term knowledge; archives and references |
+
+#### Configuration Options
+
+Weights can be configured at three levels (in order of precedence):
+
+1. **Per-user config file** (`~/.kimberly/scoring_weights.yaml`):
+   ```yaml
+   scoring_weights:
+     relevance_to_goals: 0.35
+     emotional_weight: 0.35
+     predictive_value: 0.20
+     recency_freq: 0.10
+   ```
+
+2. **System config file** (`/etc/kimberly/scoring_weights.yaml`):
+   ```yaml
+   scoring_weights:
+     relevance_to_goals: 0.40
+     emotional_weight: 0.30
+     predictive_value: 0.20
+     recency_freq: 0.10
+   ```
+
+3. **Environment variables** (for quick testing):
+   ```bash
+   export KIMBERLY_WEIGHT_RELEVANCE=0.45
+   export KIMBERLY_WEIGHT_EMOTIONAL=0.25
+   export KIMBERLY_WEIGHT_PREDICTIVE=0.20
+   export KIMBERLY_WEIGHT_RECENCY=0.10
+   ```
+
+#### Preset Profiles
+
+For common use cases, use these preset profiles:
+
+| Profile | w1 | w2 | w3 | w4 | Best For |
+|---------|-----|-----|-----|-----|----------|
+| **balanced** (default) | 0.40 | 0.30 | 0.20 | 0.10 | General use |
+| **task-focused** | 0.55 | 0.15 | 0.20 | 0.10 | Project managers, developers |
+| **feedback-driven** | 0.25 | 0.50 | 0.15 | 0.10 | Users who rate content |
+| **fresh-context** | 0.30 | 0.20 | 0.15 | 0.35 | Fast-paced environments |
+| **archival** | 0.45 | 0.25 | 0.25 | 0.05 | Research, long-term knowledge |
+
+To use a preset:
+```yaml
+scoring_weights:
+  preset: task-focused
+```
+
+#### Tuning Best Practices
+
+1. **Start with defaults**: Begin with the balanced profile and observe
+   memory retention patterns for 1-2 weeks before adjusting.
+
+2. **Make small adjustments**: Change weights by 0.05-0.10 increments.
+   Large changes can cause unexpected pruning of important memories.
+
+3. **Ensure weights sum to 1.0**: The system normalizes weights
+   automatically, but explicit normalization improves predictability.
+
+4. **Monitor pruning metrics**: After weight changes, check
+   `memory.meditation.pruned` metrics to verify the impact.
+
+5. **Test with dry-run**: Use the meditation dry-run mode to preview
+   which memories would be pruned before applying changes:
+   ```bash
+   POST /memory/meditate?dry_run=true
+   ```
+
+6. **Document changes**: Keep a log of weight adjustments and their
+   observed effects for future reference.
+
+#### Validation Rules
+
+The system enforces these constraints on weight values:
+- Each weight must be between 0.0 and 1.0
+- All weights must sum to 1.0 (or will be auto-normalized)
+- At least one weight must be non-zero
+
+Invalid configurations will fall back to system defaults with a warning.
+
 Component detectors and signals:
 
 - relevance_to_goals: match against active goal models, project tags, and recent
