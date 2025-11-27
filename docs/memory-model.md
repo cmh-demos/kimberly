@@ -128,9 +128,8 @@ w4=0.10
 
 Component detectors and signals:
 
-- relevance_to_goals: match against active goal models, project tags, and recent
-  agent
-tasks (0..1)
+- relevance_to_goals: match against active goal models (user-defined goals or
+  system-inferred intents), project tags, and recent agent tasks (0..1)
 - emotional_weight: sentiment + explicit user signals (0..1)
 - predictive_value: past-match usability (did similar items lead to useful
   actions?)
