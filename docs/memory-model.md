@@ -178,9 +178,10 @@ locally generated.
 
 3. Re-rank by a hybrid score: lambda *semantic_similarity + (1-lambda)*
    memory_score +
-freshness_boost. Example: filter candidates by tag="preference" (or other
-metadata) and then re-rank the filtered set using cosine similarity over vectors
-for top-K relevance.
+freshness_boost (default lambda=0.5; configurable per user/system to weight
+semantic vs. memory-score emphasis). Example: filter candidates by
+tag="preference" (or other metadata) and then re-rank the filtered set using
+cosine similarity over vectors for top-K relevance.
 4. Return top-K for prompt context.
 
 Performance tips (free-mode):
