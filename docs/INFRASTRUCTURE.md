@@ -266,7 +266,7 @@ Fly.io
 
 Design owner ------------
 
-Infra / SRE — <infra@kimberly.local> (placeholder)
+Infra / SRE — See repository maintainers
 
 ## Operations and Observability
 

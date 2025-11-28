@@ -54,7 +54,7 @@ Deliverables & next steps -------------------------
 
 Owner / contact ---------------
 
-Design owner: <product-design@kimberly.local> (placeholder)
+Design owner: See repository maintainers
 
 Notes -----
 
