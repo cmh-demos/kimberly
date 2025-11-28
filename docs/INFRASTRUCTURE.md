@@ -259,8 +259,8 @@ that targets the free-first bootstrap.
 
 Reference files in this repo ---------------------------
 
-- `docs/deployment-appendix.md` — existing notes recommending Oracle Always Free and
-Fly.io
+- [Deployment Appendix](#deployment-appendix) — bootstrap options, supported providers,
+and migration steps (see section below)
 - `docs/decisions/ADR-0004.md` — deployment model decision in this repo
 - `docs/memory-model.md` — canonical memory model we must implement and support
 
@@ -817,12 +817,63 @@ dev/staging clusters.
 This appendix summarizes recommended bootstrap options, portability guidance, and local
 development tips.
 
+### Supported Providers
+
+The following providers are tested and supported for Kimberly deployments:
+
+| Provider | Type | Tier | Best For |
+| -------- | ---- | ---- | -------- |
+| **Local (kind/k3d)** | Self-hosted | Free | Development and testing |
+| **Oracle Cloud Always Free** | Self-managed VMs | Free | Proof-of-concept, low-cost hosting |
+| **Fly.io** | Managed PaaS | Free tier available | Quick deployments, minimal ops |
+| **AWS (EKS)** | Managed Kubernetes | Paid | Production at scale |
+| **GCP (GKE)** | Managed Kubernetes | Paid | Production at scale |
+| **Azure (AKS)** | Managed Kubernetes | Paid | Production at scale |
+
 ### Bootstrap provider options (short)
 
 - Oracle Cloud Always Free — self-managed VMs (run k3s/k0s): pros — predictable free
 tier, full control; cons — more ops work (maintenance, upgrades).
 - Fly.io — managed app platform (simpler deployments): pros — fast setup, minimal infra;
 cons — not full-featured K8s, potential limits when scaling.
+
+### Migration Steps
+
+#### Local to Oracle Cloud Always Free
+
+1. Export your local k3d/kind configurations and Helm values
+2. Provision Oracle Cloud VMs using the free tier (2 AMD instances recommended)
+3. Install k3s on the VMs:
+   `curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=v1.28.2+k3s1 sh -s - --disable=traefik`
+4. Copy kubeconfig from the remote cluster to your local machine
+5. Apply existing Helm charts and manifests to the new cluster
+6. Update DNS/ingress to point to Oracle Cloud IPs
+7. Verify services are running: `kubectl get pods --all-namespaces`
+
+#### Oracle Cloud / Local to Fly.io
+
+1. Export application container images to `ghcr.io` (provider-agnostic registry)
+2. Create a `fly.toml` configuration for each service
+3. Deploy stateless services: `fly deploy`
+4. Provision Fly Postgres for database: `fly postgres create`
+5. Migrate data (plan for downtime during transfer):
+   `pg_dump -h source_host -U user dbname | fly postgres connect -a target-app -c "psql"`
+6. Configure secrets: `fly secrets set KEY=value`
+7. Update DNS to Fly.io-provided hostnames
+
+#### Any Provider to Managed Kubernetes (EKS/GKE/AKS)
+
+1. Ensure all manifests are provider-agnostic (no cloud-specific annotations)
+2. Create managed Kubernetes cluster using Terraform or provider CLI
+3. Configure `kubectl` context for the new cluster
+4. Deploy ingress controller (nginx-ingress or cloud-native option)
+5. Apply Helm charts: `helm upgrade --install <release> <chart>`
+6. Migrate stateful data (plan for downtime):
+   - Postgres: `pg_dump -h source -U user db | psql -h target -U user -d db`
+   - Redis: Use `redis-cli --rdb` or provider migration tools
+   - Object storage: Use `rclone sync` or provider-native transfer tools
+7. Update DNS records and TLS certificates
+8. Run smoke tests and verify SLOs
 
 ### Portability & migration guardrails
 
@@ -831,6 +882,9 @@ cons — not full-featured K8s, potential limits when scaling.
 between providers.
 - Use `ghcr.io` (GitHub Container Registry) for images to avoid cloud-specific
 registries.
+- Avoid provider-specific Kubernetes annotations in early deployments.
+- Test migrations in staging before applying to production.
+- Document any provider-specific customizations in `docs/decisions/` as ADRs.
 
 ### Local development tips
 
