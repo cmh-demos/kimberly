@@ -403,7 +403,7 @@ harm if current Critical/High the risk occurs. state. risks first.
 | R-007 | No CI pipelines for tests/quality/validation | Developer Experience / Risk | High | Likely | High |Add GitHub Actions for linting, unit tests, openapi validation, copilot_tracking schema checks.| PR checks status | @dev TBD | Active — onboarding CI |
 | R-008 | No AI-quality tests (hallucinations, bias, memory accuracy) | Quality | High | Likely | High |Create an AI test harness and regression suite (acceptance tests for memory correctness, hallucination detection, fairness checks).| Test failures & regression alerts | @ml TBD | Planned |
 | R-009 |Agent sandboxing insufficient — agents may leak secrets or take destructive actions| Security / Safety | Critical | Possible | Critical |Define agent capability model, deny list for I/O, require policy enforcement and per-agent resource limits (CPU, memory, network).| Unit tests, agent traces, policy violation alerts | @engineering TBD | Active — design required |
-| R-010 | Backup & Disaster Recovery untested (RPO/RTO unknown) | Operations | High | Possible | High |Document RPO/RTO, implement daily backups, periodic restore drills, store backups encrypted and off- site.| Restore drills, backup health metrics | @ops TBD | Planned |
+| R-010 | Backup & Disaster Recovery untested (RPO/RTO unknown) | Operations | High | Possible | High |Document RPO/RTO, implement daily backups, periodic restore drills, store backups encrypted and off-site. See [DISASTER_RECOVERY.md](docs/DISASTER_RECOVERY.md).| Restore drills, backup health metrics | @ops | Implemented — daily backup workflow and restore verification scripts added |
 
 ---
 
