@@ -1,5 +1,5 @@
 fastapi==0.122.0
-pydantic==2.5.0
+pydantic==2.12.5
 python-jose[cryptography]==3.4.0
 passlib==1.7.4
 redis==3.5.3
