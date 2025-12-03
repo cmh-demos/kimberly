@@ -1,0 +1,9 @@
+---
+blank_issues_enabled: false
+contact_links:
+  - name: Contributing Guidelines
+    url: https://github.com/cmh-demos/kimberly/blob/main/CONTRIBUTING.md
+    about: Please read our contributing guidelines before opening an issue.
+  - name: Security Vulnerabilities
+    url: https://github.com/cmh-demos/kimberly/blob/main/SECURITY.md
+    about: For security vulnerabilities, please follow our security policy.
