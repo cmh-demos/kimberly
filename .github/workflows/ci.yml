@@ -32,7 +32,7 @@ jobs:
       - name: Check imports with isort
         run: isort --check-only .
       - name: Lint Markdown
-        uses: DavidAnson/markdownlint-cli2-action@v16
+        uses: DavidAnson/markdownlint-cli2-action@v22
       - name: Lint YAML
         run: yamllint .
 
