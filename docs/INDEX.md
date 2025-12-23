@@ -19,6 +19,7 @@ documentation in this repository. Use this page as a navigation hub.
 - SECURITY_AND_RISKS.md — Security policy, threat model, risk register
 - FREE_RUNBOOK.md — Free-mode runbook and bootstrap guidance
 - FREE_HOSTING.md — Free hosting options & bootstrap choices
+- ML_CICD.md — ML model CI/CD custom scripts and tools (docs/ML_CICD.md)
 - WIREFRAMES/ — Wireframes and visual assets (docs/wireframes)
 
 If you'd like a different set of top-level links (for example: reduced subset for a
